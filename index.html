@@ -151,50 +151,43 @@
     }
 
     .logo{
-      display:flex;
-      align-items:center;
-      gap:14px;
-    }
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
 
-    .logo-icon{
-      width:44px;
-      height:44px;
-      position:relative;
-      transform:rotate(45deg);
-      border:2px solid rgba(255,255,255,.14);
-      border-radius:10px;
-      background:#10192d;
-    }
+.logo-icon{
+  width:48px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
 
-    .logo-icon::before{
-      content:'';
-      width:12px;
-      height:12px;
-      border-radius:50%;
-      background:var(--primary);
-      position:absolute;
-      top:-8px;
-      left:50%;
-      transform:translateX(-50%) rotate(-45deg);
-      box-shadow:0 0 22px rgba(255,190,70,.6);
-    }
+.logo-icon img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
 
-    .logo-text{
-      display:flex;
-      flex-direction:column;
-    }
+.logo-text{
+  display:flex;
+  flex-direction:column;
+}
 
-    .logo-text strong{
-      font-size:1rem;
-      letter-spacing:.2em;
-    }
+.logo-text strong{
+  font-size:1rem;
+  letter-spacing:.2em;
+}
 
-    .logo-text span{
-      font-size:.68rem;
-      color:var(--muted);
-      letter-spacing:.14em;
-      margin-top:3px;
-    }
+.logo-text span{
+  font-size:.68rem;
+  color:var(--muted);
+  letter-spacing:.14em;
+  margin-top:3px;
+}
 
     .nav-links{
       display:flex;
