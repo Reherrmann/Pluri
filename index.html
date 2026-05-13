@@ -855,80 +855,225 @@
 
     /* Responsive */
 
-    @media(max-width:1024px){
+    /* =========================
+   AJUSTES DESKTOP / ESCALA
+   SUBSTITUA APENAS O CSS
+   RESPONSIVE PELO ABAIXO
+========================= */
 
-      .hero-grid,
-      .solution-grid,
-      .testimonial-grid,
-      .cards-3,
-      .plans-grid{
-        grid-template-columns:1fr;
-      }
+/* DESKTOP GRANDE */
 
-      .adv-grid{
-        grid-template-columns:1fr 1fr;
-      }
+@media(min-width:1400px){
 
-      .solution-grid{
-        grid-template-columns:1fr 1fr;
-      }
+  .container{
+    width:min(1320px, 88%);
+  }
 
-      .hero{
-        padding-top:150px;
-      }
+  .hero-grid{
+    grid-template-columns:1.05fr .95fr;
+    gap:90px;
+    align-items:center;
+  }
 
-      .nav-links{
-        display:none;
-      }
-    }
+  h1{
+    font-size:clamp(4.5rem, 5vw, 6.2rem);
+    line-height:1.02;
+    max-width:820px;
+  }
 
-    @media(max-width:768px){
+  h2{
+    font-size:clamp(3rem, 3vw, 4.2rem);
+  }
 
-      .section{
-        padding:90px 0;
-      }
+  .hero-subtitle{
+    max-width:680px;
+    font-size:1.18rem;
+  }
 
-      .how-grid{
-        grid-template-columns:1fr;
-      }
+  .mockup{
+    max-width:520px;
+    width:100%;
+    margin-left:auto;
+  }
 
-      .connector{
-        display:none;
-      }
+  .cards-3{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:28px;
+  }
 
-      .adv-grid{
-        grid-template-columns:1fr;
-      }
+  .solution-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
 
-      .solution-grid{
-        grid-template-columns:1fr;
-      }
+  .testimonial-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
 
-      .footer-top{
-        flex-direction:column;
-        align-items:flex-start;
-      }
+  .adv-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
 
-      .hero-buttons{
-        flex-direction:column;
-        align-items:stretch;
-      }
+  .plans-grid{
+    grid-template-columns:minmax(0,1fr);
+    max-width:760px;
+    margin:60px auto 0;
+  }
 
-      .btn{
-        width:100%;
-      }
+  .plan{
+    padding:48px;
+  }
 
-      .floating-wa span{
-        display:none;
-      }
+  .cta-box{
+    padding:90px 10%;
+  }
 
-      .floating-wa{
-        width:60px;
-        height:60px;
-        padding:0;
-        justify-content:center;
-      }
-    }
+}
+
+
+/* NOTEBOOKS / DESKTOP MENOR */
+
+@media(max-width:1399px){
+
+  .container{
+    width:min(1180px, 92%);
+  }
+
+  .hero-grid{
+    gap:60px;
+  }
+
+  h1{
+    font-size:clamp(3.4rem, 5vw, 5.2rem);
+    line-height:1.05;
+  }
+
+  .mockup{
+    width:100%;
+    max-width:470px;
+    margin-left:auto;
+  }
+
+}
+
+
+/* TABLET */
+
+@media(max-width:1024px){
+
+  .hero-grid,
+  .testimonial-grid,
+  .cards-3,
+  .plans-grid{
+    grid-template-columns:1fr;
+  }
+
+  .solution-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .adv-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .hero{
+    padding-top:150px;
+  }
+
+  .hero-grid{
+    gap:50px;
+  }
+
+  .mockup{
+    margin:0 auto;
+    max-width:520px;
+  }
+
+  .nav-links{
+    display:none;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+  .section{
+    padding:90px 0;
+  }
+
+  .container{
+    width:min(100%, 92%);
+  }
+
+  .hero{
+    padding-top:130px;
+    padding-bottom:80px;
+  }
+
+  .hero-grid{
+    grid-template-columns:1fr;
+    gap:42px;
+  }
+
+  h1{
+    font-size:clamp(2.7rem, 11vw, 4rem);
+    line-height:1.08;
+  }
+
+  h2{
+    font-size:clamp(2rem, 8vw, 3rem);
+  }
+
+  .hero-subtitle{
+    font-size:1rem;
+  }
+
+  .mockup{
+    max-width:100%;
+  }
+
+  .how-grid{
+    grid-template-columns:1fr;
+  }
+
+  .connector{
+    display:none;
+  }
+
+  .adv-grid,
+  .solution-grid,
+  .testimonial-grid{
+    grid-template-columns:1fr;
+  }
+
+  .footer-top{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .hero-buttons{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  .floating-wa span{
+    display:none;
+  }
+
+  .floating-wa{
+    width:60px;
+    height:60px;
+    padding:0;
+    justify-content:center;
+  }
+
+}
   </style>
 </head>
 
