@@ -794,37 +794,6 @@
             font-size: 1.2rem;
         }
 
-        /* advantages */
-        .adv-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 22px;
-            margin-top: 55px;
-        }
-
-        .adv-card {
-            background: #111827;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 22px;
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-        }
-
-        .check {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: rgba(255, 190, 70, .14);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
         /* RESULTADOS / TRANSFORMAÇÃO */
         .results-grid {
             display: grid;
@@ -1166,9 +1135,6 @@
             .solution-grid {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
             }
-            .adv-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
             .results-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 50px;
@@ -1248,9 +1214,6 @@
             .solution-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .adv-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
             .segments-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
@@ -1327,7 +1290,6 @@
             .connector {
                 display: none;
             }
-            .adv-grid,
             .solution-grid,
             .results-grid {
                 grid-template-columns: 1fr;
@@ -1414,7 +1376,7 @@
             <div class="nav-links">
                 <a href="#solucao">Solução</a>
                 <a href="#demonstracao">Demonstração</a>
-                <a href="#como-funciona">Como funciona</a>
+                <a href="#demonstracao">Como funciona</a>  <!-- agora aponta para a seção fundida -->
                 <a href="#resultados">Resultados</a>
                 <a href="#planos">Planos</a>
                 <a href="#faq">FAQ</a>
@@ -1688,7 +1650,7 @@
     </div>
 </section>
 
-<!-- DEMONSTRAÇÃO VISUAL -->
+<!-- DEMONSTRAÇÃO + COMO FUNCIONA (FUNDIDO) -->
 <section class="section" id="demonstracao">
     <div class="container">
         <div class="label fade-up">DEMONSTRAÇÃO</div>
@@ -1778,6 +1740,48 @@
                 <span>LGPD Compliance</span>
             </div>
         </div>
+
+        <!-- Como funciona (parte integrada) -->
+        <div style="margin-top: 100px;">
+            <div class="label fade-up">COMO FUNCIONA</div>
+            <h2 class="fade-up">
+                Simples como mandar uma
+                <span class="gradient-text">mensagem</span>
+            </h2>
+            <div class="how-grid">
+                <div class="connector"></div>
+                <div class="step fade-up">
+                    <div class="step-icon">
+                        <div class="step-badge">1</div>
+                        <i data-lucide="message-circle"></i>
+                    </div>
+                    <h3>Cliente manda mensagem</h3>
+                    <p>
+                        O cliente escreve no WhatsApp como faria normalmente — em qualquer horário do dia.
+                    </p>
+                </div>
+                <div class="step fade-up">
+                    <div class="step-icon">
+                        <div class="step-badge">2</div>
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <h3>A IA entende e responde na hora</h3>
+                    <p>
+                        A secretária virtual identifica a intenção, responde dúvidas e oferece horários disponíveis.
+                    </p>
+                </div>
+                <div class="step fade-up">
+                    <div class="step-icon">
+                        <div class="step-badge">3</div>
+                        <i data-lucide="calendar-days"></i>
+                    </div>
+                    <h3>Agendamento confirmado</h3>
+                    <p>
+                        Confirmação automática direto no Google Agenda, com lembretes para reduzir faltas.
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -1812,88 +1816,6 @@
                 <p>
                     Empresas conseguem crescer sem depender de aumentar equipe para tarefas repetitivas.
                 </p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- HOW -->
-<section class="section" id="como-funciona">
-    <div class="container">
-        <div class="label fade-up">COMO FUNCIONA</div>
-        <h2 class="fade-up">
-            Simples como mandar uma
-            <span class="gradient-text">mensagem</span>
-        </h2>
-        <div class="how-grid">
-            <div class="connector"></div>
-            <div class="step fade-up">
-                <div class="step-icon">
-                    <div class="step-badge">1</div>
-                    <i data-lucide="message-circle"></i>
-                </div>
-                <h3>Cliente manda mensagem</h3>
-                <p>
-                    O cliente escreve no WhatsApp como faria normalmente — em qualquer horário do dia.
-                </p>
-            </div>
-            <div class="step fade-up">
-                <div class="step-icon">
-                    <div class="step-badge">2</div>
-                    <i data-lucide="zap"></i>
-                </div>
-                <h3>A IA entende e responde na hora</h3>
-                <p>
-                    A secretária virtual identifica a intenção, responde dúvidas e oferece horários disponíveis.
-                </p>
-            </div>
-            <div class="step fade-up">
-                <div class="step-icon">
-                    <div class="step-badge">3</div>
-                    <i data-lucide="calendar-days"></i>
-                </div>
-                <h3>Agendamento confirmado</h3>
-                <p>
-                    Confirmação automática direto no Google Agenda, com lembretes para reduzir faltas.
-                </p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- VANTAGENS -->
-<section class="section">
-    <div class="container">
-        <div class="label fade-up">VANTAGENS</div>
-        <h2 class="fade-up">
-            Por que sua empresa precisa
-            <span style="color:#ffbe46;">disso</span>
-            <span style="color:#4a9eff;">agora?</span>
-        </h2>
-        <div class="adv-grid">
-            <div class="adv-card fade-up">
-                <div class="check"><i data-lucide="check"></i></div>
-                <p><strong style="color:#fff; display:block; margin-bottom:4px;">Nunca mais perde cliente</strong> por demora no atendimento</p>
-            </div>
-            <div class="adv-card fade-up">
-                <div class="check"><i data-lucide="check"></i></div>
-                <p><strong style="color:#fff; display:block; margin-bottom:4px;">Agenda organizada</strong> e sem conflitos</p>
-            </div>
-            <div class="adv-card fade-up">
-                <div class="check"><i data-lucide="check"></i></div>
-                <p><strong style="color:#fff; display:block; margin-bottom:4px;">Integração direta</strong> com Google Agenda</p>
-            </div>
-            <div class="adv-card fade-up">
-                <div class="check"><i data-lucide="check"></i></div>
-                <p><strong style="color:#fff; display:block; margin-bottom:4px;">Funciona no seu número</strong> de WhatsApp atual</p>
-            </div>
-            <div class="adv-card fade-up">
-                <div class="check"><i data-lucide="check"></i></div>
-                <p><strong style="color:#fff; display:block; margin-bottom:4px;">Suporte e manutenção</strong> inclusos</p>
-            </div>
-            <div class="adv-card fade-up">
-                <div class="check"><i data-lucide="check"></i></div>
-                <p><strong style="color:#fff; display:block; margin-bottom:4px;">Relatórios mensais</strong> de performance</p>
             </div>
         </div>
     </div>
