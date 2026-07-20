@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Comercial PLURI v1.1</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js">
+    </script>
+
+    <style>
+        :root {
+            --navy: #002C47;
+            --navy-light: #003d61;
+            --navy-dark: #001a2b;
+            --yellow: #FFBE46;
+            --yellow-light: #FFD580;
+            --yellow-dark: #e6a800;
+            --white: #FFFFFF;
+            --bg: #F3F4F6;
+            --bg-secondary: #F9FAFB;
+            --card-bg: #FFFFFF;
+            --text: #111827;
+            --text-secondary: #4B5563;
+            --text-tertiary: #9CA3AF;
+            --border: #E5E7EB;
+            --border-light: #F3F4F6;
+            --success: #10B981;
+            --success-bg: #ECFDF5;
+            --danger: #EF4444;
+            --danger-bg: #FEF2F2;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --info-bg: #EFF6FF;
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.05);
+            --shadow-glow-yellow: 0 0 0 4px rgba(255, 190, 70, 0.25);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --sidebar-width: 268px;
+            --header-height: 82px;
+            --progress-height: 4px;
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: calc(var(--header-height) + 16px);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            padding-top: var(--header-height);
+        }
+
+        /* ============ PROGRESS BAR ============ */
+        .progress-bar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            height: var(--progress-height);
+            background: linear-gradient(90deg, var(--yellow), #f59e0b);
+            z-index: 149;
+            width: 0%;
+            transition: width 0.1s linear;
+            border-radius: 0 2px 2px 0;
+            box-shadow: 0 0 8px rgba(255, 190, 70, 0.5);
+        }
+
+        /* ============ HEADER FIXO ============ */
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: rgba(0, 44, 71, 0.95);
+            backdrop-filter: blur(12px);
+            color: #fff;
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            gap: 16px;
+            flex-shrink: 0;
+            transition: 0.3s ease;
+        }
+        .app-header.scrolled {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+        .header-logo-icon {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .header-brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .header-brand-text .brand-name {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.2em;
+            color: #fff;
+        }
+        .header-brand-text .brand-sub {
+            font-size: 0.68rem;
+            font-weight: 400;
+            opacity: 0.7;
+            letter-spacing: 0.14em;
+            margin-top: 3px;
+            text-transform: uppercase;
+        }
+        .header-whatsapp {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #25D366;
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: -0.1px;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 12px 35px rgba(37, 211, 102, 0.25);
+        }
+        .header-whatsapp:hover {
+            background: #20bd5a;
+            transform: translateY(-2px);
+            box-shadow: 0 16px 40px rgba(37, 211, 102, 0.35);
+        }
+        .header-whatsapp i {
+            width: 18px;
+            height: 18px;
+        }
+        .header-whatsapp span {
+            display: inline;
+        }
+        @media (max-width: 500px) {
+            .header-whatsapp span {
+                display: none;
+            }
+            .header-whatsapp {
+                padding: 12px 16px;
+            }
+            .app-header {
+                padding: 0 12px;
+            }
+        }
+
+        /* ============ FLOATING WHATSAPP BUTTON ============ */
+        .floating-whatsapp {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 130;
+            width: 60px;
+            height: 60px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.4);
+            transition: all var(--transition);
+            cursor: pointer;
+            text-decoration: none;
+            animation: float 3s ease-in-out infinite;
+        }
+        .floating-whatsapp:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 40px rgba(37, 211, 102, 0.55);
+            animation: none;
+        }
+        .floating-whatsapp i {
+            width: 28px;
+            height: 28px;
+            color: #fff;
+        }
+        .floating-whatsapp .tooltip {
+            position: absolute;
+            right: 70px;
+            background: #1F2937;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition);
+        }
+        .floating-whatsapp:hover .tooltip {
+            opacity: 1;
+        }
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        @media (max-width: 768px) {
+            .floating-whatsapp {
+                bottom: 20px;
+                right: 16px;
+                width: 52px;
+                height: 52px;
+            }
+            .floating-whatsapp i {
+                width: 24px;
+                height: 24px;
+            }
+            .floating-whatsapp .tooltip {
+                display: none;
+            }
+        }
+
+        /* ============ APP LAYOUT ============ */
+        .app-container {
+            display: flex;
+            min-height: calc(100vh - var(--header-height));
+            position: relative;
+        }
+
+        /* ============ SIDEBAR OVERLAY (MOBILE) ============ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 90;
+            opacity: 0;
+            transition: opacity var(--transition);
+            pointer-events: none;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ============ SIDEBAR ============ */
+        .sidebar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background: var(--navy);
+            color: var(--white);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: transform var(--transition-slow);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 4px;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+            letter-spacing: -0.1px;
+            position: relative;
+        }
+        .sidebar-nav a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+        .sidebar-nav a.active {
+            background: rgba(255, 190, 70, 0.15);
+            color: var(--yellow);
+            font-weight: 600;
+        }
+        .sidebar-nav a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 3px;
+            background: var(--yellow);
+            border-radius: 0 4px 4px 0;
+        }
+        .sidebar-nav a i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            opacity: 0.85;
+        }
+        .sidebar-nav a.active i {
+            opacity: 1;
+            color: var(--yellow);
+        }
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 11px;
+            opacity: 0.55;
+            text-align: center;
+            flex-shrink: 0;
+            letter-spacing: 0.2px;
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 28px 32px 40px;
+            max-width: 1100px;
+            width: 100%;
+            transition: margin-left var(--transition-slow);
+        }
+
+        /* ============ MOBILE MENU TOGGLE ============ */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: calc(var(--header-height) + 12px);
+            left: 16px;
+            z-index: 110;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-fast);
+        }
+        .menu-toggle:hover {
+            background: var(--navy-light);
+            transform: scale(1.04);
+        }
+        .menu-toggle:active {
+            transform: scale(0.96);
+        }
+
+        /* ============ SCROLL REVEAL ============ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============ SECTION STYLES ============ */
+        .section {
+            margin-bottom: 40px;
+            scroll-margin-top: calc(var(--header-height) + 16px);
+        }
+        .section-header {
+            margin-bottom: 20px;
+        }
+        .section-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--navy);
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-header h2 i {
+            color: var(--yellow);
+            width: 26px;
+            height: 26px;
+        }
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        /* ============ TWO-COLUMN LAYOUT ============ */
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .two-col-grid .section {
+            margin-bottom: 0;
+        }
+
+        /* ============ CARD BASE ============ */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .card-accent {
+            border-left: 4px solid var(--yellow);
+        }
+        .card-glow {
+            box-shadow: var(--shadow-md);
+        }
+        .card-glow:hover {
+            box-shadow: var(--shadow-lg), var(--shadow-glow-yellow);
+        }
+        .card-blue {
+            background: linear-gradient(135deg, #F0F7FF 0%, #FAFCFF 100%);
+            border: 1.5px solid #BFDBFE;
+        }
+        .card-red {
+            background: #FFF5F5;
+            border: 1px solid #FECACA;
+        }
+        .card-green {
+            background: #F0FDF4;
+            border: 1px solid #86EFAC;
+        }
+        .card-yellow {
+            background: linear-gradient(135deg, #FFFDF5, #FFFBEB);
+            border: 2px solid var(--yellow);
+            box-shadow: var(--shadow-md);
+        }
+        .card-gray {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+        }
+
+        /* ============ HERO ============ */
+        .hero-section {
+            margin-bottom: 36px;
+            margin-top: 8px;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--info-bg);
+            color: var(--info);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.2px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        .hero-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 8px;
+        }
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .hero-highlight-card {
+            background: linear-gradient(135deg, #fffdf7 0%, #fff 100%);
+            border: 1.5px solid var(--yellow);
+            border-radius: var(--radius-lg);
+            padding: 18px 22px;
+            font-size: 14.5px;
+            color: var(--navy);
+            font-weight: 500;
+            line-height: 1.6;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+        .hero-highlight-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background: var(--yellow);
+            border-radius: 0 0 6px 6px;
+        }
+        .hero-highlight-card strong {
+            color: var(--navy);
+            font-weight: 700;
+        }
+
+        /* ============ MISSION / VISION / VALUES CARDS ============ */
+        .mvv-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .mvv-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 22px 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+            text-align: center;
+        }
+        .mvv-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            border-color: var(--yellow);
+        }
+        .mvv-card i {
+            width: 32px;
+            height: 32px;
+            color: var(--yellow);
+            margin-bottom: 10px;
+        }
+        .mvv-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+        .mvv-card p,
+        .mvv-card ul {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            list-style: none;
+            padding: 0;
+        }
+        .mvv-card ul li {
+            padding: 2px 0;
+        }
+
+        /* ============ SELL / DONT SELL ============ */
+        .sell-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .sell-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sell-column h3 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sell-column.dont h3 {
+            color: #DC2626;
+        }
+        .sell-column.do h3 {
+            color: #059669;
+        }
+        .sell-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            background: var(--bg-secondary);
+            border: 1px solid transparent;
+        }
+        .sell-column.dont .sell-item {
+            background: #FEF2F2;
+            color: #991B1B;
+            border-color: #FECACA;
+        }
+        .sell-column.do .sell-item {
+            background: #ECFDF5;
+            color: #065F46;
+            border-color: #A7F3D0;
+        }
+        .sell-item i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        .sell-conclusion {
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--navy);
+            padding: 14px 20px;
+            background: #FFFDF5;
+            border-radius: var(--radius);
+            border: 1px dashed var(--yellow);
+            letter-spacing: -0.2px;
+        }
+
+        /* ============ BENEFITS GRID ============ */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .benefit-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text);
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-xs);
+            cursor: default;
+        }
+        .benefit-card:hover {
+            border-color: var(--yellow);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            background: #FFFEFA;
+        }
+        .benefit-card i {
+            width: 20px;
+            height: 20px;
+            color: var(--navy);
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        /* ============ EXAMPLE CARD ============ */
+        .example-card {
+            background: linear-gradient(135deg, #F0FDF4 0%, #FAFFF5 100%);
+            border: 1.5px solid #86EFAC;
+            border-radius: var(--radius-lg);
+            padding: 22px 26px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+        .example-card h3 {
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 12px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scenario {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 12px 0;
+        }
+        .scenario-block {
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+        .scenario-block.without {
+            background: #FFF5F5;
+            border: 1px solid #FECACA;
+            color: #991B1B;
+        }
+        .scenario-block.with {
+            background: #F0FDF4;
+            border: 1px solid #86EFAC;
+            color: #065F46;
+        }
+        .example-result {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--navy);
+            margin-top: 10px;
+            text-align: center;
+            padding: 10px;
+            background: #FFFDF5;
+            border-radius: var(--radius-sm);
+            border: 1px dashed var(--yellow);
+        }
+
+        /* ============ EXPLAIN BOX ============ */
+        .explain-box {
+            background: linear-gradient(135deg, #F0F7FF 0%, #FAFCFF 100%);
+            border: 1.5px solid #BFDBFE;
+            border-radius: var(--radius-lg);
+            padding: 22px 26px;
+            font-size: 15px;
+            color: var(--navy);
+            line-height: 1.7;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+        .explain-box .highlight-quote {
+            display: block;
+            margin-top: 14px;
+            font-weight: 600;
+            color: #1E40AF;
+            font-size: 14.5px;
+            padding-top: 12px;
+            border-top: 1px solid #BFDBFE;
+            letter-spacing: -0.2px;
+        }
+
+        /* ============ GOLDEN RULE CARD ============ */
+        .golden-rule-card {
+            background: linear-gradient(135deg, #FFFDF5 0%, #FFFBEB 100%);
+            border: 2px solid var(--yellow);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            box-shadow: var(--shadow-md);
+        }
+        .golden-rule-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .golden-rule-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .golden-rule-card ul li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--navy);
+            padding: 8px 0;
+            border-bottom: 1px solid #FFF0C4;
+        }
+        .golden-rule-card ul li i {
+            color: var(--yellow-dark);
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* ============ AUDIENCE GRID ============ */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .audience-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text);
+            transition: all var(--transition-fast);
+            cursor: default;
+            box-shadow: var(--shadow-xs);
+        }
+        .audience-card:hover {
+            border-color: var(--yellow);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            background: #FFFEFA;
+        }
+        .audience-card i {
+            width: 20px;
+            height: 20px;
+            color: var(--navy);
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+        .avoid-block {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+        }
+        .avoid-block strong {
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .avoid-block ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .avoid-block ul li::before {
+            content: '•';
+            color: #9CA3AF;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        /* ============ CHECKLIST ============ */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            background: var(--card-bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 14px;
+            font-weight: 500;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .checklist-item:hover {
+            border-color: #D1D5DB;
+            background: #FAFBFC;
+        }
+        .checklist-item.checked {
+            background: #F0FDF4;
+            border-color: #86EFAC;
+        }
+        .checklist-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #D1D5DB;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            background: #fff;
+        }
+        .checklist-item.checked .checklist-checkbox {
+            background: #10B981;
+            border-color: #10B981;
+        }
+        .checklist-checkbox i {
+            width: 14px;
+            height: 14px;
+            color: #fff;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all var(--transition-fast);
+        }
+        .checklist-item.checked .checklist-checkbox i {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .checklist-highlight {
+            display: none;
+            margin-top: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #FFFDF5, #FFF8E1);
+            border: 2px solid var(--yellow);
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--navy);
+            text-align: center;
+            animation: fadeInUp 0.4s ease;
+            box-shadow: var(--shadow-md);
+        }
+        .checklist-highlight.visible {
+            display: block;
+        }
+        .checklist-counter {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 8px;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============ OFFER CARDS ============ */
+        .offer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .offer-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px 20px;
+            border: 2px solid var(--border-light);
+            text-align: center;
+            transition: all var(--transition);
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+        .offer-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        .offer-card.featured {
+            border-color: var(--yellow);
+            box-shadow: var(--shadow-md), 0 0 0 6px rgba(255, 190, 70, 0.08);
+            background: linear-gradient(180deg, #FFFEFA 0%, #fff 30%);
+        }
+        .offer-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .offer-badge.special {
+            background: #FFF3D6;
+            color: #B45309;
+        }
+        .offer-badge.official {
+            background: #E5E7EB;
+            color: #4B5563;
+        }
+        .offer-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+        .offer-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .offer-price-row:last-child {
+            border-bottom: none;
+        }
+        .offer-price-row .label {
+            font-weight: 500;
+        }
+        .offer-price-row .value {
+            font-weight: 700;
+            color: var(--navy);
+            font-size: 15px;
+        }
+        .offer-price-row .value.big {
+            font-size: 20px;
+            color: var(--navy);
+        }
+
+        /* ============ SCRIPT BOX ============ */
+        .script-box {
+            background: #FAFBFC;
+            border: 1px solid #E5E7EB;
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text);
+            position: relative;
+            white-space: pre-line;
+            font-style: italic;
+        }
+        .btn-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13.5px;
+            letter-spacing: 0.2px;
+            transition: all var(--transition-fast);
+            font-family: inherit;
+        }
+        .btn-copy:hover {
+            background: var(--navy-light);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .btn-copy:active {
+            transform: scale(0.97);
+        }
+        .btn-copy.copied {
+            background: #059669;
+        }
+        .btn-copy i {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ============ OBJECTIONS ACCORDION ============ */
+        .accordion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .accordion-item {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-xs);
+        }
+        .accordion-item.open {
+            border-color: var(--yellow);
+            box-shadow: var(--shadow-md);
+        }
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14.5px;
+            color: var(--navy);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background var(--transition-fast);
+            gap: 12px;
+        }
+        .accordion-header:hover {
+            background: #FAFBFC;
+        }
+        .accordion-header i.chevron {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            transition: transform var(--transition);
+            color: var(--text-tertiary);
+        }
+        .accordion-item.open .accordion-header i.chevron {
+            transform: rotate(180deg);
+            color: var(--yellow);
+        }
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-slow), padding var(--transition-slow);
+            padding: 0 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            background: #FAFBFC;
+            border-top: 1px solid transparent;
+        }
+        .accordion-item.open .accordion-body {
+            max-height: 300px;
+            padding: 16px 20px;
+            border-top-color: #F3F4F6;
+        }
+
+        /* ============ COMMISSION HIGHLIGHT ============ */
+        .commission-highlight {
+            background: linear-gradient(135deg, #FFFDF5 0%, #FFFBEB 100%);
+            border: 2px solid var(--yellow);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            text-align: center;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-md);
+        }
+        .commission-highlight .big-percent {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--navy);
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+        .commission-examples {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .commission-example-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-xs);
+            transition: all var(--transition);
+        }
+        .commission-example-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .commission-example-card .implant {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .commission-example-card .implant-val {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -0.5px;
+        }
+        .commission-example-card .arrow-down {
+            font-size: 18px;
+            color: var(--yellow);
+            margin: 4px 0;
+        }
+        .commission-example-card .commission-val {
+            font-size: 26px;
+            font-weight: 900;
+            color: #059669;
+            letter-spacing: -0.5px;
+        }
+
+        /* ============ TIMELINE ============ */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+            padding-left: 36px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: #E5E7EB;
+            border-radius: 1px;
+        }
+        .timeline-step {
+            position: relative;
+            padding: 10px 0 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition-fast);
+        }
+        .timeline-step::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2.5px solid var(--navy);
+            z-index: 2;
+            transition: all var(--transition-fast);
+        }
+        .timeline-step:hover::before {
+            background: var(--yellow);
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 6px rgba(255, 190, 70, 0.2);
+        }
+        .timeline-step .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ============ META CARD ============ */
+        .meta-card {
+            background: linear-gradient(135deg, var(--navy) 0%, #003d61 100%);
+            color: #fff;
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            box-shadow: var(--shadow-lg);
+        }
+        .meta-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-bottom: 14px;
+            letter-spacing: -0.2px;
+        }
+        .meta-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            text-align: center;
+        }
+        .meta-stat .stat-num {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: var(--yellow);
+            line-height: 1;
+        }
+        .meta-stat .stat-label {
+            font-size: 11px;
+            opacity: 0.75;
+            margin-top: 4px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+        }
+
+        /* ============ MINDSET ============ */
+        .mindset-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .mindset-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--navy);
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-xs);
+        }
+        .mindset-item:hover {
+            border-color: var(--yellow);
+            box-shadow: var(--shadow-md);
+            transform: translateX(3px);
+        }
+        .mindset-item i {
+            width: 20px;
+            height: 20px;
+            color: var(--yellow);
+            flex-shrink: 0;
+        }
+
+        /* ============ QUOTE CARDS ============ */
+        .quote-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .quote-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px 22px;
+            border: 1px solid var(--border-light);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--navy);
+            text-align: center;
+            letter-spacing: -0.2px;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-xs);
+            position: relative;
+        }
+        .quote-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+            border-color: var(--yellow);
+        }
+        .quote-card i {
+            display: block;
+            margin: 0 auto 8px;
+            color: var(--yellow);
+            width: 28px;
+            height: 28px;
+            opacity: 0.7;
+        }
+
+        /* ============ FINAL MESSAGE CARD ============ */
+        .final-message-card {
+            background: linear-gradient(135deg, var(--navy) 0%, #003d61 100%);
+            color: #fff;
+            border-radius: var(--radius-xl);
+            padding: 40px 32px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+            border: 2px solid var(--yellow);
+            position: relative;
+            overflow: hidden;
+        }
+        .final-message-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 190, 70, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .final-message-card h2 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        .final-message-card .highlight-phrase {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--yellow);
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            border: 1px dashed rgba(255, 190, 70, 0.4);
+        }
+
+        /* ============ FOOTER ============ */
+        .page-footer {
+            background: #060b16;
+            color: #7f8ba1;
+            padding: 50px 0 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            margin-top: 40px;
+            width: 100%;
+        }
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            margin-bottom: 34px;
+        }
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .footer-logo-icon {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+        .footer-logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .footer-logo-text {
+            font-weight: 700;
+            color: #fff;
+            font-size: 1rem;
+            letter-spacing: 0.2em;
+        }
+        .footer-links {
+            display: flex;
+            gap: 26px;
+            color: #c8d3e3;
+        }
+        .footer-links a {
+            color: #c8d3e3;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+        .footer-links a:hover {
+            color: var(--yellow);
+        }
+        .footer-bottom {
+            text-align: center;
+            color: #7f8ba1;
+            font-size: 0.92rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-left: 32px;
+            padding-right: 32px;
+        }
+
+        /* ============ TOAST ============ */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1F2937;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13.5px;
+            z-index: 200;
+            opacity: 0;
+            transition: all var(--transition);
+            pointer-events: none;
+            letter-spacing: -0.1px;
+            box-shadow: var(--shadow-xl);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ============ KIT DE VENDAS ============ */
+        .kit-pitch-card {
+            background: linear-gradient(135deg, #FFFDF5, #FFFBEB);
+            border: 2px solid var(--yellow);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+        .kit-rules-card {
+            background: #FFF5F5;
+            border: 1px solid #FECACA;
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+        .data-checklist {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .data-checklist .data-group {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border-light);
+        }
+        .data-group h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-overlay {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px 16px 40px;
+            }
+            .menu-toggle {
+                display: flex;
+            }
+            .hero-title {
+                font-size: 26px;
+            }
+            .sell-grid,
+            .scenario,
+            .offer-grid,
+            .commission-examples,
+            .mindset-list,
+            .quote-grid,
+            .golden-rule-card ul,
+            .data-checklist,
+            .mvv-grid {
+                grid-template-columns: 1fr;
+            }
+            .meta-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            .two-col-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            .footer-inner {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0 16px;
+            }
+            .footer-links {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            .footer-bottom {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero-title {
+                font-size: 22px;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            .meta-stat .stat-num {
+                font-size: 24px;
+            }
+            .commission-highlight .big-percent {
+                font-size: 36px;
+            }
+            .btn-copy {
+                width: 100%;
+                justify-content: center;
+            }
+            .final-message-card {
+                padding: 28px 18px;
+            }
+            .final-message-card h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- HEADER FIXO -->
+    <header class="app-header" id="appHeader">
+        <div class="header-brand">
+            <div class="header-logo-icon">
+                <img src="Group 11 (1) (1).svg" alt="PLURI Logo">
+            </div>
+            <div class="header-brand-text">
+                <span class="brand-name">PLURI</span>
+                <span class="brand-sub">Manual Comercial v1.1</span>
+            </div>
+        </div>
+        <a href="https://wa.me/5511915054769" target="_blank" rel="noopener noreferrer" class="header-whatsapp">
+            <i data-lucide="message-circle"></i>
+            <span>Precisa de ajuda? 💬</span>
+        </a>
+    </header>
+
+    <!-- FLOATING WHATSAPP BUTTON -->
+    <a href="https://wa.me/5511915054769" target="_blank" rel="noopener noreferrer" class="floating-whatsapp" aria-label="Falar com o Gestor">
+        <i data-lucide="message-circle"></i>
+        <span class="tooltip">Falar com o Gestor</span>
+    </a>
+
+    <div class="app-container">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+            <i data-lucide="menu" style="width:22px;height:22px;"></i>
+        </button>
+
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#quem-e-pluri" data-section="quem-e-pluri"><i data-lucide="building"></i> Quem é a PLURI</a>
+                <a href="#o-que-vendemos" data-section="o-que-vendemos"><i data-lucide="target"></i> O que vendemos</a>
+                <a href="#solucao-pluri" data-section="solucao-pluri"><i data-lucide="lightbulb"></i> Solução PLURI</a>
+                <a href="#solucao-personalizada" data-section="solucao-personalizada"><i data-lucide="settings"></i> Personalização</a>
+                <a href="#kit-vendas" data-section="kit-vendas"><i data-lucide="briefcase"></i> Kit de Vendas</a>
+                <a href="#publico-ideal" data-section="publico-ideal"><i data-lucide="users"></i> Público Ideal</a>
+                <a href="#perfil-cliente-ideal" data-section="perfil-cliente-ideal"><i data-lucide="user-check"></i> Perfil do Cliente</a>
+                <a href="#descobrir-dor" data-section="descobrir-dor"><i data-lucide="search"></i> Descobrir a Dor</a>
+                <a href="#identificar-oportunidade" data-section="identificar-oportunidade"><i data-lucide="check-square"></i> Oportunidade</a>
+                <a href="#oferta-comissao" data-section="oferta-comissao"><i data-lucide="tag"></i> Oferta e Comissão</a>
+                <a href="#script-abordagem" data-section="script-abordagem"><i data-lucide="clipboard"></i> Script</a>
+                <a href="#sinais-compra" data-section="sinais-compra"><i data-lucide="trending-up"></i> Sinais de Compra</a>
+                <a href="#objecoes" data-section="objecoes"><i data-lucide="help-circle"></i> Objeções</a>
+                <a href="#fluxo-da-venda" data-section="fluxo-da-venda"><i data-lucide="git-branch"></i> Fluxo da Venda</a>
+                <a href="#depois-do-sim" data-section="depois-do-sim"><i data-lucide="thumbs-up"></i> Depois do SIM</a>
+                <a href="#erros-perder-venda" data-section="erros-perder-venda"><i data-lucide="alert-triangle"></i> Erros Fatais</a>
+                <a href="#meta" data-section="meta"><i data-lucide="flag"></i> Meta</a>
+                <a href="#mentalidade" data-section="mentalidade"><i data-lucide="heart"></i> Mentalidade</a>
+                <a href="#frases-importantes" data-section="frases-importantes"><i data-lucide="quote"></i> Frases</a>
+                <a href="#mensagem-final" data-section="mensagem-final"><i data-lucide="star"></i> Mensagem Final</a>
+            </nav>
+            <div class="sidebar-footer">PLURI · v1.1 · Uso interno</div>
+        </aside>
+
+        <main class="main-content" id="mainContent">
+            <!-- HERO -->
+            <section class="hero-section section reveal" id="hero">
+                <div class="hero-badge"><i data-lucide="zap" style="width:14px;height:14px;"></i> Guia de Consulta Rápida</div>
+                <h1 class="hero-title">Manual Comercial PLURI</h1>
+                <p class="hero-subtitle">Tudo o que você precisa para vender nossa solução de automação de WhatsApp.</p>
+                <div class="hero-highlight-card">
+                    <strong>Objetivo da PLURI</strong><br>
+                    Ajudamos empresas a responder clientes imediatamente, organizar atendimentos e aumentar agendamentos através da automação inteligente do WhatsApp.
+                </div>
+            </section>
+
+            <!-- NOVA SEÇÃO: QUEM É A PLURI -->
+            <section class="section reveal" id="quem-e-pluri">
+                <div class="section-header">
+                    <h2><i data-lucide="building"></i> Quem é a PLURI</h2>
+                    <p>Conheça a missão da empresa</p>
+                </div>
+                <div class="card" style="margin-bottom:20px;">
+                    <p style="font-size:15px;color:var(--text);line-height:1.7;">
+                        A <strong>PLURI</strong> nasceu para ajudar empresas que dependem do WhatsApp a oferecer um atendimento mais rápido, organizado e profissional.
+                        Nosso objetivo é utilizar tecnologia para economizar tempo, melhorar a experiência dos clientes e reduzir a perda de oportunidades causada pela demora no atendimento.
+                        <br><br>
+                        <strong>Não substituímos pessoas.</strong> Ajudamos equipes a atenderem melhor.
+                    </p>
+                </div>
+                <div class="mvv-grid">
+                    <div class="mvv-card">
+                        <i data-lucide="target"></i>
+                        <h3>Missão</h3>
+                        <p>Oferecer uma experiência de atendimento rápida, organizada e eficiente para empresas de todos os portes.</p>
+                    </div>
+                    <div class="mvv-card">
+                        <i data-lucide="eye"></i>
+                        <h3>Visão</h3>
+                        <p>Ser referência em atendimento inteligente via WhatsApp.</p>
+                    </div>
+                    <div class="mvv-card">
+                        <i data-lucide="heart"></i>
+                        <h3>Valores</h3>
+                        <ul>
+                            <li>• Simplicidade</li>
+                            <li>• Eficiência</li>
+                            <li>• Evolução contínua</li>
+                            <li>• Transparência</li>
+                            <li>• Resultado para o cliente</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- O QUE VENDEMOS -->
+            <section class="section reveal" id="o-que-vendemos">
+                <div class="section-header">
+                    <h2><i data-lucide="target"></i> O que realmente vendemos</h2>
+                </div>
+                <div class="sell-grid">
+                    <div class="sell-column dont">
+                        <h3><i data-lucide="x-circle" style="width:16px;height:16px;"></i> Não vender</h3>
+                        <div class="sell-item"><i data-lucide="x"></i> IA</div>
+                        <div class="sell-item"><i data-lucide="x"></i> Robô</div>
+                        <div class="sell-item"><i data-lucide="x"></i> Automação</div>
+                    </div>
+                    <div class="sell-column do">
+                        <h3><i data-lucide="check-circle" style="width:16px;height:16px;"></i> Vender</h3>
+                        <div class="sell-item"><i data-lucide="check"></i> Atendimento imediato</div>
+                        <div class="sell-item"><i data-lucide="check"></i> Mais agendamentos</div>
+                        <div class="sell-item"><i data-lucide="check"></i> Organização</div>
+                        <div class="sell-item"><i data-lucide="check"></i> Economia de tempo</div>
+                        <div class="sell-item"><i data-lucide="check"></i> Atendimento fora do expediente</div>
+                        <div class="sell-item"><i data-lucide="check"></i> Menos clientes perdidos</div>
+                    </div>
+                </div>
+                <div class="sell-conclusion">💡 O cliente compra resultado, não tecnologia.</div>
+            </section>
+
+            <!-- SOLUÇÃO PLURI -->
+            <section class="section reveal" id="solucao-pluri">
+                <div class="section-header">
+                    <h2><i data-lucide="lightbulb"></i> O que é a solução da PLURI?</h2>
+                    <p>Como explicar de forma simples e natural, sem termos técnicos</p>
+                </div>
+                <div class="card" style="margin-bottom:20px;">
+                    <p style="font-size:15px;color:var(--text);line-height:1.7;">
+                        A <strong>PLURI</strong> é uma solução inteligente para atendimento pelo WhatsApp que ajuda empresas a
+                        <strong>responder clientes rapidamente</strong>, organizar conversas, fornecer informações automaticamente e
+                        facilitar o atendimento, mesmo quando não há ninguém disponível.
+                        O foco da solução <strong>não é substituir pessoas</strong>, mas tornar o atendimento mais eficiente.
+                    </p>
+                </div>
+                <div class="benefits-grid">
+                    <div class="benefit-card"><i data-lucide="zap"></i> Responde clientes imediatamente</div>
+                    <div class="benefit-card"><i data-lucide="moon"></i> Atende fora do horário comercial</div>
+                    <div class="benefit-card"><i data-lucide="help-circle"></i> Responde dúvidas frequentes</div>
+                    <div class="benefit-card"><i data-lucide="info"></i> Informações de produtos/serviços</div>
+                    <div class="benefit-card"><i data-lucide="folder-kanban"></i> Organiza o atendimento</div>
+                    <div class="benefit-card"><i data-lucide="calendar-check"></i> Auxilia no agendamento</div>
+                    <div class="benefit-card"><i data-lucide="forward"></i> Encaminha quando necessário</div>
+                    <div class="benefit-card"><i data-lucide="clock"></i> Reduz perguntas repetitivas</div>
+                    <div class="benefit-card"><i data-lucide="user-check"></i> Evita perda de clientes</div>
+                </div>
+                <div class="example-card">
+                    <h3><i data-lucide="eye"></i> Exemplo prático</h3>
+                    <p style="font-weight:600;color:var(--navy);margin-bottom:8px;">Uma clínica encerra às 19h. Às 21h, alguém quer agendar.</p>
+                    <div class="scenario">
+                        <div class="scenario-block without"><strong>🔴 Sem PLURI:</strong> Mensagem sem resposta até o dia seguinte. Cliente pode desistir.</div>
+                        <div class="scenario-block with"><strong>🟢 Com PLURI:</strong> Atendimento imediato, informações e agendamento concluído.</div>
+                    </div>
+                    <div class="example-result">✅ Mais agilidade, melhor experiência e menos oportunidades perdidas.</div>
+                </div>
+                <div class="explain-box" style="margin-bottom:20px;">
+                    <p style="font-weight:700;margin-bottom:6px;color:var(--navy);">💬 Como explicar para o cliente</p>
+                    <em id="explicacaoPluri">"A PLURI ajuda sua empresa a atender clientes pelo WhatsApp de forma rápida e organizada. Ela responde perguntas frequentes, apresenta informações importantes, auxilia nos agendamentos e garante que o cliente seja atendido mesmo quando sua equipe não estiver disponível."</em>
+                </div>
+                <button class="btn-copy" id="btnCopyExplicacao"><i data-lucide="copy"></i> Copiar explicação</button>
+                <div class="golden-rule-card" style="margin-top:24px;">
+                    <h3><i data-lucide="star"></i> Regra de Ouro</h3>
+                    <p style="font-weight:700;color:#B45309;">⚠️ Nunca diga apenas que é um robô.</p>
+                    <ul>
+                        <li><i data-lucide="check"></i> Atender mais rápido</li>
+                        <li><i data-lucide="check"></i> Organizar o atendimento</li>
+                        <li><i data-lucide="check"></i> Economizar tempo</li>
+                        <li><i data-lucide="check"></i> Melhorar experiência</li>
+                        <li><i data-lucide="check"></i> Evitar perda de oportunidades</li>
+                        <li><i data-lucide="check"></i> Aumentar eficiência</li>
+                    </ul>
+                    <div style="text-align:center;margin-top:16px;font-weight:700;font-size:15px;color:var(--navy);padding:12px;background:#FFFDF5;border-radius:var(--radius-sm);border:1px dashed var(--yellow);">
+                        A tecnologia é o meio. O resultado para o cliente é o verdadeiro produto da PLURI.
+                    </div>
+                </div>
+            </section>
+
+            <!-- NOVA SEÇÃO: SOLUÇÃO PERSONALIZADA -->
+            <section class="section reveal" id="solucao-personalizada">
+                <div class="section-header">
+                    <h2><i data-lucide="settings"></i> Solução personalizada</h2>
+                    <p>Cada empresa é única, e a PLURI se adapta</p>
+                </div>
+                <div class="card card-blue" style="margin-bottom:16px;">
+                    <p style="font-size:15px;color:var(--navy);line-height:1.7;">
+                        Cada empresa possui sua própria forma de atender clientes. A PLURI é configurada conforme a realidade de cada negócio. Os diálogos podem ser personalizados para refletir a linguagem da empresa, seus serviços, horários, regras de atendimento e processos internos.
+                    </p>
+                </div>
+                <div class="card" style="margin-bottom:16px;">
+                    <h3 style="font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                        <i data-lucide="trending-up"></i> Evolução contínua
+                    </h3>
+                    <p style="font-size:14px;color:var(--text);line-height:1.7;">Após a implantação, a solução continua evoluindo. Podemos:</p>
+                    <ul style="list-style:none;padding:0;margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--text-secondary);">
+                        <li>✅ Ajustar respostas</li>
+                        <li>✅ Melhorar fluxos</li>
+                        <li>✅ Criar novos diálogos</li>
+                        <li>✅ Adaptar novas necessidades</li>
+                        <li>✅ Corrigir comportamentos</li>
+                    </ul>
+                    <div style="margin-top:12px;padding:12px;background:#FFFDF5;border-radius:var(--radius-sm);border:1px dashed var(--yellow);font-weight:600;font-size:14px;color:var(--navy);text-align:center;">
+                        A PLURI não é um sistema engessado. Ela evolui junto com o cliente.
+                    </div>
+                </div>
+                <!-- Como apresentar esse diferencial -->
+                <div class="explain-box" style="margin-bottom:16px;">
+                    <p style="font-weight:700;margin-bottom:6px;color:var(--navy);">💬 Como apresentar esse diferencial</p>
+                    <em id="diferencialText">"Nossa solução não é simplesmente instalada e esquecida. Ela é configurada para a realidade da sua empresa e pode evoluir conforme seu negócio cresce. Sempre que necessário podemos ajustar respostas, criar novos fluxos e melhorar os diálogos para oferecer uma experiência cada vez melhor aos seus clientes."</em>
+                </div>
+                <button class="btn-copy" id="btnCopyDiferencial"><i data-lucide="copy"></i> Copiar diferencial</button>
+            </section>
+
+            <!-- KIT DE VENDAS -->
+            <section class="section reveal" id="kit-vendas">
+                <div class="section-header">
+                    <h2><i data-lucide="briefcase"></i> Kit de Vendas da PLURI</h2>
+                    <p>Guia prático para conduzir uma venda completa com segurança</p>
+                </div>
+                <div class="kit-pitch-card">
+                    <h3 style="font-weight:700;color:var(--navy);margin-bottom:12px;font-size:18px;"><i data-lucide="clock" style="color:var(--yellow);"></i> Como explicar a PLURI em 30 segundos</h3>
+                    <p id="pitchText" style="font-size:15px;line-height:1.7;color:var(--navy);">A PLURI ajuda empresas a atender clientes pelo WhatsApp de forma rápida e organizada. Nossa solução responde dúvidas frequentes, apresenta informações importantes, auxilia nos agendamentos e evita que empresas percam clientes por demora no atendimento. O objetivo é economizar tempo da equipe, melhorar a experiência do cliente e profissionalizar o atendimento.</p>
+                    <button class="btn-copy" id="btnCopyPitch"><i data-lucide="copy"></i> Copiar Pitch</button>
+                </div>
+                <h3 style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:12px;"><i data-lucide="package" style="color:var(--yellow);"></i> O que está incluso</h3>
+                <div class="benefits-grid" style="margin-bottom:12px;">
+                    <div class="benefit-card"><i data-lucide="message-circle"></i> Atendimento automático</div>
+                    <div class="benefit-card"><i data-lucide="help-circle"></i> Respostas para perguntas frequentes</div>
+                    <div class="benefit-card"><i data-lucide="info"></i> Informações sobre produtos/serviços</div>
+                    <div class="benefit-card"><i data-lucide="calendar-check"></i> Apoio ao agendamento</div>
+                    <div class="benefit-card"><i data-lucide="folder-kanban"></i> Organização do atendimento</div>
+                    <div class="benefit-card"><i data-lucide="moon"></i> Atendimento fora do horário</div>
+                    <div class="benefit-card"><i data-lucide="forward"></i> Encaminhamento para humano</div>
+                </div>
+                <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:24px;">* Os recursos podem variar conforme o projeto contratado.</p>
+                <div class="kit-rules-card">
+                    <h3 style="font-weight:700;color:#991B1B;margin-bottom:12px;"><i data-lucide="alert-triangle"></i> O que NÃO prometer</h3>
+                    <ul style="list-style:none;padding:0;color:#991B1B;font-size:13.5px;display:flex;flex-direction:column;gap:4px;">
+                        <li>❌ "Faz qualquer coisa."</li><li>❌ "Resolve qualquer problema."</li><li>❌ "É totalmente automático."</li><li>❌ "Substitui funcionários."</li>
+                    </ul>
+                    <p style="margin-top:12px;font-size:14px;color:var(--navy);background:#FFFDF5;padding:10px;border-radius:var(--radius-sm);border:1px dashed var(--yellow);">✅ <em>"Vamos entender sua necessidade para configurar a solução da melhor forma."</em></p>
+                </div>
+                <h3 style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:12px;"><i data-lucide="check-circle" style="color:var(--yellow);"></i> Quando o cliente disser "Quero contratar"</h3>
+                <div class="timeline" style="margin-bottom:12px;">
+                    <div class="timeline-step"><span class="step-num">1</span> Confirmar o interesse</div>
+                    <div class="timeline-step"><span class="step-num">2</span> Confirmar o plano</div>
+                    <div class="timeline-step"><span class="step-num">3</span> Explicar valores</div>
+                    <div class="timeline-step"><span class="step-num">4</span> Informar sobre o contrato</div>
+                    <div class="timeline-step"><span class="step-num">5</span> Solicitar dados da empresa</div>
+                    <div class="timeline-step"><span class="step-num">6</span> Implantação após assinatura e pagamento</div>
+                </div>
+                <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:24px;">* A vendedora não realiza implantação. Sua responsabilidade é conduzir a negociação até o fechamento.</p>
+                <div class="data-checklist">
+                    <div class="data-group"><h4><i data-lucide="user"></i> Pessoa Física</h4><ul style="list-style:none;padding:0;font-size:13.5px;display:flex;flex-direction:column;gap:4px;"><li>✅ Nome completo</li><li>✅ CPF</li><li>✅ E-mail</li><li>✅ Telefone</li></ul></div>
+                    <div class="data-group"><h4><i data-lucide="building"></i> Pessoa Jurídica</h4><ul style="list-style:none;padding:0;font-size:13.5px;display:flex;flex-direction:column;gap:4px;"><li>✅ Razão Social</li><li>✅ Nome Fantasia</li><li>✅ CNPJ</li><li>✅ Endereço</li><li>✅ Nome do responsável</li><li>✅ CPF do responsável</li><li>✅ E-mail</li><li>✅ Telefone</li></ul></div>
+                </div>
+                <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,#F0F7FF,#FAFCFF);border:1.5px solid #BFDBFE;">
+                    <h3 style="font-weight:700;color:var(--navy);margin-bottom:8px;"><i data-lucide="mic"></i> Como finalizar a reunião</h3>
+                    <p style="font-size:14px;color:var(--text);font-style:italic;">"Perfeito. Vou encaminhar seus dados para nossa equipe, que preparará o contrato. Assim que ele for assinado e a implantação confirmada, iniciaremos a configuração da sua solução."</p>
+                </div>
+                <div class="kit-rules-card" style="background:#FFF5F5;">
+                    <h3 style="font-weight:700;color:#991B1B;margin-bottom:12px;"><i data-lucide="shield"></i> Regras importantes</h3>
+                    <ul style="list-style:none;padding:0;color:#991B1B;font-size:13.5px;display:flex;flex-direction:column;gap:4px;">
+                        <li>🚫 Nunca discutir descontos sem autorização</li><li>🚫 Nunca alterar valores</li><li>🚫 Nunca prometer funcionalidades não aprovadas</li><li>🚫 Nunca combinar prazos sem confirmação</li><li>✅ Registrar tudo na planilha comercial</li>
+                    </ul>
+                </div>
+                <div style="text-align:center;margin-top:24px;padding:20px;background:#FFFDF5;border-radius:var(--radius-lg);border:2px solid var(--yellow);font-weight:600;font-size:15px;color:var(--navy);">
+                    O papel da vendedora é identificar a necessidade do cliente, apresentar a solução com clareza, conduzir a negociação e coletar todas as informações para que a implantação aconteça de forma organizada.
+                </div>
+            </section>
+
+            <!-- PÚBLICO IDEAL -->
+            <section class="section reveal" id="publico-ideal">
+                <div class="section-header"><h2><i data-lucide="users"></i> Público Ideal</h2><p>Prioridade máxima para prospecção</p></div>
+                <div class="audience-grid">
+                    <div class="audience-card"><i data-lucide="sparkles"></i> Clínicas de estética</div>
+                    <div class="audience-card"><i data-lucide="stethoscope"></i> Consultórios</div>
+                    <div class="audience-card"><i data-lucide="scissors"></i> Salões premium</div>
+                    <div class="audience-card"><i data-lucide="scissors"></i> Barbearias premium</div>
+                    <div class="audience-card"><i data-lucide="dumbbell"></i> Studios de Pilates</div>
+                    <div class="audience-card"><i data-lucide="flower-2"></i> Studios de Yoga</div>
+                    <div class="audience-card"><i data-lucide="activity"></i> Fisioterapia</div>
+                    <div class="audience-card"><i data-lucide="apple"></i> Nutricionistas</div>
+                    <div class="audience-card"><i data-lucide="brain"></i> Psicólogos</div>
+                    <div class="audience-card"><i data-lucide="paw-print"></i> Pet Shops</div>
+                    <div class="audience-card"><i data-lucide="heart-pulse"></i> Clínicas veterinárias</div>
+                    <div class="audience-card"><i data-lucide="tooth"></i> Dentistas</div>
+                </div>
+                <div class="avoid-block">
+                    <strong><i data-lucide="alert-triangle" style="width:18px;height:18px;"></i> Evitar inicialmente</strong>
+                    <ul><li>Comércio pequeno sem agenda</li><li>Negócios sem WhatsApp ativo</li><li>Empresas sem fluxo de clientes</li></ul>
+                </div>
+            </section>
+
+            <!-- NOVA SEÇÃO: PERFIL DO CLIENTE IDEAL -->
+            <section class="section reveal" id="perfil-cliente-ideal">
+                <div class="section-header"><h2><i data-lucide="user-check"></i> Perfil do cliente ideal</h2><p>Características que indicam alta compatibilidade</p></div>
+                <div class="benefits-grid" style="margin-bottom:16px;">
+                    <div class="benefit-card"><i data-lucide="check"></i> Recebe muitas mensagens</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Depende do WhatsApp</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Trabalha com agenda</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Possui equipe pequena</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Tem processos repetitivos</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Quer crescer</div>
+                </div>
+                <div class="card card-gray">
+                    <strong style="color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:6px;"><i data-lucide="x-circle" style="color:#9CA3AF;"></i> Evite</strong>
+                    <ul style="list-style:none;padding:0;font-size:13.5px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
+                        <li>• Empresas sem WhatsApp</li><li>• Empresas sem atendimento frequente</li><li>• Negócios extremamente pequenos sem demanda</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- NOVA SEÇÃO: COMO DESCOBRIR A DOR DO CLIENTE -->
+            <section class="section reveal" id="descobrir-dor">
+                <div class="section-header"><h2><i data-lucide="search"></i> Como descobrir a dor do cliente</h2><p>Antes de apresentar a solução, entenda o problema</p></div>
+                <div class="card card-accent" style="margin-bottom:16px;">
+                    <p style="font-size:14px;color:var(--text);margin-bottom:12px;">Faça perguntas abertas que ajudem o cliente a enxergar as falhas no atendimento atual:</p>
+                    <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--text-secondary);">
+                        <li>💬 Como vocês atendem hoje?</li>
+                        <li>💬 Quem responde o WhatsApp?</li>
+                        <li>💬 Quanto tempo um cliente espera?</li>
+                        <li>💬 O atendimento funciona após o expediente?</li>
+                        <li>💬 Vocês já perderam clientes por demora?</li>
+                        <li>💬 Quais perguntas mais recebem?</li>
+                        <li>💬 Existe alguém dedicado apenas ao atendimento?</li>
+                    </ul>
+                </div>
+                <div class="card card-yellow" style="text-align:center;">
+                    <p style="font-weight:700;font-size:15px;color:var(--navy);">💡 Quem faz boas perguntas vende mais do que quem apenas apresenta produtos.</p>
+                </div>
+            </section>
+
+            <!-- IDENTIFICAR OPORTUNIDADE -->
+            <section class="section reveal" id="identificar-oportunidade">
+                <div class="section-header"><h2><i data-lucide="check-square"></i> Como identificar uma oportunidade</h2><p>Marque os itens que se aplicam ao prospecto</p></div>
+                <div class="checklist" id="checklist">
+                    <div class="checklist-item" data-index="0"><div class="checklist-checkbox"><i data-lucide="check"></i></div>WhatsApp demora responder</div>
+                    <div class="checklist-item" data-index="1"><div class="checklist-checkbox"><i data-lucide="check"></i></div>Atendimento para à noite</div>
+                    <div class="checklist-item" data-index="2"><div class="checklist-checkbox"><i data-lucide="check"></i></div>Cliente precisa esperar</div>
+                    <div class="checklist-item" data-index="3"><div class="checklist-checkbox"><i data-lucide="check"></i></div>Agenda é manual</div>
+                    <div class="checklist-item" data-index="4"><div class="checklist-checkbox"><i data-lucide="check"></i></div>Secretária sobrecarregada</div>
+                    <div class="checklist-item" data-index="5"><div class="checklist-checkbox"><i data-lucide="check"></i></div>Muitas perguntas repetidas</div>
+                    <div class="checklist-item" data-index="6"><div class="checklist-checkbox"><i data-lucide="check"></i></div>Empresa depende de agendamentos</div>
+                    <div class="checklist-item" data-index="7"><div class="checklist-checkbox"><i data-lucide="check"></i></div>Instagram gera mensagens</div>
+                </div>
+                <div class="checklist-counter" id="checklistCounter">0 de 8 itens marcados</div>
+                <div class="checklist-highlight" id="checklistHighlight">✅ Grande potencial para a solução da PLURI.</div>
+            </section>
+
+            <!-- OFERTA E COMISSÃO -->
+            <div class="two-col-grid reveal" id="oferta-comissao">
+                <section class="section" id="oferta-comercial">
+                    <div class="section-header"><h2><i data-lucide="tag"></i> Oferta Comercial</h2></div>
+                    <div class="offer-grid">
+                        <div class="offer-card featured card-glow">
+                            <span class="offer-badge special">🌟 Condição Especial</span><h3>Oferta de Lançamento</h3>
+                            <div class="offer-price-row"><span class="label">Implantação</span><span class="value big">R$ 850</span></div>
+                            <div class="offer-price-row"><span class="label">Mensalidade</span><span class="value">R$ 600</span></div>
+                            <div class="offer-price-row"><span class="label">Contrato mínimo</span><span class="value" style="font-size:14px;">6 meses</span></div>
+                        </div>
+                        <div class="offer-card"><span class="offer-badge official">📋 Preço Oficial</span><h3>Valor Futuro</h3>
+                            <div class="offer-price-row"><span class="label">Implantação</span><span class="value big">R$ 1.000</span></div>
+                            <div class="offer-price-row"><span class="label">Mensalidade</span><span class="value">R$ 700</span></div>
+                        </div>
+                    </div>
+                </section>
+                <section class="section" id="comissao">
+                    <div class="section-header"><h2><i data-lucide="dollar-sign"></i> Comissão</h2></div>
+                    <div class="commission-highlight"><div class="big-percent">30%</div><div class="desc">sobre a implantação</div><p style="margin-top:8px;font-size:13px;color:#6B7280;">Paga após pagamento do cliente.<br><strong>Não existe</strong> comissão sobre mensalidades.</p></div>
+                    <div class="commission-examples">
+                        <div class="commission-example-card"><div class="implant">Implantação R$ 850</div><div class="arrow-down">↓</div><div class="commission-val">R$ 255</div></div>
+                        <div class="commission-example-card"><div class="implant">Implantação R$ 1.000</div><div class="arrow-down">↓</div><div class="commission-val">R$ 300</div></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- SCRIPT DE ABORDAGEM -->
+            <section class="section reveal" id="script-abordagem">
+                <div class="section-header"><h2><i data-lucide="clipboard"></i> Script de Abordagem</h2></div>
+                <div class="script-box" id="scriptText">Oi, tudo bem?\n\nEstava analisando o atendimento da empresa de vocês e percebi uma oportunidade de melhorar o processo pelo WhatsApp.\n\nHoje vocês já possuem alguma automação ou o atendimento ainda é totalmente manual?</div>
+                <button class="btn-copy" id="btnCopyScript"><i data-lucide="copy"></i> Copiar mensagem</button>
+            </section>
+
+            <!-- NOVA SEÇÃO: SINAIS DE COMPRA -->
+            <section class="section reveal" id="sinais-compra">
+                <div class="section-header"><h2><i data-lucide="trending-up"></i> Como identificar sinais de compra</h2><p>Reconheça quando o cliente está pronto para fechar</p></div>
+                <div class="benefits-grid" style="margin-bottom:16px;">
+                    <div class="benefit-card"><i data-lucide="check"></i> Quanto custa?</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Como funciona?</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Quanto demora?</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Precisa de contrato?</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Quando pode começar?</div>
+                    <div class="benefit-card"><i data-lucide="check"></i> Tem demonstração?</div>
+                </div>
+                <div class="card card-yellow" style="text-align:center;">
+                    <p style="font-weight:700;font-size:15px;color:var(--navy);">🟡 Quando essas perguntas surgirem, pare de vender e comece a fechar.</p>
+                </div>
+            </section>
+
+            <!-- OBJEÇÕES -->
+            <section class="section reveal" id="objecoes">
+                <div class="section-header"><h2><i data-lucide="help-circle"></i> Principais Objeções</h2><p>Clique para ver a resposta sugerida</p></div>
+                <div class="accordion-list" id="accordionList"></div>
+            </section>
+
+            <!-- FLUXO DA VENDA -->
+            <section class="section reveal" id="fluxo-da-venda">
+                <div class="section-header"><h2><i data-lucide="git-branch"></i> Fluxo da Venda</h2></div>
+                <div class="timeline">
+                    <div class="timeline-step"><span class="step-num">1</span> Encontrar empresa</div>
+                    <div class="timeline-step"><span class="step-num">2</span> Fazer abordagem</div>
+                    <div class="timeline-step"><span class="step-num">3</span> Descobrir a dor</div>
+                    <div class="timeline-step"><span class="step-num">4</span> Demonstrar solução</div>
+                    <div class="timeline-step"><span class="step-num">5</span> Agendar apresentação</div>
+                    <div class="timeline-step"><span class="step-num">6</span> Fechar contrato</div>
+                    <div class="timeline-step"><span class="step-num">7</span> Cliente paga implantação</div>
+                    <div class="timeline-step"><span class="step-num">8</span> Comissão liberada</div>
+                </div>
+            </section>
+
+            <!-- NOVA SEÇÃO: DEPOIS DO SIM -->
+            <section class="section reveal" id="depois-do-sim">
+                <div class="section-header"><h2><i data-lucide="thumbs-up"></i> O que acontece depois do SIM</h2><p>Entenda o processo após o fechamento</p></div>
+                <div class="timeline">
+                    <div class="timeline-step"><span class="step-num">1</span> Cliente interessado</div>
+                    <div class="timeline-step"><span class="step-num">2</span> Confirma plano</div>
+                    <div class="timeline-step"><span class="step-num">3</span> Coleta dados</div>
+                    <div class="timeline-step"><span class="step-num">4</span> Contrato</div>
+                    <div class="timeline-step"><span class="step-num">5</span> Assinatura</div>
+                    <div class="timeline-step"><span class="step-num">6</span> Pagamento</div>
+                    <div class="timeline-step"><span class="step-num">7</span> Implantação</div>
+                    <div class="timeline-step"><span class="step-num">8</span> Acompanhamento</div>
+                    <div class="timeline-step"><span class="step-num">9</span> Comissão</div>
+                </div>
+                <p style="font-size:13px;color:var(--text-tertiary);margin-top:8px;text-align:center;">* A partir desse momento a responsabilidade passa para a equipe da PLURI.</p>
+            </section>
+
+            <!-- NOVA SEÇÃO: ERROS QUE FAZEM PERDER UMA VENDA -->
+            <section class="section reveal" id="erros-perder-venda">
+                <div class="section-header"><h2><i data-lucide="alert-triangle"></i> Erros que fazem perder uma venda</h2></div>
+                <div class="two-col-grid">
+                    <div class="card card-red">
+                        <h3 style="font-weight:700;color:#991B1B;margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i data-lucide="x-circle"></i> Nunca</h3>
+                        <ul style="list-style:none;padding:0;color:#991B1B;font-size:13.5px;display:flex;flex-direction:column;gap:6px;">
+                            <li>❌ Explicar IA primeiro</li><li>❌ Falar demais</li><li>❌ Prometer funcionalidades</li><li>❌ Discutir desconto</li><li>❌ Pressionar cliente</li><li>❌ Alterar preços</li>
+                        </ul>
+                    </div>
+                    <div class="card card-green">
+                        <h3 style="font-weight:700;color:#065F46;margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i data-lucide="check-circle"></i> Sempre</h3>
+                        <ul style="list-style:none;padding:0;color:#065F46;font-size:13.5px;display:flex;flex-direction:column;gap:6px;">
+                            <li>✅ Fazer perguntas</li><li>✅ Escutar</li><li>✅ Descobrir a dor</li><li>✅ Mostrar benefícios</li><li>✅ Conduzir o fechamento</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- META -->
+            <section class="section reveal" id="meta">
+                <div class="section-header"><h2><i data-lucide="flag"></i> Meta</h2></div>
+                <div class="meta-card">
+                    <h3>🎯 Objetivo inicial semanal</h3>
+                    <div class="meta-stats">
+                        <div class="meta-stat"><div class="stat-num">20</div><div class="stat-label">Empresas abordadas</div></div>
+                        <div class="meta-stat"><div class="stat-num">10</div><div class="stat-label">Conversas qualificadas</div></div>
+                        <div class="meta-stat"><div class="stat-num">4</div><div class="stat-label">Apresentações</div></div>
+                        <div class="meta-stat"><div class="stat-num">2</div><div class="stat-label">Fechamentos</div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MENTALIDADE -->
+            <section class="section reveal" id="mentalidade">
+                <div class="section-header"><h2><i data-lucide="heart"></i> O que faz uma venda acontecer</h2></div>
+                <div class="mindset-list">
+                    <div class="mindset-item"><i data-lucide="ear"></i> Escutar mais do que falar</div>
+                    <div class="mindset-item"><i data-lucide="help-circle"></i> Fazer perguntas</div>
+                    <div class="mindset-item"><i data-lucide="search"></i> Entender a dor</div>
+                    <div class="mindset-item"><i data-lucide="lightbulb"></i> Mostrar benefícios</div>
+                    <div class="mindset-item"><i data-lucide="x-circle"></i> Nunca vender IA</div>
+                    <div class="mindset-item"><i data-lucide="check-circle"></i> Sempre vender resultado</div>
+                </div>
+            </section>
+
+            <!-- FRASES IMPORTANTES -->
+            <section class="section reveal" id="frases-importantes">
+                <div class="section-header"><h2><i data-lucide="quote"></i> Frases importantes</h2></div>
+                <div class="quote-grid">
+                    <div class="quote-card"><i data-lucide="shield-check"></i> "O cliente compra tranquilidade."</div>
+                    <div class="quote-card"><i data-lucide="clock"></i> "O cliente compra tempo."</div>
+                    <div class="quote-card"><i data-lucide="folder-kanban"></i> "O cliente compra organização."</div>
+                    <div class="quote-card"><i data-lucide="calendar-check"></i> "O cliente compra mais agendamentos."</div>
+                </div>
+            </section>
+
+            <!-- NOVA SEÇÃO: MENSAGEM FINAL -->
+            <section class="section reveal" id="mensagem-final">
+                <div class="final-message-card">
+                    <h2>A missão da PLURI não é vender tecnologia.</h2>
+                    <p style="font-size:16px;color:#d5dff0;line-height:1.8;max-width:700px;margin:0 auto;">
+                        Nossa missão é ajudar empresas a:
+                    </p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:600px;margin:16px auto;text-align:left;">
+                        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#fff;"><i data-lucide="check" style="color:var(--yellow);"></i> Atender melhor</div>
+                        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#fff;"><i data-lucide="check" style="color:var(--yellow);"></i> Economizar tempo</div>
+                        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#fff;"><i data-lucide="check" style="color:var(--yellow);"></i> Organizar processos</div>
+                        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#fff;"><i data-lucide="check" style="color:var(--yellow);"></i> Aumentar agendamentos</div>
+                        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#fff;"><i data-lucide="check" style="color:var(--yellow);"></i> Reduzir perda de clientes</div>
+                        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#fff;"><i data-lucide="check" style="color:var(--yellow);"></i> Crescer com qualidade</div>
+                    </div>
+                    <div class="highlight-phrase">"O cliente nunca compra uma automação. Ele compra tranquilidade."</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="page-footer">
+        <div class="footer-inner">
+            <div class="footer-logo">
+                <div class="footer-logo-icon"><img src="Group 11 (1) (1).svg" alt="PLURI Logo"></div>
+                <span class="footer-logo-text">PLURI</span>
+            </div>
+            <div class="footer-links">
+                <a href="#quem-e-pluri">Quem é</a><a href="#solucao-pluri">Solução</a><a href="#kit-vendas">Kit</a><a href="#comissao">Comissão</a><a href="#mensagem-final">Mensagem</a>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 PLURI · Automação Inteligente para Empresas · Manual Comercial v1.1 · Uso interno.</div>
+    </footer>
+
+    <div class="toast" id="toast">✅ Copiado!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            // Progress bar
+            const progressBar = document.getElementById('progressBar');
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+                progressBar.style.width = progress + '%';
+            });
+
+            // Header scroll effect
+            const header = document.getElementById('appHeader');
+            window.addEventListener('scroll', () => {
+                header.classList.toggle('scrolled', window.scrollY > 20);
+            });
+
+            // Scroll Reveal
+            const revealElements = document.querySelectorAll('.reveal');
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+            revealElements.forEach(el => revealObserver.observe(el));
+
+            // Accordion
+            const accordionData = [
+                { title: '💰 Está caro',
+                    body: '<strong>Resposta:</strong> Quanto vale perder apenas um cliente por semana?<br>Na maioria dos negócios esse valor já paga o investimento.' },
+                { title: '🤔 Vou pensar',
+                    body: '<strong>Resposta:</strong> Sem problemas.<br>Posso deixar uma condição de lançamento reservada por alguns dias.' },
+                { title: '👩‍💼 Já tenho secretária',
+                    body: '<strong>Resposta:</strong> Perfeito.<br>A ideia não é substituir ninguém.<br>É justamente ajudar sua equipe respondendo imediatamente quando ela não consegue.' },
+                { title: '🚫 Não preciso',
+                    body: '<strong>Resposta:</strong> Tudo certo.<br>Posso apenas fazer uma pergunta?<br>Hoje vocês respondem todas as mensagens imediatamente, inclusive à noite e nos finais de semana?' }
+            ];
+            const accordionList = document.getElementById('accordionList');
+            accordionData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'accordion-item';
+                div.innerHTML =
+                    `<div class="accordion-header">${item.title} <i data-lucide="chevron-down" class="chevron"></i></div><div class="accordion-body">${item.body}</div>`;
+                accordionList.appendChild(div);
+            });
+            lucide.createIcons();
+            document.querySelectorAll('.accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const item = header.parentElement;
+                    document.querySelectorAll('.accordion-item.open').forEach(i => { if (i !== item) i
+                            .classList.remove('open'); });
+                    item.classList.toggle('open');
+                });
+            });
+
+            // Checklist
+            const checklistItems = document.querySelectorAll('.checklist-item');
+            const checklistHighlight = document.getElementById('checklistHighlight');
+            const checklistCounter = document.getElementById('checklistCounter');
+
+            function updateChecklist() {
+                const count = document.querySelectorAll('.checklist-item.checked').length;
+                checklistCounter.textContent = `${count} de 8 itens marcados`;
+                checklistHighlight.classList.toggle('visible', count >= 3);
+            }
+            checklistItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    item.classList.toggle('checked');
+                    updateChecklist();
+                    item.style.transform = 'scale(0.98)';
+                    setTimeout(() => item.style.transform = '', 150);
+                });
+            });
+            updateChecklist();
+
+            // Copy function
+            function copyToClipboard(text, button, originalHTML) {
+                navigator.clipboard.writeText(text).then(() => {
+                    button.classList.add('copied');
+                    button.innerHTML = '<i data-lucide="check"></i> Copiado!';
+                    lucide.createIcons();
+                    showToast('✅ Texto copiado!');
+                    setTimeout(() => {
+                        button.classList.remove('copied');
+                        button.innerHTML = originalHTML;
+                        lucide.createIcons();
+                    }, 2000);
+                }).catch(() => showToast('⚠️ Erro ao copiar.'));
+            }
+
+            const btnCopyScript = document.getElementById('btnCopyScript');
+            const scriptText = document.getElementById('scriptText');
+            btnCopyScript.addEventListener('click', () => copyToClipboard(scriptText.innerText.trim(),
+                btnCopyScript, '<i data-lucide="copy"></i> Copiar mensagem'));
+
+            const btnCopyExplicacao = document.getElementById('btnCopyExplicacao');
+            const explicacaoPluri = document.getElementById('explicacaoPluri');
+            btnCopyExplicacao.addEventListener('click', () => copyToClipboard(explicacaoPluri.innerText.trim(),
+                btnCopyExplicacao, '<i data-lucide="copy"></i> Copiar explicação'));
+
+            const btnCopyPitch = document.getElementById('btnCopyPitch');
+            const pitchText = document.getElementById('pitchText');
+            btnCopyPitch.addEventListener('click', () => copyToClipboard(pitchText.innerText.trim(), btnCopyPitch,
+                '<i data-lucide="copy"></i> Copiar Pitch'));
+
+            const btnCopyDiferencial = document.getElementById('btnCopyDiferencial');
+            const diferencialText = document.getElementById('diferencialText');
+            btnCopyDiferencial.addEventListener('click', () => copyToClipboard(diferencialText.innerText.trim(),
+                btnCopyDiferencial, '<i data-lucide="copy"></i> Copiar diferencial'));
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(window.toastTimeout);
+                window.toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+            }
+
+            // Sidebar mobile
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const toggle = document.getElementById('menuToggle');
+
+            function closeSidebar() { sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = ''; }
+
+            function openSidebar() { sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden'; }
+            toggle.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() :
+                openSidebar());
+            overlay.addEventListener('click', closeSidebar);
+            document.querySelectorAll('.sidebar-nav a').forEach(link => link.addEventListener('click', () => window
+                .innerWidth <= 1024 && setTimeout(closeSidebar, 150)));
+            document.addEventListener('keydown', e => { if (e.key === 'Escape' && sidebar.classList.contains('open'))
+                    closeSidebar(); });
+
+            // Scroll spy
+            const sections = document.querySelectorAll('.section[id]');
+            const links = document.querySelectorAll('.sidebar-nav a');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(s => { if (window.scrollY >= s.offsetTop - 200) current = s.getAttribute(
+                        'id'); });
+                links.forEach(l => l.classList.toggle('active', l.getAttribute('data-section') === current));
+            });
+
+            window.addEventListener('resize', () => { if (window.innerWidth > 1024) closeSidebar();
+                lucide.createIcons(); });
+            setTimeout(() => lucide.createIcons(), 100);
+        });
+    </script>
+</body>
+</html>
