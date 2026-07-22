@@ -1,0 +1,36 @@
+/* ============================================
+   PLURI OS — Estilos específicos de módulos
+   ============================================ */
+
+/* Dashboard */
+.mini-chart svg {
+    width: 100%;
+    height: auto;
+}
+
+/* Pipeline responsivo */
+@media (max-width: 768px) {
+    .pipeline {
+        flex-direction: column;
+    }
+    .pipeline-column {
+        min-width: 100%;
+    }
+}
+
+/* Simulador */
+#sim-results .cards-grid {
+    grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 600px) {
+    #sim-results .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Cards grid responsivo */
+@media (max-width: 600px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
