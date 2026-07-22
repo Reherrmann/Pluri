@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLURI OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modules.css">
+</head>
+<body data-theme="dark">
+    <div id="app" class="app-layout">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">PLURI OS</span>
+                </div>
+                <button id="sidebar-toggle" class="btn-icon" title="Recolher menu">
+                    <i data-lucide="panel-left-close" class="icon"></i>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <i data-lucide="search" class="icon-sm"></i>
+                <input type="text" id="global-search" placeholder="Pesquisar..." autocomplete="off">
+                <kbd class="shortcut">⌘K</kbd>
+            </div>
+            <nav id="sidebar-nav" class="sidebar-nav">
+                <!-- Preenchido dinamicamente -->
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">P</div>
+                    <div class="user-details">
+                        <span class="user-name">Pluri Admin</span>
+                        <span class="user-role">Administrador</span>
+                    </div>
+                </div>
+                <button id="theme-toggle" class="btn-icon" title="Alternar tema">
+                    <i data-lucide="sun-moon" class="icon"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-area">
+            <header class="top-header">
+                <div class="header-left">
+                    <h1 id="page-title" class="page-title">Dashboard</h1>
+                    <span id="page-breadcrumb" class="breadcrumb">Visão Geral</span>
+                </div>
+                <div class="header-right">
+                    <button id="btn-notifications" class="btn-icon has-badge" title="Notificações">
+                        <i data-lucide="bell" class="icon"></i>
+                        <span class="badge" id="notification-count">3</span>
+                    </button>
+                    <button id="btn-quick-actions" class="btn-primary btn-sm">
+                        <i data-lucide="plus" class="icon-sm"></i>
+                        Ação Rápida
+                    </button>
+                </div>
+            </header>
+            <div id="content-area" class="content-area">
+                <!-- Módulos renderizados aqui -->
+                <div class="skeleton-loading" id="content-loader">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-container" id="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-title">Título</h3>
+                <button class="btn-icon modal-close" id="modal-close">
+                    <i data-lucide="x" class="icon"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer" id="modal-footer"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/storage.js"></script>
+    <script src="js/core/charts.js"></script>
+    <script src="js/core/components.js"></script>
+    <script src="js/core/app.js"></script>
+    <script src="js/modules/dashboard.js"></script>
+    <script src="js/modules/crm.js"></script>
+    <script src="js/modules/finance.js"></script>
+    <script src="js/modules/planning.js"></script>
+    <script src="js/modules/goals.js"></script>
+    <script src="js/modules/simulator.js"></script>
+    <script src="js/modules/reports.js"></script>
+    <script src="js/modules/contracts.js"></script>
+    <script src="js/modules/implantations.js"></script>
+    <script src="js/modules/prompts.js"></script>
+    <script src="js/modules/content.js"></script>
+    <script src="js/modules/manual.js"></script>
+    <script src="js/modules/settings.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            PLURI.init();
+        });
+    </script>
+</body>
+</html>
