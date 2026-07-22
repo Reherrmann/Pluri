@@ -1,17 +1,19 @@
 /**
  * PLURI OS — Módulo Financeiro
  * Integrado com Google Sheets (aba PLURI_Financeiro_2026)
+ * Versão síncrona com atualização assíncrona em segundo plano
  */
 const Finance = (() => {
 
     /**
-     * Sincroniza dados da planilha com o localStorage
+     * Sincroniza dados da planilha com localStorage (segundo plano)
+     * e recarrega o módulo se houver alterações
      */
-    async function syncFromSheet() {
+    async function syncFromSheetInBackground() {
         try {
             const sheetData = await GoogleSheets.readSheet('PLURI_Financeiro_2026');
             if (sheetData && sheetData.length) {
-                // Mapeia colunas da planilha para campos do sistema
+                // Mapeia colunas da planilha (já ajustado para seus cabeçalhos)
                 const transactionsFromSheet = sheetData.map(row => ({
                     id: Utils.generateId(),
                     description: row['Descrição'] || row['Descricao'] || '',
@@ -23,31 +25,30 @@ const Finance = (() => {
                     source: 'planilha'
                 }));
 
-                // Mescla: mantém transações manuais e adiciona/atualiza as da planilha
+                // Mescla: mantém manuais + atualiza planilha
                 const localTransactions = Storage.loadData('finance_transactions', []);
                 const manualTransactions = localTransactions.filter(t => t.source !== 'planilha');
                 const merged = [...manualTransactions, ...transactionsFromSheet];
                 Storage.saveData('finance_transactions', merged);
-                return true;
+
+                // Se o módulo Financeiro estiver ativo, recarrega para exibir os dados
+                if (PLURI.getState().currentModule === 'finance') {
+                    PLURI.refreshCurrentModule();
+                }
             }
-            return false;
         } catch (error) {
             console.error('[Finance] Erro ao sincronizar com planilha:', error);
-            return false;
         }
     }
 
     /**
-     * Renderiza o módulo financeiro
+     * Renderiza o módulo financeiro (síncrono)
      */
-    async function render() {
-        // Mostra skeleton loading
-        Components.showSkeleton(4);
+    function render() {
+        // Dispara sincronização em segundo plano (não bloqueia a UI)
+        syncFromSheetInBackground();
 
-        // Sincroniza com planilha antes de exibir os dados
-        await syncFromSheet();
-
-        // Carrega dados do localStorage (já mesclados)
+        // Carrega dados atuais do localStorage
         const transactions = Storage.loadData('finance_transactions', []);
         const implantations = Storage.loadData('finance_implantations', []);
 
@@ -64,7 +65,7 @@ const Finance = (() => {
         const totalImplantacoes = implantations.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
 
         // Prepara HTML
-        const html = `
+        return `
             <div class="fade-in">
                 <div class="cards-grid" style="margin-bottom:24px">
                     ${Components.metricCard({ title: 'Receitas', value: Utils.formatCurrency(totalReceitas), icon: 'arrow-up-circle', color: 'success' })}
@@ -90,14 +91,8 @@ const Finance = (() => {
                 ${renderTransactionTable(transactions)}
             </div>
         `;
-
-        document.getElementById('content-area').innerHTML = html;
-        lucide.createIcons();
     }
 
-    /**
-     * Renderiza a tabela de transações
-     */
     function renderTransactionTable(transactions) {
         if (!transactions || !transactions.length) {
             return `
@@ -108,7 +103,6 @@ const Finance = (() => {
                 </div>
             `;
         }
-
         const headers = ['Descrição', 'Tipo', 'Categoria', 'Valor', 'Data'];
         const rows = transactions.map(t => [
             t.description || '-',
@@ -120,23 +114,15 @@ const Finance = (() => {
         return Components.createTable({ headers, rows, emptyMessage: 'Nenhuma transação encontrada' });
     }
 
-    /**
-     * Abre formulário de nova transação (manual)
-     */
     function openTransactionForm(editId = null) {
         const transactions = Storage.loadData('finance_transactions', []);
         const existing = editId ? transactions.find(t => t.id === editId) : null;
-
         Components.openModal({
             title: existing ? 'Editar Transação' : 'Nova Transação',
             bodyHTML: `
-                <div class="form-group">
-                    <label class="form-label">Descrição</label>
-                    <input type="text" id="fin-desc" class="form-input" value="${existing?.description || ''}">
-                </div>
+                <div class="form-group"><label class="form-label">Descrição</label><input type="text" id="fin-desc" class="form-input" value="${existing?.description || ''}"></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                    <div class="form-group">
-                        <label class="form-label">Tipo</label>
+                    <div class="form-group"><label class="form-label">Tipo</label>
                         <select id="fin-type" class="form-select">
                             <option value="receita" ${existing?.type === 'receita' ? 'selected' : ''}>Receita</option>
                             <option value="despesa" ${existing?.type === 'despesa' ? 'selected' : ''}>Despesa</option>
@@ -146,8 +132,7 @@ const Finance = (() => {
                             <option value="comissao" ${existing?.type === 'comissao' ? 'selected' : ''}>Comissão</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Categoria</label>
+                    <div class="form-group"><label class="form-label">Categoria</label>
                         <select id="fin-category" class="form-select">
                             <option value="unico">Único</option>
                             <option value="recorrente" ${existing?.category === 'recorrente' ? 'selected' : ''}>Recorrente</option>
@@ -155,31 +140,18 @@ const Finance = (() => {
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                    <div class="form-group">
-                        <label class="form-label">Valor (R$)</label>
-                        <input type="number" id="fin-amount" class="form-input" step="0.01" value="${existing?.amount || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Data</label>
-                        <input type="date" id="fin-date" class="form-input" value="${existing?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10)}">
-                    </div>
+                    <div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" id="fin-amount" class="form-input" step="0.01" value="${existing?.amount || ''}"></div>
+                    <div class="form-group"><label class="form-label">Data</label><input type="date" id="fin-date" class="form-input" value="${existing?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10)}"></div>
                 </div>
                 <input type="hidden" id="fin-edit-id" value="${existing?.id || ''}">
             `,
-            footerHTML: `
-                <button class="btn-secondary" onclick="Components.closeModal()">Cancelar</button>
-                <button class="btn-primary" onclick="Finance.saveTransaction()">Salvar</button>
-            `,
+            footerHTML: `<button class="btn-secondary" onclick="Components.closeModal()">Cancelar</button><button class="btn-primary" onclick="Finance.saveTransaction()">Salvar</button>`,
         });
     }
 
-    /**
-     * Salva uma nova transação manual no localStorage
-     */
     function saveTransaction() {
         const transactions = Storage.loadData('finance_transactions', []);
         const editId = document.getElementById('fin-edit-id').value;
-
         const data = {
             id: editId || Utils.generateId(),
             description: document.getElementById('fin-desc').value.trim(),
@@ -188,29 +160,24 @@ const Finance = (() => {
             amount: parseFloat(document.getElementById('fin-amount').value) || 0,
             date: document.getElementById('fin-date').value,
             createdAt: editId ? (transactions.find(t => t.id === editId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
-            source: 'manual' // indica que foi cadastrada manualmente
+            source: 'manual'
         };
-
         if (!data.description || !data.amount) {
             Components.showToast('Preencha descrição e valor', 'error');
             return;
         }
-
         if (editId) {
             const index = transactions.findIndex(t => t.id === editId);
             if (index >= 0) transactions[index] = data;
         } else {
             transactions.push(data);
         }
-
         Storage.saveData('finance_transactions', transactions);
         Components.closeModal();
         Components.showToast('Transação salva!', 'success');
         PLURI.navigateTo('finance');
     }
 
-    // Expor funções globalmente
     window.Finance = { render, openTransactionForm, saveTransaction };
-
     return { render, openTransactionForm, saveTransaction };
 })();
