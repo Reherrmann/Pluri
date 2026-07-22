@@ -116,6 +116,12 @@ const PLURI = (() => {
     function navigateTo(moduleId) {
         state.currentModule = moduleId;
 
+        // Fecha o menu mobile ao navegar
+        if (window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.remove('mobile-open');
+            document.getElementById('sidebar-overlay')?.classList.remove('active');
+        }
+
         // Atualiza sidebar
         document.querySelectorAll('.nav-item').forEach(el => {
             el.classList.toggle('active', el.dataset.module === moduleId);
@@ -190,6 +196,18 @@ const PLURI = (() => {
             sidebar.classList.toggle('collapsed');
             state.sidebarCollapsed = sidebar.classList.contains('collapsed');
             Storage.updateData('settings', { sidebarCollapsed: state.sidebarCollapsed });
+        });
+
+        // Toggle sidebar (mobile)
+        const mobileMenuBtn = document.getElementById('mobile-menu-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        mobileMenuBtn?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('mobile-open');
+            sidebarOverlay?.classList.add('active');
+        });
+        sidebarOverlay?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('mobile-open');
+            sidebarOverlay?.classList.remove('active');
         });
 
         // Toggle tema
