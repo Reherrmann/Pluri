@@ -2,7 +2,7 @@
  * PLURI OS — Integração Google Sheets via Apps Script
  */
 const GoogleSheets = (() => {
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzKNO9-PPhVxJh5gDsgB221AAuOc-ON1Enl0MnAqjTw6Ejrf10Pr4kNfXisBeUQALJA/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwxtdzYuKaMpC7yQ8utoM49pVnUOT4EskxAIfPV7x0Ab2kQ0hNKCf6oOP-2vj2bTGWw/exec';
 
   async function readSheet(sheetName) {
     try {
@@ -22,7 +22,7 @@ const GoogleSheets = (() => {
       const response = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({ sheet: sheetName, action: 'append', row: rowArray }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       });
       const result = await response.json();
       if (result.error) throw new Error(result.error);
@@ -38,7 +38,7 @@ const GoogleSheets = (() => {
       const response = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({ sheet: sheetName, action: 'delete', id: id }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       });
       const result = await response.json();
       if (result.error) throw new Error(result.error);
@@ -51,5 +51,6 @@ const GoogleSheets = (() => {
 
   // Disponibiliza globalmente (redundante, mas seguro)
   window.GoogleSheets = { readSheet, appendRow, deleteRow };
+
   return { readSheet, appendRow, deleteRow };
 })();
