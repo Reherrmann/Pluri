@@ -1,5 +1,6 @@
-console.log('googleSheets.js carregado com sucesso!');
-const GoogleSheets = (() => {
+
+const GoogleSheets = (() => 
+  console.log('googleSheets.js carregado com sucesso!');{
   const API_URL = 'https://script.google.com/macros/s/AKfycbz0S62FCz4DZc_olJSpXMo6TtmChJv3ygzcZUqu-0a-eWVwb8iApI_OOlgs-Bwx29MGiA/exec; // cole sua nova URL aqui
 
   async function readSheet(sheetName) {
