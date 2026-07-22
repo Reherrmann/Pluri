@@ -2,8 +2,6 @@
  * PLURI OS — Integração Google Sheets via Apps Script
  */
 const GoogleSheets = (() => {
-  console.log('googleSheets.js carregado com sucesso!');
-
   const API_URL = 'https://script.google.com/macros/s/AKfycbz0S62FCz4DZc_olJSpXMo6TtmChJv3ygzcZUqu-0a-eWVwb8iApI_OOlgs-Bwx29MGiA/exec';
 
   async function readSheet(sheetName) {
@@ -27,7 +25,8 @@ const GoogleSheets = (() => {
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await response.json();
-      return result.success === true;
+      if (result.error) throw new Error(result.error);
+      return true;
     } catch (error) {
       console.error('[GoogleSheets] Erro ao adicionar:', error);
       return false;
@@ -42,14 +41,15 @@ const GoogleSheets = (() => {
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await response.json();
-      return result.success === true;
+      if (result.error) throw new Error(result.error);
+      return true;
     } catch (error) {
       console.error('[GoogleSheets] Erro ao deletar:', error);
       return false;
     }
   }
 
-  // Disponibiliza globalmente (boa prática)
+  // Disponibiliza globalmente (redundante, mas seguro)
   window.GoogleSheets = { readSheet, appendRow, deleteRow };
   return { readSheet, appendRow, deleteRow };
 })();
