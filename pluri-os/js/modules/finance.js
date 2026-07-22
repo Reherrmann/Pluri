@@ -1,58 +1,67 @@
 /**
  * PLURI OS — Módulo Financeiro
- * Integração completa com Google Sheets (leitura, escrita, remoção)
+ * Integração Google Sheets sem loop de recarga
  */
 const Finance = (() => {
-
-    // Mapeamento das colunas (ajuste se os nomes forem diferentes)
     const SHEET_NAME = 'PLURI_Financeiro_2026';
-    const COL_DESCRICAO = 'Descrição';
-    const COL_TIPO = 'Tipo';
-    const COL_CATEGORIA = 'Categoria';
-    const COL_VALOR = 'Valor';
-    const COL_DATA = 'Data';
-    const COL_ID = 'ID';
+    let isSyncing = false; // evita sincronizações simultâneas
 
     /**
      * Sincroniza dados da planilha com localStorage (em segundo plano)
      */
-    async function syncFromSheetInBackground() {
+    async function syncFromSheet() {
+        if (isSyncing) return;
+        isSyncing = true;
         try {
             const sheetData = await GoogleSheets.readSheet(SHEET_NAME);
-            if (sheetData && sheetData.length) {
-                const transactionsFromSheet = sheetData.map(row => ({
-                    id: row[COL_ID] || Utils.generateId(),
-                    description: row[COL_DESCRICAO] || '',
-                    type: row[COL_TIPO] || 'despesa',
-                    category: row[COL_CATEGORIA] || 'unico',
-                    amount: parseFloat(row[COL_VALOR]) || 0,
-                    date: row[COL_DATA] || new Date().toISOString().slice(0, 10),
-                    createdAt: new Date().toISOString(),
-                    source: 'planilha',
-                    sheetRowId: row[COL_ID] || null,
-                }));
+            if (!sheetData) {
+                console.warn('[Finance] Não foi possível ler a planilha.');
+                isSyncing = false;
+                return;
+            }
 
-                // Atualiza: remove antigos da planilha e adiciona os novos
-                const local = Storage.loadData('finance_transactions', []);
-                const manual = local.filter(t => t.source !== 'planilha');
-                const merged = [...manual, ...transactionsFromSheet];
-                Storage.saveData('finance_transactions', merged);
+            // Mapeia colunas (ajuste se necessário)
+            const transactionsFromSheet = sheetData.map(row => ({
+                id: row['ID'] || Utils.generateId(),
+                description: row['Descrição'] || '',
+                type: row['Tipo'] || 'despesa',
+                category: row['Categoria'] || 'unico',
+                amount: parseFloat(row['Valor']) || 0,
+                date: row['Data'] || new Date().toISOString().slice(0, 10),
+                createdAt: new Date().toISOString(),
+                source: 'planilha',
+                sheetRowId: row['ID'] || null,
+            }));
 
-                if (PLURI.getState().currentModule === 'finance') {
-                    PLURI.refreshCurrentModule();
+            // Mescla com transações manuais (source !== 'planilha')
+            const local = Storage.loadData('finance_transactions', []);
+            const manual = local.filter(t => t.source !== 'planilha');
+            const merged = [...manual, ...transactionsFromSheet];
+            Storage.saveData('finance_transactions', merged);
+
+            // Atualiza a UI apenas se o módulo financeiro estiver ativo, sem chamar refreshCurrentModule
+            if (PLURI.getState().currentModule === 'finance') {
+                const contentArea = document.getElementById('content-area');
+                if (contentArea) {
+                    contentArea.innerHTML = renderInternal(); // função interna que retorna HTML sem disparar sync
+                    lucide.createIcons();
                 }
             }
         } catch (error) {
-            console.error('[Finance] Erro ao sincronizar:', error);
+            console.error('[Finance] Erro na sincronização:', error);
+        } finally {
+            isSyncing = false;
         }
     }
 
-    function render() {
-        syncFromSheetInBackground();
-
+    /**
+     * Função interna de renderização (não dispara sincronização)
+     */
+    function renderInternal() {
         const transactions = Storage.loadData('finance_transactions', []);
         const implantations = Storage.loadData('finance_implantations', []);
 
+        // Cálculos
         const receitas = transactions.filter(t => t.type === 'receita' || t.type === 'mensalidade');
         const despesas = transactions.filter(t => t.type === 'despesa' || t.type === 'custo' || t.type === 'imposto' || t.type === 'comissao');
         const totalReceitas = receitas.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
@@ -76,12 +85,25 @@ const Finance = (() => {
                     ${Components.metricCard({ title: 'Ticket Médio', value: Utils.formatCurrency(receitas.length ? totalReceitas / receitas.length : 0), icon: 'receipt', color: 'warning' })}
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                    <h3>Transações (${transactions.length})</h3>
-                    <button class="btn-primary" onclick="Finance.openTransactionForm()"><i data-lucide="plus" class="icon-sm"></i> Nova Transação</button>
+                    <h3 style="font-size:1rem;font-weight:600">Transações (${transactions.length})</h3>
+                    <button class="btn-primary" onclick="Finance.openTransactionForm()">
+                        <i data-lucide="plus" class="icon-sm"></i> Nova Transação
+                    </button>
                 </div>
                 ${renderTable(transactions)}
             </div>
         `;
+    }
+
+    /**
+     * Renderização principal (chamada pelo roteador)
+     */
+    function render() {
+        // Dispara sincronização em background (sem bloquear)
+        syncFromSheet();
+
+        // Retorna a UI com os dados atuais do localStorage
+        return renderInternal();
     }
 
     function renderTable(transactions) {
@@ -110,18 +132,22 @@ const Finance = (() => {
             bodyHTML: `
                 <div class="form-group"><label class="form-label">Descrição</label><input type="text" id="fin-desc" class="form-input" value="${existing?.description || ''}"></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                    <div class="form-group"><label class="form-label">Tipo</label><select id="fin-type" class="form-select">
-                        <option value="receita" ${existing?.type === 'receita' ? 'selected' : ''}>Receita</option>
-                        <option value="despesa" ${existing?.type === 'despesa' ? 'selected' : ''}>Despesa</option>
-                        <option value="custo" ${existing?.type === 'custo' ? 'selected' : ''}>Custo</option>
-                        <option value="mensalidade" ${existing?.type === 'mensalidade' ? 'selected' : ''}>Mensalidade</option>
-                        <option value="imposto" ${existing?.type === 'imposto' ? 'selected' : ''}>Imposto</option>
-                        <option value="comissao" ${existing?.type === 'comissao' ? 'selected' : ''}>Comissão</option>
-                    </select></div>
-                    <div class="form-group"><label class="form-label">Categoria</label><select id="fin-category" class="form-select">
-                        <option value="unico">Único</option>
-                        <option value="recorrente" ${existing?.category === 'recorrente' ? 'selected' : ''}>Recorrente</option>
-                    </select></div>
+                    <div class="form-group"><label class="form-label">Tipo</label>
+                        <select id="fin-type" class="form-select">
+                            <option value="receita" ${existing?.type === 'receita' ? 'selected' : ''}>Receita</option>
+                            <option value="despesa" ${existing?.type === 'despesa' ? 'selected' : ''}>Despesa</option>
+                            <option value="custo" ${existing?.type === 'custo' ? 'selected' : ''}>Custo</option>
+                            <option value="mensalidade" ${existing?.type === 'mensalidade' ? 'selected' : ''}>Mensalidade</option>
+                            <option value="imposto" ${existing?.type === 'imposto' ? 'selected' : ''}>Imposto</option>
+                            <option value="comissao" ${existing?.type === 'comissao' ? 'selected' : ''}>Comissão</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Categoria</label>
+                        <select id="fin-category" class="form-select">
+                            <option value="unico">Único</option>
+                            <option value="recorrente" ${existing?.category === 'recorrente' ? 'selected' : ''}>Recorrente</option>
+                        </select>
+                    </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     <div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" id="fin-amount" class="form-input" step="0.01" value="${existing?.amount || ''}"></div>
@@ -129,8 +155,7 @@ const Finance = (() => {
                 </div>
                 <input type="hidden" id="fin-edit-id" value="${existing?.id || ''}">
             `,
-            footerHTML: `<button class="btn-secondary" onclick="Components.closeModal()">Cancelar</button>
-                         <button class="btn-primary" onclick="Finance.saveTransaction()">Salvar</button>`,
+            footerHTML: `<button class="btn-secondary" onclick="Components.closeModal()">Cancelar</button><button class="btn-primary" onclick="Finance.saveTransaction()">Salvar</button>`,
         });
     }
 
@@ -158,7 +183,7 @@ const Finance = (() => {
             source: 'manual',
         };
 
-        // Salva no localStorage
+        // Salva localmente
         const transactions = Storage.loadData('finance_transactions', []);
         const editId = document.getElementById('fin-edit-id').value;
         if (editId) {
@@ -169,17 +194,22 @@ const Finance = (() => {
         }
         Storage.saveData('finance_transactions', transactions);
 
-        // Envia para a planilha (append)
-        const row = [id, date, desc, type, category, amount];
+        // Envia para a planilha (a ordem deve ser: ID, Data, Descrição, Tipo, Categoria, Valor)
+        const row = [newTransaction.id, newTransaction.date, newTransaction.description, newTransaction.type, newTransaction.category, newTransaction.amount];
         const success = await GoogleSheets.appendRow(SHEET_NAME, row);
         if (success) {
             Components.showToast('Transação salva na planilha!', 'success');
         } else {
-            Components.showToast('Erro ao salvar na planilha', 'error');
+            Components.showToast('Salvo localmente, mas falha ao enviar para planilha.', 'warning');
         }
 
         Components.closeModal();
-        PLURI.navigateTo('finance');
+        // Atualiza a UI sem recarregar o módulo inteiro
+        const contentArea = document.getElementById('content-area');
+        if (contentArea) {
+            contentArea.innerHTML = renderInternal();
+            lucide.createIcons();
+        }
     }
 
     async function deleteTransaction(transactionId) {
@@ -187,22 +217,29 @@ const Finance = (() => {
         const transaction = transactions.find(t => t.id === transactionId);
         if (!transaction) return;
 
-        // Confirmação
         Components.confirmDialog({
             title: 'Excluir transação',
             message: `Tem certeza que deseja excluir "${transaction.description}"?`,
             onConfirm: async () => {
-                // Remove do localStorage
+                // Remove local
                 const updated = transactions.filter(t => t.id !== transactionId);
                 Storage.saveData('finance_transactions', updated);
 
-                // Se a transação estiver na planilha (tem sheetRowId ou foi adicionada manualmente e depois enviada)
-                if (transaction.source === 'planilha' || transaction.sheetRowId) {
-                    await GoogleSheets.deleteRow(SHEET_NAME, transaction.sheetRowId || transaction.id);
+                // Remove da planilha se tiver ID
+                const idToDelete = transaction.sheetRowId || transaction.id;
+                const success = await GoogleSheets.deleteRow(SHEET_NAME, idToDelete);
+                if (success) {
+                    Components.showToast('Removido da planilha!', 'success');
+                } else {
+                    Components.showToast('Removido localmente, mas falha ao excluir na planilha.', 'warning');
                 }
 
-                Components.showToast('Transação excluída', 'success');
-                PLURI.navigateTo('finance');
+                // Atualiza UI
+                const contentArea = document.getElementById('content-area');
+                if (contentArea) {
+                    contentArea.innerHTML = renderInternal();
+                    lucide.createIcons();
+                }
             },
         });
     }
