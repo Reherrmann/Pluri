@@ -1,14 +1,59 @@
 /**
  * PLURI OS — Módulo Financeiro
+ * Integrado com Google Sheets (aba PLURI_Financeiro_2026)
  */
 const Finance = (() => {
-    function render() {
+
+    /**
+     * Sincroniza dados da planilha com o localStorage
+     */
+    async function syncFromSheet() {
+        try {
+            const sheetData = await GoogleSheets.readSheet('PLURI_Financeiro_2026');
+            if (sheetData && sheetData.length) {
+                // Mapeia colunas da planilha para campos do sistema
+                const transactionsFromSheet = sheetData.map(row => ({
+                    id: Utils.generateId(),
+                    description: row['Descrição'] || row['Descricao'] || '',
+                    type: row['Tipo'] || 'despesa',
+                    category: row['Categoria'] || 'unico',
+                    amount: parseFloat(row['Valor']) || 0,
+                    date: row['Data'] || new Date().toISOString().slice(0, 10),
+                    createdAt: new Date().toISOString(),
+                    source: 'planilha'
+                }));
+
+                // Mescla: mantém transações manuais e adiciona/atualiza as da planilha
+                const localTransactions = Storage.loadData('finance_transactions', []);
+                const manualTransactions = localTransactions.filter(t => t.source !== 'planilha');
+                const merged = [...manualTransactions, ...transactionsFromSheet];
+                Storage.saveData('finance_transactions', merged);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('[Finance] Erro ao sincronizar com planilha:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Renderiza o módulo financeiro
+     */
+    async function render() {
+        // Mostra skeleton loading
+        Components.showSkeleton(4);
+
+        // Sincroniza com planilha antes de exibir os dados
+        await syncFromSheet();
+
+        // Carrega dados do localStorage (já mesclados)
         const transactions = Storage.loadData('finance_transactions', []);
         const implantations = Storage.loadData('finance_implantations', []);
 
         // Cálculos
         const receitas = transactions.filter(t => t.type === 'receita' || t.type === 'mensalidade');
-        const despesas = transactions.filter(t => t.type === 'despesa' || t.type === 'custo');
+        const despesas = transactions.filter(t => t.type === 'despesa' || t.type === 'custo' || t.type === 'imposto' || t.type === 'comissao');
         const totalReceitas = receitas.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
         const totalDespesas = despesas.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
         const lucroBruto = totalReceitas - totalDespesas;
@@ -18,7 +63,8 @@ const Finance = (() => {
         const arr = mrr * 12;
         const totalImplantacoes = implantations.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
 
-        return `
+        // Prepara HTML
+        const html = `
             <div class="fade-in">
                 <div class="cards-grid" style="margin-bottom:24px">
                     ${Components.metricCard({ title: 'Receitas', value: Utils.formatCurrency(totalReceitas), icon: 'arrow-up-circle', color: 'success' })}
@@ -44,9 +90,25 @@ const Finance = (() => {
                 ${renderTransactionTable(transactions)}
             </div>
         `;
+
+        document.getElementById('content-area').innerHTML = html;
+        lucide.createIcons();
     }
 
+    /**
+     * Renderiza a tabela de transações
+     */
     function renderTransactionTable(transactions) {
+        if (!transactions || !transactions.length) {
+            return `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💰</div>
+                    <h3>Nenhuma transação registrada</h3>
+                    <p>Os dados da planilha ou transações manuais aparecerão aqui.</p>
+                </div>
+            `;
+        }
+
         const headers = ['Descrição', 'Tipo', 'Categoria', 'Valor', 'Data'];
         const rows = transactions.map(t => [
             t.description || '-',
@@ -55,9 +117,12 @@ const Finance = (() => {
             Utils.formatCurrency(t.amount),
             Utils.formatDate(t.date || t.createdAt),
         ]);
-        return Components.createTable({ headers, rows, emptyMessage: 'Nenhuma transação registrada' });
+        return Components.createTable({ headers, rows, emptyMessage: 'Nenhuma transação encontrada' });
     }
 
+    /**
+     * Abre formulário de nova transação (manual)
+     */
     function openTransactionForm(editId = null) {
         const transactions = Storage.loadData('finance_transactions', []);
         const existing = editId ? transactions.find(t => t.id === editId) : null;
@@ -108,6 +173,9 @@ const Finance = (() => {
         });
     }
 
+    /**
+     * Salva uma nova transação manual no localStorage
+     */
     function saveTransaction() {
         const transactions = Storage.loadData('finance_transactions', []);
         const editId = document.getElementById('fin-edit-id').value;
@@ -120,6 +188,7 @@ const Finance = (() => {
             amount: parseFloat(document.getElementById('fin-amount').value) || 0,
             date: document.getElementById('fin-date').value,
             createdAt: editId ? (transactions.find(t => t.id === editId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+            source: 'manual' // indica que foi cadastrada manualmente
         };
 
         if (!data.description || !data.amount) {
@@ -140,6 +209,8 @@ const Finance = (() => {
         PLURI.navigateTo('finance');
     }
 
+    // Expor funções globalmente
     window.Finance = { render, openTransactionForm, saveTransaction };
+
     return { render, openTransactionForm, saveTransaction };
 })();
