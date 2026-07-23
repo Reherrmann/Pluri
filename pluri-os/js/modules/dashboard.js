@@ -259,7 +259,7 @@ const Dashboard = (() => {
                 <!-- ===== SEÇÃO 7: Metas ===== -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="flag" class="icon"></i> Metas
-                    <button class="btn-secondary btn-sm" style="margin-left:auto" onclick="PLURI.navigateTo('goals')">Ver todas</button>
+                    <a href="#" onclick="event.preventDefault(); window.PLURI.navigateTo('goals')" style="font-size:0.75rem;color:var(--accent)">Ver metas →</a>
                 </h3>
                 <div class="card card-glass" style="margin-bottom:32px">
                     ${data.revenueGoalProgress !== null ? goalProgressBar('Receita Mensal', data.revenueThisMonth, parseFloat(data.goals?.find(g => g.category==='receita')?.target || 1), data.revenueGoalProgress) : '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhuma meta de receita definida. <a href="#" onclick="PLURI.navigateTo(\'goals\')">Criar meta</a></p>'}
