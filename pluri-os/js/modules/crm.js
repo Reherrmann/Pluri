@@ -1,8 +1,11 @@
 /**
  * PLURI OS — Módulo CRM
- * Cadastro de empresas, pipeline, busca, filtros
+ * Gestão de empresas, pipeline Kanban, busca, filtros e exportação para Google Sheets.
  */
 const CRM = (() => {
+    /**
+     * Renderiza o módulo CRM
+     */
     function render() {
         const companies = Storage.loadData('crm_companies', []);
         const stages = Storage.loadData('crm_pipeline_stages', []);
@@ -24,9 +27,14 @@ const CRM = (() => {
                             ${stages.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
                         </select>
                     </div>
-                    <button class="btn-primary" onclick="CRM.openCompanyForm()">
-                        <i data-lucide="plus" class="icon-sm"></i> Nova Empresa
-                    </button>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn-secondary btn-sm" onclick="CRM.exportToSheet()" title="Exportar para Google Sheets">
+                            <i data-lucide="upload-cloud" class="icon-sm"></i> Exportar para Planilha
+                        </button>
+                        <button class="btn-primary" onclick="CRM.openCompanyForm()">
+                            <i data-lucide="plus" class="icon-sm"></i> Nova Empresa
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Pipeline Kanban -->
@@ -46,6 +54,9 @@ const CRM = (() => {
         `;
     }
 
+    /**
+     * Renderiza a tabela de empresas
+     */
     function renderTable(companies) {
         const headers = ['Empresa', 'Segmento', 'Cidade/UF', 'Responsável', 'Status', 'Último Contato'];
         const rows = companies.map(c => [
@@ -59,6 +70,9 @@ const CRM = (() => {
         return Components.createTable({ headers, rows, emptyMessage: 'Nenhuma empresa cadastrada' });
     }
 
+    /**
+     * Abre formulário para cadastrar/editar empresa
+     */
     function openCompanyForm(editId = null) {
         const companies = Storage.loadData('crm_companies', []);
         const existing = editId ? companies.find(c => c.id === editId) : null;
@@ -118,6 +132,9 @@ const CRM = (() => {
         });
     }
 
+    /**
+     * Salva a empresa no localStorage
+     */
     function saveCompany() {
         const companies = Storage.loadData('crm_companies', []);
         const editId = document.getElementById('crm-edit-id').value;
@@ -158,6 +175,9 @@ const CRM = (() => {
         PLURI.navigateTo('crm');
     }
 
+    /**
+     * Move a empresa de estágio no pipeline
+     */
     function moveCompanyStage(companyId, newStage) {
         const companies = Storage.loadData('crm_companies', []);
         const company = companies.find(c => c.id === companyId);
@@ -171,6 +191,42 @@ const CRM = (() => {
         }
     }
 
+    /**
+     * Exporta os dados do CRM para a aba "CRM" da planilha
+     */
+    async function exportToSheet() {
+        const companies = Storage.loadData('crm_companies', []);
+        if (!companies.length) {
+            Components.showToast('Nenhuma empresa para exportar.', 'warning');
+            return;
+        }
+
+        // Cabeçalhos na ordem correta
+        const headers = ['ID', 'Empresa', 'Segmento', 'Cidade', 'Estado', 'Responsável', 'WhatsApp', 'Email', 'Origem', 'Status', 'Último Contato', 'Próximo Contato', 'Observações'];
+        const rows = companies.map(c => [
+            c.id || '',
+            c.company || c.name || '',
+            c.segment || '',
+            c.city || '',
+            c.state || '',
+            c.responsible || '',
+            c.whatsapp || '',
+            c.email || '',
+            c.origin || '',
+            c.status || '',
+            c.lastContact || '',
+            c.nextContact || '',
+            c.notes || ''
+        ]);
+
+        const data = [headers, ...rows];
+        const success = await GoogleSheets.replaceSheet('CRM', data);
+        Components.showToast(success ? 'CRM exportado com sucesso!' : 'Erro ao exportar. Tente novamente.', success ? 'success' : 'error');
+    }
+
+    /**
+     * Aplica filtro pelo seletor
+     */
     function applyFilter() {
         PLURI.refreshCurrentModule();
     }
@@ -204,7 +260,7 @@ const CRM = (() => {
         return map[status] || status;
     }
 
-    // Expor funções globalmente para os event handlers inline
+    // Expor funções globalmente
     window.CRM = {
         render,
         openCompanyForm,
@@ -212,7 +268,15 @@ const CRM = (() => {
         moveCompanyStage,
         applyFilter,
         getActiveFilter,
+        exportToSheet
     };
 
-    return { render, openCompanyForm, saveCompany, moveCompanyStage, applyFilter };
+    return {
+        render,
+        openCompanyForm,
+        saveCompany,
+        moveCompanyStage,
+        applyFilter,
+        exportToSheet
+    };
 })();
