@@ -1,6 +1,6 @@
 /**
  * PLURI OS — Dashboard Executivo V2.1
- * Organizado por categorias, com insights reais, ações editáveis e health score interativo.
+ * Cockpit inteligente com insights reais, ações editáveis e health score interativo.
  */
 const Dashboard = (() => {
     // Cache para cálculos
@@ -68,7 +68,7 @@ const Dashboard = (() => {
             revenueHistory.push(total);
         }
 
-        // Variações
+        // Variações percentuais
         const revenueVar = revenueLastMonth > 0 ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1) : 0;
         const profitVar = profitLastMonth !== 0 ? ((profitThisMonth - profitLastMonth) / Math.abs(profitLastMonth) * 100).toFixed(1) : 0;
 
@@ -76,25 +76,63 @@ const Dashboard = (() => {
         const monthlyRevenueGoal = goals.find(g => g.period === 'monthly' && g.category === 'receita');
         const revenueGoalProgress = monthlyRevenueGoal ? Math.min((revenueThisMonth / parseFloat(monthlyRevenueGoal.target || 1)) * 100, 100).toFixed(1) : null;
 
-        // Health Score com critérios
+        // Health Score (0-100) com regras simplificadas
         let healthScore = 50;
-        const criteria = [];
-        if (revenueVar > 0) { healthScore += 10; criteria.push('Receita crescendo (+10)'); } else { healthScore -= 5; criteria.push('Receita caindo (-5)'); }
-        if (conversionRate > 20) { healthScore += 10; criteria.push('Conversão > 20% (+10)'); } else criteria.push('Conversão baixa');
-        if (activeClients > 10) { healthScore += 10; criteria.push('+10 clientes (+10)'); }
-        if (profitThisMonth > 0) { healthScore += 15; criteria.push('Lucro positivo (+15)'); } else { healthScore -= 10; criteria.push('Prejuízo (-10)'); }
-        if (cashFlow > 0) { healthScore += 15; criteria.push('Fluxo positivo (+15)'); } else { healthScore -= 5; criteria.push('Fluxo negativo (-5)'); }
+        if (revenueVar > 0) healthScore += 10; else healthScore -= 5;
+        if (conversionRate > 20) healthScore += 10;
+        if (activeClients > 10) healthScore += 10;
+        if (profitThisMonth > 0) healthScore += 15; else healthScore -= 10;
+        if (cashFlow > 0) healthScore += 15; else healthScore -= 5;
         healthScore = Math.max(0, Math.min(100, healthScore));
+
+        // Indicadores reais (substitui criteria)
+        const healthIndicators = [
+            {
+                label: 'Receita',
+                value: revenueVar,
+                unit: '%',
+                status: revenueVar >= 0 ? 'positive' : 'negative',
+                detail: revenueVar >= 0 ? `+${revenueVar}% vs mês anterior` : `${revenueVar}% vs mês anterior`
+            },
+            {
+                label: 'Conversão',
+                value: conversionRate,
+                unit: '%',
+                status: conversionRate >= 20 ? 'positive' : 'negative',
+                detail: `${conversionRate}%`
+            },
+            {
+                label: 'Lucro',
+                value: profitVar,
+                unit: '%',
+                status: profitVar >= 0 ? 'positive' : 'negative',
+                detail: profitVar >= 0 ? `+${profitVar}% vs mês anterior` : `${profitVar}% vs mês anterior`
+            },
+            {
+                label: 'Fluxo de Caixa',
+                value: cashFlow,
+                unit: 'R$',
+                status: cashFlow >= 0 ? 'positive' : 'negative',
+                detail: Utils.formatCurrency(cashFlow)
+            },
+            {
+                label: 'Clientes Ativos',
+                value: activeClients,
+                unit: '',
+                status: activeClients >= 10 ? 'positive' : 'negative',
+                detail: `${activeClients} clientes`
+            }
+        ];
 
         // Insights
         const insights = [];
-        if (revenueVar < 0) insights.push({ icon: '📉', text: `Receita caiu ${Math.abs(revenueVar)}% em relação ao mês passado.`, source: 'Financeiro' });
-        else if (revenueVar > 10) insights.push({ icon: '📈', text: `Receita cresceu ${revenueVar}% este mês!`, source: 'Financeiro' });
-        if (conversionRate < 20 && companies.length > 5) insights.push({ icon: '⚠️', text: `Taxa de conversão baixa: ${conversionRate}%.`, source: 'CRM' });
+        if (revenueVar < 0) insights.push({ icon: '📉', text: `Receita caiu ${Math.abs(revenueVar)}% em relação ao mês passado.`, source: 'Financeiro', type: 'warning' });
+        else if (revenueVar > 10) insights.push({ icon: '📈', text: `Receita cresceu ${revenueVar}% este mês!`, source: 'Financeiro', type: 'success' });
+        if (conversionRate < 20 && companies.length > 5) insights.push({ icon: '⚠️', text: `Taxa de conversão baixa: ${conversionRate}%.`, source: 'CRM', type: 'warning' });
         const oldProposals = companies.filter(c => c.status === 'proposal' && (new Date() - new Date(c.updatedAt)) > 15*24*60*60*1000);
-        if (oldProposals.length > 0) insights.push({ icon: '⏳', text: `${oldProposals.length} propostas paradas há mais de 15 dias.`, source: 'CRM' });
-        if (profitThisMonth < 0) insights.push({ icon: '🔻', text: 'Lucro negativo este mês. Revise custos.', source: 'Financeiro' });
-        if (revenueGoalProgress !== null && revenueGoalProgress < 80) insights.push({ icon: '🎯', text: `Meta de receita em ${revenueGoalProgress}% — abaixo do esperado.`, source: 'Metas' });
+        if (oldProposals.length > 0) insights.push({ icon: '⏳', text: `${oldProposals.length} propostas paradas há mais de 15 dias.`, source: 'CRM', type: 'danger' });
+        if (profitThisMonth < 0) insights.push({ icon: '🔻', text: 'Lucro negativo este mês. Revise custos.', source: 'Financeiro', type: 'danger' });
+        if (revenueGoalProgress !== null && revenueGoalProgress < 80) insights.push({ icon: '🎯', text: `Meta de receita em ${revenueGoalProgress}% — abaixo do esperado.`, source: 'Metas', type: 'warning' });
 
         // Pipeline resumido
         const stages = Storage.loadData('crm_pipeline_stages', []);
@@ -111,9 +149,9 @@ const Dashboard = (() => {
             leads, activeClients, conversionRate, ticketMedio, inImplantation, activeContracts,
             revenueHistory,
             revenueGoalProgress,
-            healthScore, criteria,
+            healthScore, healthIndicators,
             insights,
-            actions, // lista editável
+            actions,
             pipelineSummary,
             companies, transactions, goals, contracts,
         };
@@ -227,57 +265,52 @@ const Dashboard = (() => {
                     ${data.revenueGoalProgress !== null ? goalProgressBar('Receita Mensal', data.revenueThisMonth, parseFloat(data.goals?.find(g => g.category==='receita')?.target || 1), data.revenueGoalProgress) : '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhuma meta de receita definida. <a href="#" onclick="PLURI.navigateTo(\'goals\')">Criar meta</a></p>'}
                 </div>
 
-                // ===== SEÇÃO 8: Saúde da Empresa (detalhada) =====
-<h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
-    <i data-lucide="heart" class="icon"></i> Saúde da Empresa
-</h3>
-<div class="card card-glass" style="margin-bottom:32px">
-    <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start">
-        <!-- Círculo de pontuação -->
-        <div style="text-align:center">
-            <div class="health-score-circle" style="background: conic-gradient(${data.healthScore >= 70 ? '#22c55e' : data.healthScore >= 40 ? '#f59e0b' : '#ef4444'} ${data.healthScore}%, var(--bg-tertiary) 0);">
-                <span style="color:var(--text-primary);font-size:2rem">${data.healthScore}</span>
-            </div>
-            <p style="margin-top:8px;font-weight:600;color:var(--text-primary)">
-                ${data.healthScore >= 70 ? '🟢 Saudável' : data.healthScore >= 40 ? '🟡 Atenção' : '🔴 Crítico'}
-            </p>
-        </div>
-
-        <!-- Detalhamento dos critérios -->
-        <div>
-            <h4 style="font-weight:600;margin-bottom:8px">Critérios avaliados</h4>
-            <div style="display:flex;flex-direction:column;gap:6px;font-size:0.85rem">
-                ${data.criteria.map(c => {
-                    const isPositive = c.includes('+');
-                    return `
-                        <div style="display:flex;align-items:center;gap:8px">
-                            <span>${isPositive ? '✅' : '⚠️'}</span>
-                            <span style="color:var(--text-secondary)">${c}</span>
-                            <span style="color:${isPositive ? 'var(--success)' : 'var(--danger)'};font-weight:500">
-                                ${isPositive ? '+' + c.match(/\+\d+/)[0] : c.match(/\(\-\d+\)/) ? c.match(/\(\-\d+\)/)[0] : ''}
-                            </span>
+                <!-- ===== SEÇÃO 8: Saúde da Empresa (compacta e com % reais) ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="heart" class="icon"></i> Saúde da Empresa
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px">
+                    <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start">
+                        <!-- Círculo de pontuação -->
+                        <div style="text-align:center">
+                            <div class="health-score-circle" style="background: conic-gradient(${data.healthScore >= 70 ? '#22c55e' : data.healthScore >= 40 ? '#f59e0b' : '#ef4444'} ${data.healthScore}%, var(--bg-tertiary) 0);">
+                                <span style="color:var(--text-primary);font-size:2rem">${data.healthScore}</span>
+                            </div>
+                            <p style="margin-top:8px;font-weight:600;color:var(--text-primary)">
+                                ${data.healthScore >= 70 ? '🟢 Saudável' : data.healthScore >= 40 ? '🟡 Atenção' : '🔴 Crítico'}
+                            </p>
                         </div>
-                    `;
-                }).join('')}
-            </div>
 
-            <!-- Painel de Atenção -->
-            ${data.healthScore < 70 ? `
-            <div style="margin-top:16px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-md);padding:12px">
-                <h5 style="font-weight:600;color:var(--warning);margin-bottom:6px">⚠️ Pontos de atenção</h5>
-                <ul style="margin:0;padding-left:16px;font-size:0.85rem;color:var(--text-secondary)">
-                    ${data.insights.filter(i => i.type === 'warning' || i.type === 'danger').map(i => `<li>${i.text}</li>`).join('')}
-                    ${data.criteria.filter(c => c.includes('-')).map(c => `<li>${c}</li>`).join('')}
-                </ul>
-            </div>
-            ` : ''}
+                        <!-- Indicadores reais -->
+                        <div>
+                            <h4 style="font-weight:600;margin-bottom:8px">Indicadores avaliados</h4>
+                            <div style="display:flex;flex-direction:column;gap:8px;font-size:0.85rem">
+                                ${data.healthIndicators.map(ind => `
+                                    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-subtle)">
+                                        <span style="color:var(--text-secondary)">${ind.label}</span>
+                                        <span style="font-weight:500;color:${ind.status === 'positive' ? 'var(--success)' : 'var(--danger)'}">
+                                            ${ind.value}${ind.unit}
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
 
-            <p style="margin-top:12px;font-size:0.75rem;color:var(--text-tertiary)">
-                <i data-lucide="info" class="icon-sm"></i> O score é calculado com base em receita, lucro, conversão e fluxo de caixa.
-            </p>
-        </div>
-    </div>
-</div>
+                            <!-- Recomendações (apenas se existirem) -->
+                            ${data.insights.filter(i => i.type === 'warning' || i.type === 'danger').length > 0 ? `
+                            <div style="margin-top:16px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-md);padding:12px">
+                                <h5 style="font-weight:600;color:var(--warning);margin-bottom:6px">💡 Recomendações</h5>
+                                <ul style="margin:0;padding-left:16px;font-size:0.85rem;color:var(--text-secondary)">
+                                    ${generateRecommendations(data.insights)}
+                                </ul>
+                            </div>
+                            ` : ''}
+
+                            <p style="margin-top:12px;font-size:0.75rem;color:var(--text-tertiary)">
+                                <i data-lucide="info" class="icon-sm"></i> O score é uma média ponderada dos indicadores acima.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- ===== SEÇÃO 9: Assistente Executivo PLURI ===== -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
@@ -383,6 +416,21 @@ const Dashboard = (() => {
         if (data.cashFlow < 0) suggestions.push(`🔻 Seu fluxo de caixa está negativo. Reveja despesas.`);
         if (suggestions.length === 0) suggestions.push('🚀 Todos os indicadores estão positivos. Continue com a estratégia atual!');
         return suggestions.map(s => `<div style="margin-bottom:6px">${s}</div>`).join('');
+    }
+
+    /**
+     * Gera recomendações acionáveis a partir de insights
+     */
+    function generateRecommendations(insights) {
+        const recs = [];
+        insights.forEach(i => {
+            if (i.text.includes('Receita caiu')) recs.push('Intensificar prospecção e follow-up.');
+            if (i.text.includes('conversão')) recs.push('Revisar processo de vendas e follow-up.');
+            if (i.text.includes('Lucro negativo')) recs.push('Reduzir custos ou renegociar contratos.');
+            if (i.text.includes('Fluxo negativo')) recs.push('Acelerar cobranças e revisar despesas.');
+        });
+        // Remove duplicatas
+        return [...new Set(recs)].map(r => `<li>${r}</li>`).join('');
     }
 
     // =============================================
