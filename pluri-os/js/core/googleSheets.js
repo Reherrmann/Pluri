@@ -2,15 +2,14 @@
  * PLURI OS — Integração Google Sheets via Apps Script
  */
 const GoogleSheets = (() => {
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwxtdzYuKaMpC7yQ8utoM49pVnUOT4EskxAIfPV7x0Ab2kQ0hNKCf6oOP-2vj2bTGWw/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzK5MqyMUE3oEVzykdrzxIaRs01BIfrWUUCK962JTYRfvjFOfUV9fdxYhrJdC8RXzwl/exec'; // ← sua URL de produção
 
   async function readSheet(sheetName) {
     try {
-      const url = `${API_URL}?sheet=${encodeURIComponent(sheetName)}&action=read`;
-      const response = await fetch(url);
+      const params = new URLSearchParams({ sheet: sheetName, action: 'read' });
+      const response = await fetch(`${API_URL}?${params.toString()}`);
       if (!response.ok) throw new Error(`Erro ${response.status}`);
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
       console.error('[GoogleSheets] Erro ao ler:', error);
       return null;
@@ -19,11 +18,12 @@ const GoogleSheets = (() => {
 
   async function appendRow(sheetName, rowArray) {
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ sheet: sheetName, action: 'append', row: rowArray }),
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      const params = new URLSearchParams({
+        sheet: sheetName,
+        action: 'append',
+        row: JSON.stringify(rowArray)
       });
+      const response = await fetch(`${API_URL}?${params.toString()}`);
       const result = await response.json();
       if (result.error) throw new Error(result.error);
       return true;
@@ -35,11 +35,12 @@ const GoogleSheets = (() => {
 
   async function deleteRow(sheetName, id) {
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ sheet: sheetName, action: 'delete', id: id }),
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      const params = new URLSearchParams({
+        sheet: sheetName,
+        action: 'delete',
+        id: id
       });
+      const response = await fetch(`${API_URL}?${params.toString()}`);
       const result = await response.json();
       if (result.error) throw new Error(result.error);
       return true;
@@ -49,8 +50,24 @@ const GoogleSheets = (() => {
     }
   }
 
-  // Disponibiliza globalmente (redundante, mas seguro)
-  window.GoogleSheets = { readSheet, appendRow, deleteRow };
+  async function updateCell(sheetName, key, value) {
+    try {
+      const params = new URLSearchParams({
+        sheet: sheetName,
+        action: 'update',
+        key: key,
+        value: value
+      });
+      const response = await fetch(`${API_URL}?${params.toString()}`);
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+      return true;
+    } catch (error) {
+      console.error('[GoogleSheets] Erro ao atualizar:', error);
+      return false;
+    }
+  }
 
-  return { readSheet, appendRow, deleteRow };
+  window.GoogleSheets = { readSheet, appendRow, deleteRow, updateCell };
+  return { readSheet, appendRow, deleteRow, updateCell };
 })();
