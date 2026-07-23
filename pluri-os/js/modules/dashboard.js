@@ -170,7 +170,7 @@ const Dashboard = (() => {
                         <p style="color:var(--text-tertiary);font-size:0.9rem">${Utils.formatDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
                     <button class="btn-secondary btn-sm" onclick="PLURI.navigateTo('finance')">
-                        <i data-lucide="plus" class="icon-sm"></i> Ação Rápida
+                        <i data-lucide="plus" class="icon-sm"></i> Registrar Transação
                     </button>
                 </div>
 
