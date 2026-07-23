@@ -1,11 +1,8 @@
 /**
  * PLURI OS — Fábrica de Componentes Reutilizáveis
- * Gera HTML de forma programática para cards, modais, toasts, etc.
  */
 const Components = (() => {
-    /**
-     * Card de métrica
-     */
+    // ==================== CARDS ====================
     function metricCard({ title, value, icon, trend, trendValue, subtitle, color = 'accent' }) {
         const trendHTML = trend
             ? `<span class="card-trend ${trend === 'up' ? 'up' : 'down'}">
@@ -27,9 +24,7 @@ const Components = (() => {
         `;
     }
 
-    /**
-     * Toast notification
-     */
+    // ==================== TOAST ====================
     function showToast(message, type = 'info', duration = 4000) {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
@@ -49,9 +44,7 @@ const Components = (() => {
         }, duration);
     }
 
-    /**
-     * Modal
-     */
+    // ==================== MODAL ====================
     function openModal({ title, bodyHTML, footerHTML, onClose, size = 'default' }) {
         const overlay = document.getElementById('modal-overlay');
         const container = document.getElementById('modal-container');
@@ -78,9 +71,7 @@ const Components = (() => {
         document.getElementById('modal-overlay').classList.add('hidden');
     }
 
-    /**
-     * Tabela dinâmica
-     */
+    // ==================== TABELA ====================
     function createTable({ headers, rows, actions = [], emptyMessage = 'Nenhum registro encontrado' }) {
         if (!rows || !rows.length) {
             return `
@@ -94,50 +85,44 @@ const Components = (() => {
         const headerHTML = headers.map(h => `<th>${h}</th>`).join('');
         const rowsHTML = rows.map((row, i) => {
             const cells = headers.map((h, j) => `<td>${row[j] ?? ''}</td>`).join('');
-            const actionBtns = actions.map(a => {
-                if (a.type === 'edit') return `<button class="btn-icon btn-sm" onclick="(${a.handler.toString()})('${row[0]}')" title="Editar"><i data-lucide="pencil" class="icon-sm"></i></button>`;
-                if (a.type === 'delete') return `<button class="btn-icon btn-sm" onclick="(${a.handler.toString()})('${row[0]}')" title="Excluir"><i data-lucide="trash-2" class="icon-sm"></i></button>`;
-                return '';
-            }).join('');
-            return `<tr>${cells}<td>${actionBtns}</td></tr>`;
+            return `<tr>${cells}</tr>`;
         }).join('');
-        const actionHeader = actions.length ? '<th style="width:80px">Ações</th>' : '';
+
         return `
             <div class="table-container">
                 <table>
-                    <thead><tr>${headerHTML}${actionHeader}</tr></thead>
+                    <thead><tr>${headerHTML}</tr></thead>
                     <tbody>${rowsHTML}</tbody>
                 </table>
             </div>
         `;
     }
 
-    /**
-     * Skeleton loader
-     */
-    function showSkeleton(count = 6) {
-        const area = document.getElementById('content-area');
-        let html = '<div class="skeleton-loading">';
-        for (let i = 0; i < count; i++) {
-            html += '<div class="skeleton-card"></div>';
-        }
-        html += '</div>';
-        area.innerHTML = html;
-    }
-
-    /**
-     * Pipeline Kanban
-     */
+    // ==================== PIPELINE KANBAN (NOVA VERSÃO) ====================
     function renderPipeline(stages, items, onMoveItem) {
         const stageHTML = stages.map(stage => {
             const stageItems = items.filter(item => item.stage === stage.id || item.status === stage.id);
+            const totalValue = stageItems.reduce((sum, item) => sum + (parseFloat(item.value || 0)), 0);
+
             const cardsHTML = stageItems.map(item => `
-                <div class="pipeline-card" draggable="true" data-id="${item.id}" data-stage="${stage.id}"
-                     ondragstart="window._dragItemId='${item.id}';window._dragSourceStage='${stage.id}'">
-                    <strong>${item.name || item.company || item.title || 'Item'}</strong>
+                <div class="pipeline-card" draggable="true"
+                     data-id="${item.id}" data-stage="${stage.id}"
+                     ondragstart="event.dataTransfer.setData('text/plain', '${item.id}'); this.classList.add('dragging')"
+                     ondragend="this.classList.remove('dragging')">
+                    <div style="display:flex;justify-content:space-between;align-items:start">
+                        <strong>${item.company || item.name || item.title || 'Item'}</strong>
+                        <div style="display:flex;gap:4px">
+                            <button class="btn-icon btn-sm" onclick="event.stopPropagation(); CRM.editCompany('${item.id}')" title="Editar">
+                                <i data-lucide="pencil" class="icon-sm"></i>
+                            </button>
+                            <button class="btn-icon btn-sm" onclick="event.stopPropagation(); CRM.deleteCompany('${item.id}')" title="Excluir">
+                                <i data-lucide="trash-2" class="icon-sm"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div style="font-size:0.78rem;color:var(--text-tertiary);margin-top:4px">
                         ${item.value ? Utils.formatCurrency(item.value) : ''}
-                        ${item.contact || ''}
+                        ${item.responsible ? '· ' + item.responsible : ''}
                     </div>
                 </div>
             `).join('');
@@ -145,14 +130,22 @@ const Components = (() => {
             return `
                 <div class="pipeline-column"
                      ondragover="event.preventDefault()"
+                     ondragenter="event.currentTarget.classList.add('drag-over')"
+                     ondragleave="event.currentTarget.classList.remove('drag-over')"
                      ondrop="event.preventDefault();
-                              const itemId = window._dragItemId;
-                              const sourceStage = window._dragSourceStage;
+                              event.currentTarget.classList.remove('drag-over');
+                              const itemId = event.dataTransfer.getData('text/plain');
+                              const sourceStage = document.querySelector('.pipeline-card.dragging')?.dataset.stage;
                               if (itemId && sourceStage !== '${stage.id}') {
                                   (${onMoveItem.toString()})(itemId, '${stage.id}');
-                              }
-                              window._dragItemId = null;">
-                    <div class="pipeline-column-header">${stage.name} <span style="color:var(--text-tertiary)">(${stageItems.length})</span></div>
+                              }">
+                    <div class="pipeline-column-header">
+                        <span>${stage.name}</span>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <span class="badge-tag neutral">${stageItems.length}</span>
+                            <span style="font-size:0.7rem;color:var(--text-tertiary)">${Utils.formatCurrency(totalValue)}</span>
+                        </div>
+                    </div>
                     ${cardsHTML || '<div style="padding:16px;text-align:center;color:var(--text-tertiary);font-size:0.8rem">Arraste itens aqui</div>'}
                 </div>
             `;
@@ -161,9 +154,7 @@ const Components = (() => {
         return `<div class="pipeline">${stageHTML}</div>`;
     }
 
-    /**
-     * Confirmação
-     */
+    // ==================== CONFIRM DIALOG ====================
     function confirmDialog({ title, message, onConfirm, onCancel }) {
         openModal({
             title: title || 'Confirmação',
@@ -185,14 +176,26 @@ const Components = (() => {
         }, 100);
     }
 
+    // ==================== SKELETON ====================
+    function showSkeleton(count = 6) {
+        const area = document.getElementById('content-area');
+        let html = '<div class="skeleton-loading">';
+        for (let i = 0; i < count; i++) {
+            html += '<div class="skeleton-card"></div>';
+        }
+        html += '</div>';
+        area.innerHTML = html;
+    }
+
+    // ==================== EXPORTAÇÃO ====================
     return {
         metricCard,
         showToast,
         openModal,
         closeModal,
         createTable,
-        showSkeleton,
         renderPipeline,
         confirmDialog,
+        showSkeleton
     };
 })();
