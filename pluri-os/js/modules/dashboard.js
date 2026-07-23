@@ -1,18 +1,14 @@
 /**
  * PLURI OS — Dashboard Executivo V3
- * Refinamento completo: tooltips, estados vazios, insights ricos, ações inteligentes,
- * funil clicável, filtros financeiros, metas detalhadas, saúde explicável, copiloto proativo.
+ * Cockpit inteligente com insights, ações editáveis, health score e IA.
  */
 const Dashboard = (() => {
     let cachedData = null;
 
-    /**
-     * Coleta todos os dados e gera inteligência
-     */
     function gatherData() {
         const companies = Storage.loadData('crm_companies', []);
         const transactions = Storage.loadData('finance_transactions', []);
-        const implantations = Storage.loadData('finance_implantations', []);
+        const implantations = Storage.loadData('implantations', []);
         const goals = Storage.loadData('goals', []);
         const contracts = Storage.loadData('contracts', []);
         const actions = Storage.loadData('dashboard_actions', []);
@@ -32,7 +28,6 @@ const Dashboard = (() => {
             return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
         };
 
-        // Financeiro
         const revenueThisMonth = transactions.filter(t => t.type === 'receita' && isThisMonth(t.date || t.createdAt))
             .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
         const revenueLastMonth = transactions.filter(t => t.type === 'receita' && isLastMonth(t.date || t.createdAt))
@@ -48,7 +43,6 @@ const Dashboard = (() => {
         const totalImplantations = implantations.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
         const roi = totalImplantations > 0 ? ((profitThisMonth / totalImplantations) * 100).toFixed(1) : null;
 
-        // Comercial
         const leads = companies.filter(c => c.status === 'lead').length;
         const activeClients = companies.filter(c => c.status === 'closed').length;
         const conversionRate = companies.length > 0 ? ((activeClients / companies.length) * 100).toFixed(1) : '0';
@@ -56,7 +50,6 @@ const Dashboard = (() => {
         const inImplantation = implantations.filter(i => i.status === 'em_andamento').length;
         const activeContracts = contracts.filter(c => c.status === 'ativo').length;
 
-        // Histórico de receita (6 meses)
         const revenueHistory = [];
         for (let i = 5; i >= 0; i--) {
             const d = new Date(thisYear, thisMonth - i, 1);
@@ -67,23 +60,19 @@ const Dashboard = (() => {
             revenueHistory.push(total);
         }
 
-        // Variações
         const revenueVar = revenueLastMonth > 0 ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1) : 0;
         const profitVar = profitLastMonth !== 0 ? ((profitThisMonth - profitLastMonth) / Math.abs(profitLastMonth) * 100).toFixed(1) : 0;
 
-        // Metas
         const monthlyRevenueGoal = goals.find(g => g.period === 'monthly' && g.category === 'receita');
         const revenueGoalProgress = monthlyRevenueGoal ? Math.min((revenueThisMonth / parseFloat(monthlyRevenueGoal.target || 1)) * 100, 100).toFixed(1) : null;
         const revenueGoalRemaining = monthlyRevenueGoal ? Math.max(parseFloat(monthlyRevenueGoal.target) - revenueThisMonth, 0) : 0;
 
-        // Previsão de conclusão da meta (dias restantes no mês / progresso diário necessário)
         const daysInMonth = new Date(thisYear, thisMonth + 1, 0).getDate();
         const daysLeft = daysInMonth - now.getDate();
-        const dailyNeeded = revenueGoalRemaining > 0 && daysLeft > 0 ? revenueGoalRemaining / daysLeft : 0;
         const avgDailyRevenue = revenueThisMonth / Math.max(now.getDate(), 1);
+        const dailyNeeded = revenueGoalRemaining > 0 && daysLeft > 0 ? revenueGoalRemaining / daysLeft : 0;
         const forecastDays = dailyNeeded > 0 && avgDailyRevenue > 0 ? Math.ceil(revenueGoalRemaining / avgDailyRevenue) : null;
 
-        // Health Score detalhado
         let healthScore = 50;
         const healthDetails = [];
         if (revenueVar > 0) { healthScore += 10; healthDetails.push({ label: 'Receita', value: `+${revenueVar}%`, impact: '+10', status: 'positive' }); }
@@ -98,7 +87,6 @@ const Dashboard = (() => {
         else { healthScore -= 5; healthDetails.push({ label: 'Fluxo de Caixa', value: Utils.formatCurrency(cashFlow), impact: '-5', status: 'negative' }); }
         healthScore = Math.max(0, Math.min(100, healthScore));
 
-        // Indicadores reais
         const healthIndicators = [
             { label: 'Receita', value: revenueVar, unit: '%', status: revenueVar >= 0 ? 'positive' : 'negative' },
             { label: 'Conversão', value: conversionRate, unit: '%', status: conversionRate >= 20 ? 'positive' : 'negative' },
@@ -107,61 +95,15 @@ const Dashboard = (() => {
             { label: 'Clientes Ativos', value: activeClients, unit: '', status: activeClients >= 10 ? 'positive' : 'negative' },
         ];
 
-        // Insights enriquecidos
         const insights = [];
-        if (revenueVar < 0) {
-            insights.push({
-                icon: '📉',
-                text: `Receita caiu ${Math.abs(revenueVar)}% este mês.`,
-                recommendation: 'Intensifique a prospecção e o follow-up.',
-                priority: 'high',
-                category: 'Financeiro',
-                module: 'crm'
-            });
-        }
-        if (conversionRate < 20 && companies.length > 5) {
-            insights.push({
-                icon: '⚠️',
-                text: `Conversão baixa: ${conversionRate}%.`,
-                recommendation: 'Revise o processo de vendas e follow-up.',
-                priority: 'high',
-                category: 'Comercial',
-                module: 'crm'
-            });
-        }
+        if (revenueVar < 0) insights.push({ icon: '📉', text: `Receita caiu ${Math.abs(revenueVar)}% este mês.`, recommendation: 'Intensifique a prospecção e o follow-up.', priority: 'high', category: 'Financeiro', module: 'crm' });
+        else if (revenueVar > 10) insights.push({ icon: '📈', text: `Receita cresceu ${revenueVar}% este mês!`, recommendation: '', priority: 'low', category: 'Financeiro', module: 'finance' });
+        if (conversionRate < 20 && companies.length > 5) insights.push({ icon: '⚠️', text: `Conversão baixa: ${conversionRate}%.`, recommendation: 'Revise o processo de vendas.', priority: 'high', category: 'Comercial', module: 'crm' });
         const oldProposals = companies.filter(c => c.status === 'proposal' && (new Date() - new Date(c.updatedAt)) > 15*24*60*60*1000);
-        if (oldProposals.length > 0) {
-            insights.push({
-                icon: '⏳',
-                text: `${oldProposals.length} propostas paradas há +15 dias.`,
-                recommendation: 'Faça follow-up urgente dessas empresas.',
-                priority: 'high',
-                category: 'CRM',
-                module: 'crm'
-            });
-        }
-        if (profitThisMonth < 0) {
-            insights.push({
-                icon: '🔻',
-                text: `Lucro negativo: ${Utils.formatCurrency(profitThisMonth)}.`,
-                recommendation: 'Reduza custos em 15% para voltar ao azul.',
-                priority: 'high',
-                category: 'Financeiro',
-                module: 'finance'
-            });
-        }
-        if (revenueGoalProgress !== null && revenueGoalProgress < 80) {
-            insights.push({
-                icon: '🎯',
-                text: `Meta de receita em ${revenueGoalProgress}%.`,
-                recommendation: `Faltam ${Utils.formatCurrency(revenueGoalRemaining)} para bater a meta.`,
-                priority: 'medium',
-                category: 'Metas',
-                module: 'goals'
-            });
-        }
+        if (oldProposals.length > 0) insights.push({ icon: '⏳', text: `${oldProposals.length} propostas paradas há +15 dias.`, recommendation: 'Faça follow-up urgente.', priority: 'high', category: 'CRM', module: 'crm' });
+        if (profitThisMonth < 0) insights.push({ icon: '🔻', text: `Lucro negativo: ${Utils.formatCurrency(profitThisMonth)}.`, recommendation: 'Reduza custos em 15%.', priority: 'high', category: 'Financeiro', module: 'finance' });
+        if (revenueGoalProgress !== null && revenueGoalProgress < 80) insights.push({ icon: '🎯', text: `Meta de receita em ${revenueGoalProgress}%.`, recommendation: `Faltam ${Utils.formatCurrency(revenueGoalRemaining)} para bater a meta.`, priority: 'medium', category: 'Metas', module: 'goals' });
 
-        // Pipeline com taxas
         const stages = Storage.loadData('crm_pipeline_stages', []);
         const pipelineSummary = stages.map((stage, index) => {
             const count = companies.filter(c => c.status === stage.id).length;
@@ -171,7 +113,6 @@ const Dashboard = (() => {
             return { ...stage, count, value, conversionToHere };
         });
 
-        // Ações inteligentes geradas automaticamente
         const smartActions = [];
         if (leads > 0) smartActions.push({ text: `Fazer follow-up com ${leads} leads`, priority: 'high', icon: 'phone', module: 'crm' });
         if (oldProposals.length > 0) smartActions.push({ text: `Dar atenção a ${oldProposals.length} propostas paradas`, priority: 'high', icon: 'file-text', module: 'crm' });
@@ -203,12 +144,8 @@ const Dashboard = (() => {
         const data = gatherData();
         cachedData = data;
 
-        // Função auxiliar para tooltip
-        const tooltip = (text) => `<span class="has-tooltip" data-tooltip="${text}">?</span>`;
-
         return `
             <div class="fade-in">
-                <!-- Header -->
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px">
                     <div>
                         <h2 style="font-weight:700;font-size:1.5rem;letter-spacing:-0.02em">Bom dia, Diretoria 👋</h2>
@@ -219,7 +156,7 @@ const Dashboard = (() => {
                     </button>
                 </div>
 
-                <!-- ===== SEÇÃO 1: KPIs Principais ===== -->
+                <!-- KPIs -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="bar-chart-3" class="icon"></i> Indicadores Principais
                 </h3>
@@ -238,7 +175,7 @@ const Dashboard = (() => {
                         'Retorno sobre o investimento em implantações.')}
                 </div>
 
-                <!-- ===== SEÇÃO 2: Comercial ===== -->
+                <!-- Comercial -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="users" class="icon"></i> Comercial
                 </h3>
@@ -251,7 +188,7 @@ const Dashboard = (() => {
                     ${clickableMetricCard('Contratos Ativos', data.activeContracts, 'file-text', '#06b6d4', 'contracts')}
                 </div>
 
-                <!-- ===== SEÇÃO 3: Insights Inteligentes ===== -->
+                <!-- Insights -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="lightbulb" class="icon"></i> Insights Inteligentes
                 </h3>
@@ -265,7 +202,7 @@ const Dashboard = (() => {
                                     <strong style="font-size:0.9rem">${i.text}</strong>
                                     <span class="badge-tag ${i.priority === 'high' ? 'danger' : i.priority === 'medium' ? 'warning' : 'info'}">${i.priority === 'high' ? 'Crítico' : i.priority === 'medium' ? 'Atenção' : 'Info'}</span>
                                 </div>
-                                <p style="color:var(--text-secondary);font-size:0.82rem;margin:4px 0">💡 ${i.recommendation}</p>
+                                ${i.recommendation ? `<p style="color:var(--text-secondary);font-size:0.82rem;margin:4px 0">💡 ${i.recommendation}</p>` : ''}
                                 <span style="font-size:0.7rem;color:var(--text-tertiary)">${i.category}</span>
                                 <button class="btn-secondary btn-sm" style="margin-left:8px" onclick="PLURI.navigateTo('${i.module}')">Ver →</button>
                             </div>
@@ -273,16 +210,17 @@ const Dashboard = (() => {
                     `).join('') : '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhum alerta no momento. 🎉</p>'}
                 </div>
 
-                <!-- ===== SEÇÃO 4: Hoje você precisa ===== -->
+                <!-- Hoje você precisa -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="check-square" class="icon"></i> Hoje você precisa
                     <button class="btn-icon btn-sm" onclick="Dashboard.addAction()" style="margin-left:auto"><i data-lucide="plus" class="icon-sm"></i></button>
                 </h3>
                 <div class="card card-glass" style="margin-bottom:32px">
+                    <p style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:8px">💡 As tarefas automáticas levam ao módulo correspondente. Adicione suas próprias tarefas no <b>+</b>.</p>
                     ${renderSmartActions(data)}
                 </div>
 
-                <!-- ===== SEÇÃO 5: Funil Comercial ===== -->
+                <!-- Funil -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="funnel" class="icon"></i> Funil Comercial
                 </h3>
@@ -300,7 +238,7 @@ const Dashboard = (() => {
                     </div>
                 </div>
 
-                <!-- ===== SEÇÃO 6: Financeiro ===== -->
+                <!-- Financeiro -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="dollar-sign" class="icon"></i> Financeiro
                 </h3>
@@ -320,7 +258,7 @@ const Dashboard = (() => {
                     </div>
                 </div>
 
-                <!-- ===== SEÇÃO 7: Metas ===== -->
+                <!-- Metas -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="flag" class="icon"></i> Metas
                     <button class="btn-secondary btn-sm" style="margin-left:auto" onclick="window.PLURI.navigateTo('goals')">Ver todas</button>
@@ -336,7 +274,7 @@ const Dashboard = (() => {
                     `}
                 </div>
 
-                <!-- ===== SEÇÃO 8: Saúde da Empresa ===== -->
+                <!-- Saúde -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="heart" class="icon"></i> Saúde da Empresa
                 </h3>
@@ -367,7 +305,7 @@ const Dashboard = (() => {
                     </div>
                 </div>
 
-                <!-- ===== SEÇÃO 9: Assistente Executivo PLURI ===== -->
+                <!-- Assistente -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
                     <i data-lucide="bot" class="icon"></i> Assistente Executivo PLURI
                 </h3>
@@ -386,18 +324,13 @@ const Dashboard = (() => {
         `;
     }
 
-    // =============================================
-    // COMPONENTES
-    // =============================================
-
+    // Componentes internos
     function kpiCard(title, value, icon, variation, varClass, comparison, color, sparklineData = [], tooltipText = '') {
         const sparkHTML = sparklineData && sparklineData.length > 0 
             ? `<div class="sparkline-container">${Charts.createSparkline(sparklineData, { width: 200, height: 40, color: color || '#6366f1', smooth: true, fillOpacity: 0.2 })}</div>`
             : '';
-        const valueDisplay = value === null || value === undefined || value === 'N/A' ? 'Dados insuficientes' : value;
-        const valueClass = value === null || value === undefined || value === 'N/A' ? 'card-value' : 'card-value';
         return `
-            <div class="card card-glass card-clickable" onclick="PLURI.navigateTo('finance')" style="position:relative">
+            <div class="card card-glass card-clickable" onclick="PLURI.navigateTo('finance')">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start">
                     <span class="card-title">
                         ${title}
@@ -407,7 +340,7 @@ const Dashboard = (() => {
                         <i data-lucide="${icon}" class="icon-sm"></i>
                     </span>
                 </div>
-                <div class="${valueClass}" style="font-size:1.8rem;margin:8px 0">${valueDisplay}</div>
+                <div class="card-value" style="font-size:1.8rem;margin:8px 0">${value}</div>
                 <div style="display:flex;align-items:center">
                     ${variation ? `<span class="metric-variation ${varClass}">${variation}</span>` : ''}
                     <span class="metric-comparison">${comparison}</span>
@@ -418,7 +351,6 @@ const Dashboard = (() => {
     }
 
     function clickableMetricCard(title, value, icon, color, module, filter = null) {
-        const valueDisplay = value === null || value === undefined || value === 'N/A' ? 'Sem dados' : value;
         return `
             <div class="card card-glass card-clickable" onclick="PLURI.navigateTo('${module}')">
                 <div style="display:flex;justify-content:space-between;align-items:center">
@@ -427,7 +359,7 @@ const Dashboard = (() => {
                         <i data-lucide="${icon}" class="icon-sm"></i>
                     </span>
                 </div>
-                <div class="card-value" style="font-size:1.8rem">${valueDisplay}</div>
+                <div class="card-value" style="font-size:1.8rem">${value}</div>
             </div>
         `;
     }
@@ -442,7 +374,7 @@ const Dashboard = (() => {
                     <span>${label}</span>
                     <span>${Utils.formatCurrency(current)} / ${Utils.formatCurrency(target)} (${percentage}%)</span>
                 </div>
-                <div class="progress-bar progress-with-forecast">
+                <div class="progress-bar">
                     <div class="progress-fill ${percentage >= 80 ? 'success' : percentage >= 50 ? 'warning' : 'danger'}" style="width:${percentage}%"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.75rem">
@@ -475,29 +407,22 @@ const Dashboard = (() => {
 
     function generateCopilotSuggestions(data) {
         const suggestions = [];
-        // Prioridades do dia
         if (data.leads > 0 && data.conversionRate < 20) {
             suggestions.push('📌 **Hoje você deveria priorizar o comercial.** Sua taxa de conversão está abaixo do ideal.');
         }
         if (data.inImplantation > 0) {
             suggestions.push(`🚀 Existem ${data.inImplantation} implantações em andamento. Acompanhe de perto.`);
         }
-        // Financeiro
         if (data.cashFlow < 0) {
-            const daysUntilNegative = data.cashFlow < 0 && data.avgDailyRevenue > 0 
-                ? Math.ceil(Math.abs(data.cashFlow) / data.avgDailyRevenue) 
-                : null;
-            suggestions.push(`⚠️ Seu fluxo de caixa está negativo. ${daysUntilNegative ? `Nesse ritmo, ficará R$ ${Utils.formatCurrency(Math.abs(data.cashFlow) + data.avgDailyRevenue * 12)} negativo em 12 dias.` : 'Reduza despesas urgentemente.'}`);
+            suggestions.push(`⚠️ Seu fluxo de caixa está negativo. Reduza despesas urgentemente.`);
         }
-        // Contratos
         const expiringContracts = data.contracts.filter(c => {
             const daysLeft = (new Date(c.endDate) - new Date()) / (1000*60*60*24);
             return daysLeft <= 30 && daysLeft > 0 && c.status === 'ativo';
         });
         if (expiringContracts.length > 0) {
-            suggestions.push(`📅 ${expiringContracts.length} contratos vencem nos próximos 30 dias. Renove para não perder receita.`);
+            suggestions.push(`📅 ${expiringContracts.length} contratos vencem nos próximos 30 dias. Renove!`);
         }
-        // Clientes inativos
         const inactiveClients = data.companies.filter(c => {
             if (!c.lastContact) return false;
             const daysSince = (new Date() - new Date(c.lastContact)) / (1000*60*60*24);
@@ -506,16 +431,8 @@ const Dashboard = (() => {
         if (inactiveClients.length > 0) {
             suggestions.push(`🔕 ${inactiveClients.length} clientes sem contato há mais de 30 dias. Reative o relacionamento.`);
         }
-        // Metas
         if (data.revenueGoalProgress !== null && data.revenueGoalProgress >= 80) {
-            suggestions.push(`🎯 Você está a ${(100 - data.revenueGoalProgress).toFixed(1)}% de bater a meta mensal! Continue assim.`);
-        }
-        // Oportunidades
-        if (data.conversionRate > 0 && data.leads > 0) {
-            const potentialRevenue = data.leads * (data.ticketMedio > 0 ? parseFloat(data.ticketMedio) : 0);
-            if (potentialRevenue > 0) {
-                suggestions.push(`💡 Fechando mais 2 contratos, você pode aumentar seu MRR em aproximadamente R$ ${Utils.formatCurrency(data.ticketMedio * 2)}.`);
-            }
+            suggestions.push(`🎯 Você está a ${(100 - data.revenueGoalProgress).toFixed(1)}% de bater a meta mensal!`);
         }
         if (suggestions.length === 0) {
             suggestions.push('✅ Todos os indicadores estão estáveis. Continue monitorando.');
@@ -523,15 +440,10 @@ const Dashboard = (() => {
         return suggestions.map(s => `<div style="margin-bottom:8px">${s}</div>`).join('');
     }
 
-    // =============================================
-    // FUNÇÕES PÚBLICAS
-    // =============================================
-
+    // Funções públicas
     function filterFinance(period, el) {
-        // Atualiza chips visuais
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
         if (el) el.classList.add('active');
-        // Placeholder para filtro real (pode ser expandido)
         Components.showToast(`Filtro "${period}" aplicado (versão futura)`, 'info');
     }
 
