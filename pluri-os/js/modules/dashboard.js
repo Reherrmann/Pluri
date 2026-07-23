@@ -227,27 +227,57 @@ const Dashboard = (() => {
                     ${data.revenueGoalProgress !== null ? goalProgressBar('Receita Mensal', data.revenueThisMonth, parseFloat(data.goals?.find(g => g.category==='receita')?.target || 1), data.revenueGoalProgress) : '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhuma meta de receita definida. <a href="#" onclick="PLURI.navigateTo(\'goals\')">Criar meta</a></p>'}
                 </div>
 
-                <!-- ===== SEÇÃO 8: Saúde da Empresa ===== -->
-                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
-                    <i data-lucide="heart" class="icon"></i> Saúde da Empresa
-                </h3>
-                <div class="card card-glass" style="margin-bottom:32px">
-                    <div style="text-align:center">
-                        <div class="health-score-circle" style="background: conic-gradient(${data.healthScore >= 70 ? '#22c55e' : data.healthScore >= 40 ? '#f59e0b' : '#ef4444'} ${data.healthScore}%, var(--bg-tertiary) 0);"
-                             title="${data.criteria.join('\n')}">
-                            <span style="color:var(--text-primary);font-size:2rem">${data.healthScore}</span>
+                // ===== SEÇÃO 8: Saúde da Empresa (detalhada) =====
+<h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+    <i data-lucide="heart" class="icon"></i> Saúde da Empresa
+</h3>
+<div class="card card-glass" style="margin-bottom:32px">
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start">
+        <!-- Círculo de pontuação -->
+        <div style="text-align:center">
+            <div class="health-score-circle" style="background: conic-gradient(${data.healthScore >= 70 ? '#22c55e' : data.healthScore >= 40 ? '#f59e0b' : '#ef4444'} ${data.healthScore}%, var(--bg-tertiary) 0);">
+                <span style="color:var(--text-primary);font-size:2rem">${data.healthScore}</span>
+            </div>
+            <p style="margin-top:8px;font-weight:600;color:var(--text-primary)">
+                ${data.healthScore >= 70 ? '🟢 Saudável' : data.healthScore >= 40 ? '🟡 Atenção' : '🔴 Crítico'}
+            </p>
+        </div>
+
+        <!-- Detalhamento dos critérios -->
+        <div>
+            <h4 style="font-weight:600;margin-bottom:8px">Critérios avaliados</h4>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:0.85rem">
+                ${data.criteria.map(c => {
+                    const isPositive = c.includes('+');
+                    return `
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span>${isPositive ? '✅' : '⚠️'}</span>
+                            <span style="color:var(--text-secondary)">${c}</span>
+                            <span style="color:${isPositive ? 'var(--success)' : 'var(--danger)'};font-weight:500">
+                                ${isPositive ? '+' + c.match(/\+\d+/)[0] : c.match(/\(\-\d+\)/) ? c.match(/\(\-\d+\)/)[0] : ''}
+                            </span>
                         </div>
-                        <p style="margin-top:12px;font-weight:600;color:var(--text-primary)">
-                            ${data.healthScore >= 70 ? '🟢 Empresa Saudável' : data.healthScore >= 40 ? '🟡 Atenção Necessária' : '🔴 Riscos Financeiros'}
-                        </p>
-                        <p style="color:var(--text-tertiary);font-size:0.85rem">
-                            ${data.healthScore >= 70 ? 'Indicadores estão positivos. Continue assim!' : 'Revise os pontos de atenção e tome ações corretivas.'}
-                        </p>
-                        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:8px">
-                            <i data-lucide="info" class="icon-sm"></i> Passe o mouse sobre o círculo para ver os critérios
-                        </div>
-                    </div>
-                </div>
+                    `;
+                }).join('')}
+            </div>
+
+            <!-- Painel de Atenção -->
+            ${data.healthScore < 70 ? `
+            <div style="margin-top:16px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-md);padding:12px">
+                <h5 style="font-weight:600;color:var(--warning);margin-bottom:6px">⚠️ Pontos de atenção</h5>
+                <ul style="margin:0;padding-left:16px;font-size:0.85rem;color:var(--text-secondary)">
+                    ${data.insights.filter(i => i.type === 'warning' || i.type === 'danger').map(i => `<li>${i.text}</li>`).join('')}
+                    ${data.criteria.filter(c => c.includes('-')).map(c => `<li>${c}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+
+            <p style="margin-top:12px;font-size:0.75rem;color:var(--text-tertiary)">
+                <i data-lucide="info" class="icon-sm"></i> O score é calculado com base em receita, lucro, conversão e fluxo de caixa.
+            </p>
+        </div>
+    </div>
+</div>
 
                 <!-- ===== SEÇÃO 9: Assistente Executivo PLURI ===== -->
                 <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
