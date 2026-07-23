@@ -923,11 +923,7 @@
     }
 }
 
-/* ============================================
-   PLURI OS V2 — Financeiro V2 — Design System
-   ============================================ */
-
-/* ---------- MÉTRICAS ---------- */
+/* ---------- FINANCEIRO V2 (apenas estrutura, sem cores de fundo) ---------- */
 .dv-finance-metrics {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -935,20 +931,10 @@
     margin-bottom: 24px;
 }
 .dv-finance-metric-card {
-    background: var(--dv-surface);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--dv-border);
-    border-radius: var(--dv-radius-lg);
+    /* sem background, herdará o fundo padrão do card do sistema se usado dentro de .card */
     padding: 20px 24px;
-    transition: all var(--dv-transition);
-    cursor: default;
-}
-.dv-finance-metric-card:hover {
-    border-color: var(--dv-border-hover);
-    box-shadow: var(--dv-shadow-md);
 }
 
-/* ---------- TABELA ---------- */
 .dv-finance-table {
     width: 100%;
     border-collapse: collapse;
@@ -963,21 +949,16 @@
     letter-spacing: 0.04em;
     color: var(--dv-text-tertiary);
     border-bottom: 1px solid var(--dv-border);
-    background: rgba(255,255,255,0.02);
 }
 .dv-finance-table td {
     padding: 12px 16px;
     color: var(--dv-text-primary);
     border-bottom: 1px solid var(--dv-border);
 }
-.dv-finance-table tbody tr {
-    transition: background var(--dv-transition);
-}
 .dv-finance-table tbody tr:hover {
-    background: var(--dv-surface-hover);
+    background: var(--dv-surface-hover);  /* hover sutil, pode manter */
 }
 
-/* ---------- FILTROS ---------- */
 .dv-finance-filter-bar {
     display: flex;
     gap: 6px;
@@ -1004,11 +985,7 @@
     border-color: var(--dv-accent);
 }
 
-/* ---------- CHART ---------- */
 .dv-finance-chart {
     margin-bottom: 24px;
-    background: var(--dv-surface);
-    border: 1px solid var(--dv-border);
-    border-radius: var(--dv-radius-lg);
-    padding: 20px;
+    /* sem fundo extra */
 }
