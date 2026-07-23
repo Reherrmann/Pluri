@@ -50,23 +50,23 @@ const GoogleSheets = (() => {
     }
   }
 
-  async function updateCell(sheetName, key, value) {
-    try {
-      const params = new URLSearchParams({
-        sheet: sheetName,
-        action: 'update',
-        key: key,
-        value: value
-      });
-      const response = await fetch(`${API_URL}?${params.toString()}`);
-      const result = await response.json();
-      if (result.error) throw new Error(result.error);
-      return true;
-    } catch (error) {
-      console.error('[GoogleSheets] Erro ao atualizar:', error);
-      return false;
-    }
+  async function updateCell(sheetName, keyOrId, value) {
+  try {
+    const params = new URLSearchParams({
+      sheet: sheetName,
+      action: 'update',
+      key: keyOrId,
+      value: value
+    });
+    const response = await fetch(`${API_URL}?${params.toString()}`);
+    const result = await response.json();
+    if (result.error) throw new Error(result.error);
+    return true;
+  } catch (error) {
+    console.error('[GoogleSheets] Erro ao atualizar:', error);
+    return false;
   }
+}
 
   window.GoogleSheets = { readSheet, appendRow, deleteRow, updateCell };
   return { readSheet, appendRow, deleteRow, updateCell };
