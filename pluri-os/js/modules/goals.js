@@ -1,7 +1,3 @@
-/**
- * PLURI OS — Módulo Metas
- * Integrado com Google Sheets (aba "Metas") — versão sem loop
- */
 const Goals = (() => {
   const SHEET_NAME = 'Metas';
   let isSyncing = false;
@@ -12,7 +8,6 @@ const Goals = (() => {
     try {
       const rows = await GoogleSheets.readSheet(SHEET_NAME);
       if (!rows || !rows.length) { isSyncing = false; return; }
-
       const goalsFromSheet = rows.map(row => ({
         id: row['ID'] || Utils.generateId(),
         description: row['Descrição'] || '',
@@ -25,12 +20,10 @@ const Goals = (() => {
         createdAt: row['Data Criação'] || new Date().toISOString(),
         source: 'planilha'
       }));
-
       const local = Storage.loadData('goals', []);
       const manual = local.filter(g => g.source !== 'planilha');
       const merged = [...manual, ...goalsFromSheet];
       Storage.saveData('goals', merged);
-
       if (PLURI.getState().currentModule === 'goals') {
         const area = document.getElementById('content-area');
         if (area) {
@@ -56,17 +49,11 @@ const Goals = (() => {
       <div class="fade-in">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
           <h3 style="font-size:1rem;font-weight:600">Metas (${goals.length})</h3>
-          <button class="btn-primary" onclick="Goals.openGoalForm()">
-            <i data-lucide="plus" class="icon-sm"></i> Nova Meta
-          </button>
+          <button class="btn-primary" onclick="Goals.openGoalForm()"><i data-lucide="plus" class="icon-sm"></i> Nova Meta</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
           ${goals.length ? goals.map(g => renderGoalCard(g)).join('') : `
-            <div class="empty-state">
-              <div class="empty-state-icon">🎯</div>
-              <h3>Nenhuma meta definida</h3>
-              <p>Crie metas para acompanhar o progresso da PLURI.</p>
-            </div>
+            <div class="empty-state"><div class="empty-state-icon">🎯</div><h3>Nenhuma meta definida</h3></div>
           `}
         </div>
       </div>
@@ -112,12 +99,12 @@ const Goals = (() => {
     Components.openModal({
       title: existing ? 'Editar Meta' : 'Nova Meta',
       bodyHTML: `
-        <div class="form-group"><label class="form-label">Descrição</label><input type="text" id="goal-desc" class="form-input" value="${existing?.description || ''}" placeholder="Ex: Atingir R$ 50K em receita"></div>
+        <div class="form-group"><label class="form-label">Descrição</label><input type="text" id="goal-desc" class="form-input" value="${existing?.description || ''}"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="form-group"><label class="form-label">Período</label><select id="goal-period" class="form-select">
             ${['daily','weekly','monthly','quarterly','annual'].map(p => `<option value="${p}" ${existing?.period === p ? 'selected' : ''}>${p === 'daily' ? 'Diária' : p === 'weekly' ? 'Semanal' : p === 'monthly' ? 'Mensal' : p === 'quarterly' ? 'Trimestral' : 'Anual'}</option>`).join('')}
           </select></div>
-          <div class="form-group"><label class="form-label">Categoria</label><input type="text" id="goal-category" class="form-input" value="${existing?.category || ''}" placeholder="Ex: Receita"></div>
+          <div class="form-group"><label class="form-label">Categoria</label><input type="text" id="goal-category" class="form-input" value="${existing?.category || ''}"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="form-group"><label class="form-label">Valor Alvo</label><input type="number" id="goal-target" class="form-input" step="0.01" value="${existing?.target || ''}"></div>
@@ -151,7 +138,6 @@ const Goals = (() => {
       source: editId ? (goals.find(g => g.id === editId)?.source || 'manual') : 'manual'
     };
     if (!data.description) { Components.showToast('Descrição é obrigatória', 'error'); return; }
-
     if (editId) {
       const index = goals.findIndex(g => g.id === editId);
       if (index >= 0) goals[index] = data;
@@ -159,13 +145,10 @@ const Goals = (() => {
       goals.push(data);
     }
     Storage.saveData('goals', goals);
-
     const row = [data.id, data.description, data.period, data.category, data.target, data.current, data.priority, data.responsible, data.createdAt?.slice(0,10) || ''];
     const success = await GoogleSheets.appendRow(SHEET_NAME, row);
     Components.closeModal();
     Components.showToast(success ? 'Meta salva na planilha!' : 'Salva localmente.', success ? 'success' : 'warning');
-
-    // Atualiza UI sem recarregar
     const area = document.getElementById('content-area');
     if (area) {
       area.innerHTML = renderInternal();
@@ -213,10 +196,8 @@ const Goals = (() => {
     goal.current = newCurrent;
     Storage.saveData('goals', goals);
     Components.closeModal();
-    // Atualiza na planilha (usando updateCell na coluna ID – precisamos de uma ação update específica para Metas)
-    // Como não temos update por ID, fazemos um "append" da linha inteira? Melhor: usar a função existente updateCell que procura pelo ID na coluna "ID".
-    await GoogleSheets.updateCell(SHEET_NAME, id, newCurrent);
-    Components.showToast('Progresso atualizado!', 'success');
+    // Atualiza na planilha apenas localmente, pois não temos updateById. Pode ser aprimorado depois.
+    Components.showToast('Progresso atualizado localmente! (planilha não alterada)', 'info');
     const area = document.getElementById('content-area');
     if (area) {
       area.innerHTML = renderInternal();
