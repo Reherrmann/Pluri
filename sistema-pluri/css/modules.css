@@ -764,10 +764,10 @@
 .dv-pipeline-column {
     flex: 1;
     min-width: 220px;
-    background: var(--dv-surface);
+    background: rgba(255, 255, 255, 0.05);  /* fundo mais claro */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--dv-border);
+    border: 1px solid rgba(255, 255, 255, 0.1);  /* borda mais visível */
     border-radius: var(--dv-radius-lg);
     padding: 12px;
     display: flex;
@@ -792,22 +792,24 @@
 }
 
 .dv-pipeline-card {
-    background: rgba(20, 30, 50, 0.8);
+    background: rgba(255, 255, 255, 0.08);  /* fundo do card mais claro */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--dv-border);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--dv-radius-md);
     padding: 12px;
     cursor: grab;
     transition: all var(--dv-transition);
     position: relative;
+    color: var(--dv-text-primary);  /* texto branco para contraste */
 }
 .dv-pipeline-card:hover {
+    background: rgba(255, 255, 255, 0.12);
     border-color: var(--dv-border-hover);
     box-shadow: var(--dv-shadow-md);
 }
 .dv-pipeline-card.dragging {
-    opacity: 0.5;
+    opacity: 0.6;
     box-shadow: var(--dv-shadow-lg);
     cursor: grabbing;
 }
