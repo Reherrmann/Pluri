@@ -8,7 +8,6 @@ const Implantations = (() => {
     try {
       const rows = await GoogleSheets.readSheet(SHEET_NAME);
       if (!rows || !rows.length) { isSyncing = false; return; }
-
       const implantationsFromSheet = rows.map(row => ({
         id: row['ID'] || Utils.generateId(),
         client: row['Cliente'] || '',
@@ -20,12 +19,10 @@ const Implantations = (() => {
         source: 'planilha',
         createdAt: new Date().toISOString()
       }));
-
       const local = Storage.loadData('implantations', []);
       const manual = local.filter(i => i.source !== 'planilha');
       const merged = [...manual, ...implantationsFromSheet];
       Storage.saveData('implantations', merged);
-
       if (PLURI.getState().currentModule === 'implantations') {
         const area = document.getElementById('content-area');
         if (area) {
@@ -60,7 +57,7 @@ const Implantations = (() => {
 
   function renderTable(implantations) {
     if (!implantations || !implantations.length) {
-      return `<div class="empty-state"><div class="empty-state-icon">🚀</div><h3>Nenhuma implantação em andamento</h3><p>Cadastre uma nova implantação para começar.</p></div>`;
+      return `<div class="empty-state"><div class="empty-state-icon">🚀</div><h3>Nenhuma implantação em andamento</h3></div>`;
     }
     const headers = ['Cliente', 'Status', 'Início', 'Previsão', 'Progresso', 'Ações'];
     const rows = implantations.map(imp => [
@@ -116,7 +113,6 @@ const Implantations = (() => {
       source: editId ? (implantations.find(i => i.id === editId)?.source || 'manual') : 'manual'
     };
     if (!data.client) { Components.showToast('Nome do cliente é obrigatório', 'error'); return; }
-
     if (editId) {
       const index = implantations.findIndex(i => i.id === editId);
       if (index >= 0) implantations[index] = data;
@@ -124,12 +120,10 @@ const Implantations = (() => {
       implantations.push(data);
     }
     Storage.saveData('implantations', implantations);
-
     const row = [data.id, data.client, data.status, data.startDate, data.estimatedEnd, data.progress, data.responsible];
     const success = await GoogleSheets.appendRow(SHEET_NAME, row);
     Components.closeModal();
     Components.showToast(success ? 'Implantação salva na planilha!' : 'Salva localmente.', success ? 'success' : 'warning');
-
     const area = document.getElementById('content-area');
     if (area) {
       area.innerHTML = renderInternal();
