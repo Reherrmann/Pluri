@@ -1,13 +1,13 @@
 /**
- * PLURI OS — Dashboard Executivo V2
- * Cockpit inteligente com insights, ações, health score e IA
+ * PLURI OS — Dashboard Executivo V2.1
+ * Organizado por categorias, com insights reais, ações editáveis e health score interativo.
  */
 const Dashboard = (() => {
     // Cache para cálculos
     let cachedData = null;
 
     /**
-     * Coleta todos os dados necessários e gera inteligência
+     * Coleta todos os dados e gera inteligência
      */
     function gatherData() {
         const companies = Storage.loadData('crm_companies', []);
@@ -15,22 +15,22 @@ const Dashboard = (() => {
         const implantations = Storage.loadData('finance_implantations', []);
         const goals = Storage.loadData('goals', []);
         const contracts = Storage.loadData('contracts', []);
+        const actions = Storage.loadData('dashboard_actions', []); // lista editável
 
-        // Período atual vs anterior
         const now = new Date();
         const thisMonth = now.getMonth();
         const thisYear = now.getFullYear();
-        const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
-        const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
 
-        // Funções auxiliares
+        // Funções auxiliares de data
         const isThisMonth = (dateStr) => {
             const d = new Date(dateStr);
             return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
         };
         const isLastMonth = (dateStr) => {
             const d = new Date(dateStr);
-            return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+            const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+            const lastYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+            return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
         };
 
         // Financeiro
@@ -38,16 +38,14 @@ const Dashboard = (() => {
             .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
         const revenueLastMonth = transactions.filter(t => t.type === 'receita' && isLastMonth(t.date || t.createdAt))
             .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
-        const expensesThisMonth = transactions.filter(t => t.type === 'despesa' || t.type === 'custo' && isThisMonth(t.date || t.createdAt))
-            .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
-        const expensesLastMonth = transactions.filter(t => t.type === 'despesa' || t.type === 'custo' && isLastMonth(t.date || t.createdAt))
+        const expensesThisMonth = transactions.filter(t => (t.type === 'despesa' || t.type === 'custo') && isThisMonth(t.date || t.createdAt))
             .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
         const profitThisMonth = revenueThisMonth - expensesThisMonth;
-        const profitLastMonth = revenueLastMonth - expensesLastMonth;
+        const profitLastMonth = (revenueLastMonth || 0) - (transactions.filter(t => (t.type === 'despesa' || t.type === 'custo') && isLastMonth(t.date || t.createdAt)).reduce((s, t) => s + (parseFloat(t.amount) || 0), 0));
         const mrr = transactions.filter(t => t.type === 'mensalidade' || t.category === 'recorrente')
             .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
         const arr = mrr * 12;
-        const cashFlow = revenueThisMonth - expensesThisMonth; // simplificado
+        const cashFlow = revenueThisMonth - expensesThisMonth;
         const totalImplantations = implantations.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
         const roi = totalImplantations > 0 ? ((profitThisMonth / totalImplantations) * 100).toFixed(1) : 'N/A';
 
@@ -59,56 +57,44 @@ const Dashboard = (() => {
         const inImplantation = implantations.filter(i => i.status === 'em_andamento').length;
         const activeContracts = contracts.filter(c => c.status === 'ativo').length;
 
-        // Histórico de receita para sparkline (últimos 6 meses)
+        // Histórico para sparkline (últimos 6 meses)
         const revenueHistory = [];
         for (let i = 5; i >= 0; i--) {
             const d = new Date(thisYear, thisMonth - i, 1);
-            const month = d.getMonth();
-            const year = d.getFullYear();
             const total = transactions.filter(t => {
                 const td = new Date(t.date || t.createdAt);
-                return t.type === 'receita' && td.getMonth() === month && td.getFullYear() === year;
+                return t.type === 'receita' && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
             }).reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
             revenueHistory.push(total);
         }
 
-        // Variações percentuais
+        // Variações
         const revenueVar = revenueLastMonth > 0 ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1) : 0;
         const profitVar = profitLastMonth !== 0 ? ((profitThisMonth - profitLastMonth) / Math.abs(profitLastMonth) * 100).toFixed(1) : 0;
-        const mrrVar = 0; // idealmente comparar com mês anterior
 
         // Metas
         const monthlyRevenueGoal = goals.find(g => g.period === 'monthly' && g.category === 'receita');
-        const monthlyProfitGoal = goals.find(g => g.period === 'monthly' && g.category === 'lucro');
         const revenueGoalProgress = monthlyRevenueGoal ? Math.min((revenueThisMonth / parseFloat(monthlyRevenueGoal.target || 1)) * 100, 100).toFixed(1) : null;
-        const profitGoalProgress = monthlyProfitGoal ? Math.min((profitThisMonth / parseFloat(monthlyProfitGoal.target || 1)) * 100, 100).toFixed(1) : null;
 
-        // Health Score (0-100)
+        // Health Score com critérios
         let healthScore = 50;
-        healthScore += revenueVar > 0 ? 10 : -5;
-        healthScore += conversionRate > 20 ? 10 : 0;
-        healthScore += activeClients > 10 ? 10 : 0;
-        healthScore += profitThisMonth > 0 ? 15 : -10;
-        healthScore += cashFlow > 0 ? 15 : -5;
+        const criteria = [];
+        if (revenueVar > 0) { healthScore += 10; criteria.push('Receita crescendo (+10)'); } else { healthScore -= 5; criteria.push('Receita caindo (-5)'); }
+        if (conversionRate > 20) { healthScore += 10; criteria.push('Conversão > 20% (+10)'); } else criteria.push('Conversão baixa');
+        if (activeClients > 10) { healthScore += 10; criteria.push('+10 clientes (+10)'); }
+        if (profitThisMonth > 0) { healthScore += 15; criteria.push('Lucro positivo (+15)'); } else { healthScore -= 10; criteria.push('Prejuízo (-10)'); }
+        if (cashFlow > 0) { healthScore += 15; criteria.push('Fluxo positivo (+15)'); } else { healthScore -= 5; criteria.push('Fluxo negativo (-5)'); }
         healthScore = Math.max(0, Math.min(100, healthScore));
 
         // Insights
         const insights = [];
-        if (revenueVar < 0) insights.push({ icon: '📉', text: `Receita caiu ${Math.abs(revenueVar)}% em relação ao mês passado.`, type: 'warning' });
-        else if (revenueVar > 10) insights.push({ icon: '📈', text: `Receita cresceu ${revenueVar}% este mês!`, type: 'success' });
-        if (conversionRate < 20 && companies.length > 5) insights.push({ icon: '⚠️', text: `Taxa de conversão baixa: ${conversionRate}%.`, type: 'warning' });
+        if (revenueVar < 0) insights.push({ icon: '📉', text: `Receita caiu ${Math.abs(revenueVar)}% em relação ao mês passado.`, source: 'Financeiro' });
+        else if (revenueVar > 10) insights.push({ icon: '📈', text: `Receita cresceu ${revenueVar}% este mês!`, source: 'Financeiro' });
+        if (conversionRate < 20 && companies.length > 5) insights.push({ icon: '⚠️', text: `Taxa de conversão baixa: ${conversionRate}%.`, source: 'CRM' });
         const oldProposals = companies.filter(c => c.status === 'proposal' && (new Date() - new Date(c.updatedAt)) > 15*24*60*60*1000);
-        if (oldProposals.length > 0) insights.push({ icon: '⏳', text: `${oldProposals.length} propostas paradas há mais de 15 dias.`, type: 'danger' });
-        if (profitThisMonth < 0) insights.push({ icon: '🔻', text: 'Lucro negativo este mês. Revise custos.', type: 'danger' });
-        if (revenueGoalProgress !== null && revenueGoalProgress < 80) insights.push({ icon: '🎯', text: `Meta de receita em ${revenueGoalProgress}% — abaixo do esperado.`, type: 'warning' });
-
-        // Próximas ações (simuladas)
-        const actions = [
-            { text: 'Fazer follow-up com leads sem contato há 7 dias', priority: 'high' },
-            { text: 'Finalizar implantação de clientes em andamento', priority: 'medium' },
-            { text: 'Renovar contratos com vencimento próximo', priority: 'medium' },
-            { text: 'Registrar despesas pendentes', priority: 'low' },
-        ];
+        if (oldProposals.length > 0) insights.push({ icon: '⏳', text: `${oldProposals.length} propostas paradas há mais de 15 dias.`, source: 'CRM' });
+        if (profitThisMonth < 0) insights.push({ icon: '🔻', text: 'Lucro negativo este mês. Revise custos.', source: 'Financeiro' });
+        if (revenueGoalProgress !== null && revenueGoalProgress < 80) insights.push({ icon: '🎯', text: `Meta de receita em ${revenueGoalProgress}% — abaixo do esperado.`, source: 'Metas' });
 
         // Pipeline resumido
         const stages = Storage.loadData('crm_pipeline_stages', []);
@@ -120,18 +106,16 @@ const Dashboard = (() => {
 
         return {
             revenueThisMonth, revenueLastMonth, revenueVar,
-            expensesThisMonth, expensesLastMonth,
-            profitThisMonth, profitLastMonth, profitVar,
+            expensesThisMonth, profitThisMonth, profitVar,
             mrr, arr, cashFlow, roi,
             leads, activeClients, conversionRate, ticketMedio, inImplantation, activeContracts,
             revenueHistory,
-            revenueGoalProgress, profitGoalProgress,
-            healthScore,
+            revenueGoalProgress,
+            healthScore, criteria,
             insights,
-            actions,
+            actions, // lista editável
             pipelineSummary,
-            companies, transactions, implantations, goals, contracts,
-            thisMonth, thisYear, lastMonth, lastMonthYear,
+            companies, transactions, goals, contracts,
         };
     }
 
@@ -147,15 +131,16 @@ const Dashboard = (() => {
                         <h2 style="font-weight:700;font-size:1.5rem;letter-spacing:-0.02em">Bom dia, Diretoria 👋</h2>
                         <p style="color:var(--text-tertiary);font-size:0.9rem">${Utils.formatDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
-                    <div style="display:flex;gap:12px">
-                        <button class="btn-secondary btn-sm" onclick="PLURI.navigateTo('finance')">
-                            <i data-lucide="plus" class="icon-sm"></i> Ação Rápida
-                        </button>
-                    </div>
+                    <button class="btn-secondary btn-sm" onclick="PLURI.navigateTo('finance')">
+                        <i data-lucide="plus" class="icon-sm"></i> Ação Rápida
+                    </button>
                 </div>
 
-                <!-- Linha 1: KPIs principais -->
-                <div class="cards-grid" style="margin-bottom:24px">
+                <!-- ===== SEÇÃO 1: KPIs Principais ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="bar-chart-3" class="icon"></i> Indicadores Principais
+                </h3>
+                <div class="cards-grid" style="margin-bottom:32px">
                     ${kpiCard('Receita do Mês', Utils.formatCurrency(data.revenueThisMonth), 'dollar-sign', data.revenueVar + '%', data.revenueVar >= 0 ? 'positive' : 'negative', 'vs mês passado', '#22c55e', data.revenueHistory)}
                     ${kpiCard('MRR', Utils.formatCurrency(data.mrr), 'repeat', '0%', 'positive', 'Receita Recorrente', '#6366f1', data.revenueHistory)}
                     ${kpiCard('ARR', Utils.formatCurrency(data.arr), 'calendar', '0%', 'positive', 'Anualizado', '#8b5cf6', data.revenueHistory)}
@@ -164,8 +149,11 @@ const Dashboard = (() => {
                     ${kpiCard('ROI', data.roi + '%', 'percent', '', data.roi > 0 ? 'positive' : 'negative', 'Retorno s/ Invest.', '#f59e0b')}
                 </div>
 
-                <!-- Linha 2: Comercial -->
-                <div class="cards-grid" style="margin-bottom:24px">
+                <!-- ===== SEÇÃO 2: Comercial ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="users" class="icon"></i> Comercial
+                </h3>
+                <div class="cards-grid" style="margin-bottom:32px">
                     ${simpleMetricCard('Leads', data.leads, 'users', '#6366f1')}
                     ${simpleMetricCard('Clientes Ativos', data.activeClients, 'user-check', '#22c55e')}
                     ${simpleMetricCard('Conversão', data.conversionRate + '%', 'percent', '#f59e0b')}
@@ -174,41 +162,36 @@ const Dashboard = (() => {
                     ${simpleMetricCard('Contratos Ativos', data.activeContracts, 'file-text', '#06b6d4')}
                 </div>
 
-                <!-- Linha 3: Insights Inteligentes -->
-                <div class="card card-glass" style="margin-bottom:24px">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">🧠 Insights Inteligentes</span>
-                    </div>
-                    <div>
-                        ${data.insights.map(i => `
-                            <div class="insight-item">
-                                <span class="insight-icon">${i.icon}</span>
+                <!-- ===== SEÇÃO 3: Insights Inteligentes ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="lightbulb" class="icon"></i> Insights Inteligentes
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px">
+                    ${data.insights.length > 0 ? data.insights.map(i => `
+                        <div class="insight-item">
+                            <span class="insight-icon">${i.icon}</span>
+                            <div>
                                 <span>${i.text}</span>
+                                <div style="font-size:0.7rem;color:var(--text-tertiary)">Origem: ${i.source}</div>
                             </div>
-                        `).join('')}
-                        ${data.insights.length === 0 ? '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Tudo sob controle! 🎉</p>' : ''}
-                    </div>
-                </div>
-
-                <!-- Linha 4: Próximas Ações -->
-                <div class="card card-glass" style="margin-bottom:24px">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">📋 Hoje você precisa</span>
-                    </div>
-                    ${data.actions.map(a => `
-                        <div class="action-item">
-                            <span class="priority-dot ${a.priority}"></span>
-                            <span>${a.text}</span>
-                            <span class="badge-tag ${a.priority === 'high' ? 'danger' : a.priority === 'medium' ? 'warning' : 'info'}" style="margin-left:auto">${a.priority === 'high' ? 'Alta' : a.priority === 'medium' ? 'Média' : 'Baixa'}</span>
                         </div>
-                    `).join('')}
+                    `).join('') : '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhum alerta no momento. 🎉</p>'}
                 </div>
 
-                <!-- Linha 5: Funil Comercial (Pipeline Resumido) -->
-                <div class="card card-glass" style="margin-bottom:24px">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">📊 Funil Comercial</span>
-                    </div>
+                <!-- ===== SEÇÃO 4: Hoje você precisa (editável) ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="check-square" class="icon"></i> Hoje você precisa
+                    <button class="btn-icon btn-sm" onclick="Dashboard.addAction()" style="margin-left:auto"><i data-lucide="plus" class="icon-sm"></i></button>
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px" id="actions-container">
+                    ${renderActions(data.actions)}
+                </div>
+
+                <!-- ===== SEÇÃO 5: Funil Comercial ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="funnel" class="icon"></i> Funil Comercial
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px">
                     <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">
                         ${data.pipelineSummary.map(s => `
                             <div style="flex:1;min-width:120px;background:var(--bg-tertiary);border-radius:var(--radius-md);padding:12px;text-align:center">
@@ -220,11 +203,11 @@ const Dashboard = (() => {
                     </div>
                 </div>
 
-                <!-- Linha 6: Financeiro (Gráficos simplificados) -->
-                <div class="card card-glass" style="margin-bottom:24px">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">💰 Receita vs Despesa (este mês)</span>
-                    </div>
+                <!-- ===== SEÇÃO 6: Financeiro ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="dollar-sign" class="icon"></i> Financeiro
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px">
                     <div style="display:flex;align-items:center;justify-content:center;gap:40px;padding:20px 0">
                         ${Charts.createDonut(data.revenueThisMonth > 0 ? (data.profitThisMonth > 0 ? 70 : 30) : 0, { size: 100, color: '#22c55e', bgColor: '#ef4444' })}
                         <div>
@@ -235,37 +218,23 @@ const Dashboard = (() => {
                     </div>
                 </div>
 
-                <!-- Linha 7: Metas -->
-                <div class="card card-glass" style="margin-bottom:24px">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">🎯 Progresso de Metas</span>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:16px">
-                        ${data.revenueGoalProgress !== null ? goalProgressBar('Receita Mensal', data.revenueThisMonth, parseFloat(data.goals?.find(g => g.category==='receita')?.target || 1), data.revenueGoalProgress) : ''}
-                        ${data.profitGoalProgress !== null ? goalProgressBar('Lucro Mensal', data.profitThisMonth, parseFloat(data.goals?.find(g => g.category==='lucro')?.target || 1), data.profitGoalProgress) : ''}
-                        ${goalProgressBar('Clientes Ativos', data.activeClients, 20, (data.activeClients/20*100).toFixed(1))}
-                        ${goalProgressBar('Conversão', parseFloat(data.conversionRate), 30, (data.conversionRate/30*100).toFixed(1))}
-                        ${!data.revenueGoalProgress && !data.profitGoalProgress ? '<p style="color:var(--text-tertiary);text-align:center">Defina metas para ver o progresso.</p>' : ''}
-                    </div>
+                <!-- ===== SEÇÃO 7: Metas ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="flag" class="icon"></i> Metas
+                    <button class="btn-secondary btn-sm" style="margin-left:auto" onclick="PLURI.navigateTo('goals')">Ver todas</button>
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px">
+                    ${data.revenueGoalProgress !== null ? goalProgressBar('Receita Mensal', data.revenueThisMonth, parseFloat(data.goals?.find(g => g.category==='receita')?.target || 1), data.revenueGoalProgress) : '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhuma meta de receita definida. <a href="#" onclick="PLURI.navigateTo(\'goals\')">Criar meta</a></p>'}
                 </div>
 
-                <!-- Linha 8: Timeline Rica -->
-                <div class="card card-glass" style="margin-bottom:24px">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">🕒 Atividades Recentes</span>
-                    </div>
-                    <div class="timeline-v2">
-                        ${generateRichTimeline(data)}
-                    </div>
-                </div>
-
-                <!-- Linha 9: Health Score -->
-                <div class="card card-glass" style="margin-bottom:24px">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">❤️ Saúde da Empresa</span>
-                    </div>
+                <!-- ===== SEÇÃO 8: Saúde da Empresa ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="heart" class="icon"></i> Saúde da Empresa
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px">
                     <div style="text-align:center">
-                        <div class="health-score-circle" style="background: conic-gradient(${data.healthScore >= 70 ? '#22c55e' : data.healthScore >= 40 ? '#f59e0b' : '#ef4444'} ${data.healthScore}%, var(--bg-tertiary) 0);">
+                        <div class="health-score-circle" style="background: conic-gradient(${data.healthScore >= 70 ? '#22c55e' : data.healthScore >= 40 ? '#f59e0b' : '#ef4444'} ${data.healthScore}%, var(--bg-tertiary) 0);"
+                             title="${data.criteria.join('\n')}">
                             <span style="color:var(--text-primary);font-size:2rem">${data.healthScore}</span>
                         </div>
                         <p style="margin-top:12px;font-weight:600;color:var(--text-primary)">
@@ -274,25 +243,32 @@ const Dashboard = (() => {
                         <p style="color:var(--text-tertiary);font-size:0.85rem">
                             ${data.healthScore >= 70 ? 'Indicadores estão positivos. Continue assim!' : 'Revise os pontos de atenção e tome ações corretivas.'}
                         </p>
+                        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:8px">
+                            <i data-lucide="info" class="icon-sm"></i> Passe o mouse sobre o círculo para ver os critérios
+                        </div>
                     </div>
                 </div>
 
-                <!-- Linha 10: IA Executiva -->
-                <div class="card card-glass" style="margin-bottom:24px;background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1))">
-                    <div class="card-header" style="margin-bottom:12px">
-                        <span class="card-title">🤖 Copiloto PLURI IA</span>
+                <!-- ===== SEÇÃO 9: Assistente Executivo PLURI ===== -->
+                <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+                    <i data-lucide="bot" class="icon"></i> Assistente Executivo PLURI
+                </h3>
+                <div class="card card-glass" style="margin-bottom:32px;background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1))">
+                    <div style="color:var(--text-secondary);font-size:0.9rem">
+                        ${generateAssistenteSuggestions(data)}
                     </div>
-                    <div style="display:flex;flex-direction:column;gap:8px;color:var(--text-secondary);font-size:0.9rem">
-                        ${generateIASuggestions(data)}
+                    <div style="font-size:0.7rem;color:var(--text-tertiary);margin-top:12px">
+                        <i data-lucide="info" class="icon-sm"></i> Sugestões baseadas em dados reais do sistema.
                     </div>
                 </div>
             </div>
         `;
     }
 
-    /**
-     * KPI Card com sparkline e variação
-     */
+    // =============================================
+    // COMPONENTES
+    // =============================================
+
     function kpiCard(title, value, icon, variation, varClass, comparison, color, sparklineData = []) {
         const sparkHTML = sparklineData && sparklineData.length > 0 
             ? `<div class="sparkline-container">${Charts.createSparkline(sparklineData, { width: 200, height: 40, color: color || '#6366f1', smooth: true, fillOpacity: 0.2 })}</div>`
@@ -339,61 +315,93 @@ const Dashboard = (() => {
                 <div class="progress-bar">
                     <div class="progress-fill ${percentage >= 80 ? 'success' : percentage >= 50 ? 'warning' : 'danger'}" style="width:${percentage}%"></div>
                 </div>
+                <div style="text-align:right;margin-top:4px">
+                    <a href="#" onclick="PLURI.navigateTo('goals')" style="font-size:0.75rem;color:var(--accent)">Ver metas →</a>
+                </div>
             </div>
         `;
     }
 
-    function generateRichTimeline(data) {
-        const events = [];
-        // Últimas transações
-        data.transactions.slice(-3).forEach(t => {
-            events.push({
-                icon: 'dollar-sign',
-                module: 'Financeiro',
-                action: `${t.type === 'receita' ? 'Receita' : 'Despesa'} de ${Utils.formatCurrency(t.amount)} — ${t.description || ''}`,
-                time: Utils.timeAgo(t.date || t.createdAt),
-                user: 'Sistema',
-            });
-        });
-        // Últimas movimentações de CRM
-        data.companies.slice(-2).forEach(c => {
-            events.push({
-                icon: 'users',
-                module: 'CRM',
-                action: `Empresa ${c.company || c.name} movida para ${c.status}`,
-                time: Utils.timeAgo(c.updatedAt || new Date()),
-                user: 'Maria',
-            });
-        });
-        if (events.length === 0) {
-            return '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhuma atividade recente</p>';
+    function renderActions(actions) {
+        if (!actions || !actions.length) {
+            return '<p style="color:var(--text-tertiary);text-align:center;padding:20px">Nenhuma ação pendente.</p>';
         }
-        return events.slice(-5).reverse().map(e => `
-            <div class="timeline-v2-item">
-                <div class="timeline-v2-icon"><i data-lucide="${e.icon}" class="icon-sm"></i></div>
-                <div class="timeline-v2-content">
-                    <strong>${e.module}</strong><br>
-                    ${e.action}
-                    <div class="timeline-v2-time">${e.time} • ${e.user}</div>
-                </div>
+        return actions.map((a, i) => `
+            <div class="action-item" id="action-${i}">
+                <span class="priority-dot ${a.priority}"></span>
+                <span style="flex:1;text-decoration:${a.done ? 'line-through' : 'none'};color:${a.done ? 'var(--text-tertiary)' : 'var(--text-primary)'}">${a.text}</span>
+                <button class="btn-icon btn-sm" onclick="Dashboard.toggleAction(${i})" title="${a.done ? 'Desmarcar' : 'Concluir'}">
+                    <i data-lucide="${a.done ? 'rotate-ccw' : 'check'}" class="icon-sm"></i>
+                </button>
+                <button class="btn-icon btn-sm" onclick="Dashboard.removeAction(${i})" title="Remover">
+                    <i data-lucide="trash-2" class="icon-sm"></i>
+                </button>
             </div>
         `).join('');
     }
 
-    function generateIASuggestions(data) {
+    function generateAssistenteSuggestions(data) {
         const suggestions = [];
         if (data.revenueVar < 0) suggestions.push(`📉 Sua receita caiu ${Math.abs(data.revenueVar)}% em relação ao mês anterior. Considere intensificar a prospecção.`);
-        if (data.conversionRate < 20) suggestions.push(`⚠️ Sua taxa de conversão está em ${data.conversionRate}%. Melhore o follow-up para aumentar as vendas.`);
+        if (data.conversionRate < 20) suggestions.push(`⚠️ Sua taxa de conversão está em ${data.conversionRate}%. Melhore o follow-up.`);
         if (data.profitThisMonth > 0) suggestions.push(`✅ Sua margem de lucro está positiva este mês. Ótimo trabalho!`);
         const expiringContracts = data.contracts.filter(c => {
             const daysLeft = (new Date(c.endDate) - new Date()) / (1000*60*60*24);
             return daysLeft <= 15 && daysLeft > 0 && c.status === 'ativo';
         });
         if (expiringContracts.length > 0) suggestions.push(`📅 ${expiringContracts.length} contratos vencem nos próximos 15 dias. Renove!`);
-        if (data.cashFlow < 0) suggestions.push(`🔻 Seu fluxo de caixa está negativo. Reveja despesas e cobre clientes.`);
+        if (data.cashFlow < 0) suggestions.push(`🔻 Seu fluxo de caixa está negativo. Reveja despesas.`);
         if (suggestions.length === 0) suggestions.push('🚀 Todos os indicadores estão positivos. Continue com a estratégia atual!');
-        return suggestions.map(s => `<div>${s}</div>`).join('');
+        return suggestions.map(s => `<div style="margin-bottom:6px">${s}</div>`).join('');
     }
 
-    return { render };
+    // =============================================
+    // FUNÇÕES PÚBLICAS (ações editáveis)
+    // =============================================
+
+    function addAction() {
+        const actions = Storage.loadData('dashboard_actions', []);
+        Components.openModal({
+            title: 'Nova Ação',
+            bodyHTML: `
+                <div class="form-group"><label class="form-label">Descrição</label><input type="text" id="new-action-text" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Prioridade</label>
+                    <select id="new-action-priority" class="form-select">
+                        <option value="high">Alta</option>
+                        <option value="medium" selected>Média</option>
+                        <option value="low">Baixa</option>
+                    </select>
+                </div>`,
+            footerHTML: `<button class="btn-secondary" onclick="Components.closeModal()">Cancelar</button>
+                         <button class="btn-primary" onclick="Dashboard.saveNewAction()">Adicionar</button>`,
+        });
+    }
+
+    function saveNewAction() {
+        const text = document.getElementById('new-action-text').value.trim();
+        const priority = document.getElementById('new-action-priority').value;
+        if (!text) return;
+        const actions = Storage.loadData('dashboard_actions', []);
+        actions.push({ text, priority, done: false });
+        Storage.saveData('dashboard_actions', actions);
+        Components.closeModal();
+        PLURI.refreshCurrentModule();
+    }
+
+    function toggleAction(index) {
+        const actions = Storage.loadData('dashboard_actions', []);
+        if (actions[index]) actions[index].done = !actions[index].done;
+        Storage.saveData('dashboard_actions', actions);
+        PLURI.refreshCurrentModule();
+    }
+
+    function removeAction(index) {
+        const actions = Storage.loadData('dashboard_actions', []);
+        actions.splice(index, 1);
+        Storage.saveData('dashboard_actions', actions);
+        PLURI.refreshCurrentModule();
+    }
+
+    window.Dashboard = { render, addAction, saveNewAction, toggleAction, removeAction };
+    return { render, addAction, saveNewAction, toggleAction, removeAction };
 })();
