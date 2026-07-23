@@ -299,3 +299,5 @@ const PLURI = (() => {
         getState: () => state,
     };
 })();
+
+window.PLURI = PLURI;
