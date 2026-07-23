@@ -1,5 +1,6 @@
 /**
  * PLURI OS — Módulo Dashboard (Cockpit Executivo)
+ * Inclui ROI (Retorno sobre Investimento)
  */
 const Dashboard = (() => {
     function render() {
@@ -8,7 +9,7 @@ const Dashboard = (() => {
         const implantations = Storage.loadData('finance_implantations', []);
         const goals = Storage.loadData('goals', []);
 
-        // Métricas calculadas
+        // Métricas financeiras
         const totalRevenue = transactions
             .filter(t => t.type === 'receita')
             .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
@@ -16,6 +17,16 @@ const Dashboard = (() => {
             .filter(t => t.type === 'despesa' || t.type === 'custo')
             .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
         const profit = totalRevenue - totalCosts;
+
+        // Total de implantações (para cálculo do ROI)
+        const totalImplantacoes = implantations.reduce((sum, imp) => sum + (parseFloat(imp.amount) || 0), 0);
+
+        // ROI: Lucro Bruto / Total de Implantações * 100
+        let roi = 'N/A';
+        if (totalImplantacoes > 0) {
+            roi = ((profit / totalImplantacoes) * 100).toFixed(1) + '%';
+        }
+
         const activeClients = companies.filter(c => c.status === 'closed').length;
         const leads = companies.filter(c => c.status === 'lead').length;
         const inImplantation = implantations.filter(i => i.status === 'em_andamento').length;
@@ -26,7 +37,7 @@ const Dashboard = (() => {
             .filter(t => t.type === 'mensalidade' || t.category === 'recorrente')
             .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
-        // Alertas inteligentes
+        // Alertas
         const alerts = [];
         const monthlyGoal = goals.find(g => g.period === 'monthly' && g.category === 'receita');
         if (monthlyGoal && totalRevenue < parseFloat(monthlyGoal.target || 0)) {
@@ -44,12 +55,9 @@ const Dashboard = (() => {
             if (margin > 50) alerts.push(`✅ Margem de lucro saudável: ${margin}%`);
         }
 
-        // Dados para mini gráfico
-        const revenueHistory = generateRevenueHistory(transactions);
-
         return `
             <div class="fade-in">
-                <!-- Cards de métricas principais -->
+                <!-- Cards principais -->
                 <div class="cards-grid" style="margin-bottom:24px">
                     ${Components.metricCard({
                         title: 'Receita Mensal',
@@ -74,15 +82,22 @@ const Dashboard = (() => {
                         color: profit >= 0 ? 'success' : 'danger',
                     })}
                     ${Components.metricCard({
+                        title: 'ROI',
+                        value: roi,
+                        icon: 'percent',
+                        subtitle: 'Retorno sobre Investimento',
+                        color: roi !== 'N/A' && parseFloat(roi) > 0 ? 'success' : 'warning',
+                    })}
+                </div>
+
+                <div class="cards-grid" style="margin-bottom:24px">
+                    ${Components.metricCard({
                         title: 'Clientes Ativos',
                         value: activeClients,
                         icon: 'users',
                         subtitle: `${leads} leads em pipeline`,
                         color: 'info',
                     })}
-                </div>
-
-                <div class="cards-grid" style="margin-bottom:24px">
                     ${Components.metricCard({
                         title: 'Taxa de Conversão',
                         value: conversionRate + '%',
@@ -102,20 +117,6 @@ const Dashboard = (() => {
                         subtitle: 'Receita Anual Recorrente',
                         color: 'info',
                     })}
-                    ${Components.metricCard({
-                        title: 'Custos Totais',
-                        value: Utils.formatCurrency(totalCosts),
-                        icon: 'arrow-down',
-                        color: 'danger',
-                    })}
-                </div>
-
-                <!-- Mini gráfico -->
-                <div class="card" style="margin-bottom:24px">
-                    <div class="card-header"><span class="card-title">Receita — Últimos 30 dias</span></div>
-                    <div class="mini-chart" style="height:80px;display:flex;align-items:center;justify-content:center">
-                        ${Charts.createSparkline(revenueHistory, { width: 600, height: 70, color: '#22c55e', smooth: true })}
-                    </div>
                 </div>
 
                 <!-- Alertas -->
@@ -128,7 +129,7 @@ const Dashboard = (() => {
                 </div>
                 ` : ''}
 
-                <!-- Atividades recentes -->
+                <!-- Atividades Recentes -->
                 <div class="card">
                     <div class="card-header"><span class="card-title">Atividades Recentes</span></div>
                     <div class="timeline">
@@ -137,20 +138,6 @@ const Dashboard = (() => {
                 </div>
             </div>
         `;
-    }
-
-    function generateRevenueHistory(transactions) {
-        const days = [];
-        for (let i = 29; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().slice(0, 10);
-            const dayTotal = transactions
-                .filter(t => t.type === 'receita' && (t.date || t.createdAt)?.slice(0, 10) === dateStr)
-                .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
-            days.push(dayTotal);
-        }
-        return days.length ? days : [0, 0, 0, 0, 0, 10, 5, 15, 8, 20, 12, 18, 25, 15, 30, 22, 28, 35, 40, 38, 42, 50, 45, 55, 48, 60, 52, 65, 58, 70];
     }
 
     function generateTimeline(companies, transactions) {
