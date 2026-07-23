@@ -437,3 +437,16 @@ tbody tr:hover {
     position: relative;
     width: 100%;
 }
+
+.pipeline-card.dragging {
+    opacity: 0.5;
+    box-shadow: var(--shadow-lg);
+    transform: rotate(1deg);
+    cursor: grabbing;
+}
+
+.pipeline-column.drag-over {
+    background: var(--accent-subtle);
+    border: 2px dashed var(--accent);
+    border-radius: var(--radius-md);
+}
