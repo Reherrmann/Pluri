@@ -1,5 +1,5 @@
 const GoogleSheets = (() => {
-  const API_URL = 'https://script.google.com/macros/s/AKfycbz-YDx2X6OqQ3pf4ctcFLD8o1O6iuYiCkiSWEXE7JbNXR2sIL5BTDM1VI3_StG-P6kU9w/exec'; // sua URL de produção
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzYGzXwZ4QIwGkBK9TUmTsvhmtpGtA4Wrfu1ifW9lspm1G1YiEoAOFVSnuLKinyOT7kgg/exec'; // sua URL de produção
 
   async function readSheet(sheetName) {
     try {
