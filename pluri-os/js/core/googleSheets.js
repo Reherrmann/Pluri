@@ -2,7 +2,7 @@
  * PLURI OS — Integração Google Sheets via Apps Script
  */
 const GoogleSheets = (() => {
-  const API_URL = 'https://script.google.com/macros/s/AKfycbx2yrU7h1B-iOxaTHWjVdc9QFznc5QcFxj9g9qGUhpiCO7tsEzbLmDJ1x8h9XiK2jC3Jw/exec'; // ← sua URL de produção
+  const API_URL = 'https://script.google.com/macros/s/AKfycbz-YDx2X6OqQ3pf4ctcFLD8o1O6iuYiCkiSWEXE7JbNXR2sIL5BTDM1VI3_StG-P6kU9w/exec'; // ← sua URL de produção
 
   async function readSheet(sheetName) {
     try {
