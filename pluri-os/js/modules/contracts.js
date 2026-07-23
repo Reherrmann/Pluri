@@ -8,7 +8,6 @@ const Contracts = (() => {
     try {
       const rows = await GoogleSheets.readSheet(SHEET_NAME);
       if (!rows || !rows.length) { isSyncing = false; return; }
-
       const contractsFromSheet = rows.map(row => ({
         id: row['ID'] || Utils.generateId(),
         client: row['Cliente'] || '',
@@ -20,12 +19,10 @@ const Contracts = (() => {
         source: 'planilha',
         createdAt: row['Data Criação'] || new Date().toISOString()
       }));
-
       const local = Storage.loadData('contracts', []);
       const manual = local.filter(c => c.source !== 'planilha');
       const merged = [...manual, ...contractsFromSheet];
       Storage.saveData('contracts', merged);
-
       if (PLURI.getState().currentModule === 'contracts') {
         const area = document.getElementById('content-area');
         if (area) {
@@ -59,7 +56,7 @@ const Contracts = (() => {
 
   function renderTable(contracts) {
     if (!contracts || !contracts.length) {
-      return `<div class="empty-state"><div class="empty-state-icon">📋</div><h3>Nenhum contrato cadastrado</h3><p>Cadastre um novo contrato para começar.</p></div>`;
+      return `<div class="empty-state"><div class="empty-state-icon">📋</div><h3>Nenhum contrato cadastrado</h3></div>`;
     }
     const headers = ['Cliente', 'Valor', 'Início', 'Fim', 'Status', 'Link Drive', 'Ações'];
     const rows = contracts.map(c => [
@@ -114,7 +111,6 @@ const Contracts = (() => {
       source: editId ? (contracts.find(c => c.id === editId)?.source || 'manual') : 'manual'
     };
     if (!data.client) { Components.showToast('Cliente é obrigatório', 'error'); return; }
-
     if (editId) {
       const index = contracts.findIndex(c => c.id === editId);
       if (index >= 0) contracts[index] = data;
@@ -122,12 +118,10 @@ const Contracts = (() => {
       contracts.push(data);
     }
     Storage.saveData('contracts', contracts);
-
     const row = [data.id, data.client, data.value, data.startDate, data.endDate, data.status, data.link];
     const success = await GoogleSheets.appendRow(SHEET_NAME, row);
     Components.closeModal();
     Components.showToast(success ? 'Contrato salvo na planilha!' : 'Salvo localmente.', success ? 'success' : 'warning');
-
     const area = document.getElementById('content-area');
     if (area) {
       area.innerHTML = renderInternal();
