@@ -200,3 +200,150 @@
     transition: background 0.5s ease;
     position: relative;
 }
+
+/* ============================================
+   DASHBOARD V3 — Novos estilos
+   ============================================ */
+
+/* Cards clicáveis */
+.card-clickable {
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+.card-clickable:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Tooltip simples */
+.has-tooltip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted var(--text-tertiary);
+}
+.has-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+    border: 1px solid var(--border-color);
+    z-index: 100;
+}
+.has-tooltip:hover::after {
+    opacity: 1;
+}
+
+/* Estados vazios aprimorados */
+.empty-state-enhanced {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-tertiary);
+}
+.empty-state-enhanced .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+.empty-state-enhanced h4 {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+.empty-state-enhanced p {
+    font-size: 0.85rem;
+    max-width: 300px;
+    margin-bottom: 16px;
+}
+
+/* Filtros do financeiro */
+.filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.filter-chip {
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    transition: all var(--transition-fast);
+}
+.filter-chip:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.filter-chip.active {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* Indicador de tendência */
+.trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.trend-up { color: var(--success); }
+.trend-down { color: var(--danger); }
+.trend-stable { color: var(--text-tertiary); }
+
+/* Insight card aprimorado */
+.insight-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    margin-bottom: 8px;
+    transition: all var(--transition-fast);
+}
+.insight-card:hover {
+    background: var(--bg-hover);
+}
+.insight-priority {
+    width: 4px;
+    height: 100%;
+    min-height: 40px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.insight-priority.high { background: var(--danger); }
+.insight-priority.medium { background: var(--warning); }
+.insight-priority.low { background: var(--info); }
+
+/* Barra de progresso com previsão */
+.progress-with-forecast {
+    position: relative;
+}
+.progress-forecast-marker {
+    position: absolute;
+    top: -4px;
+    width: 2px;
+    height: 16px;
+    background: var(--text-primary);
+    border-radius: 1px;
+}
