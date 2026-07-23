@@ -1,7 +1,8 @@
 /**
- * PLURI OS — Módulo CRM
- * Gestão de empresas, pipeline Kanban, exportação para Google Sheets.
+ * PLURI OS — Módulo CRM (versão final com pipeline editável e exportação)
  */
+console.log('CRM.js carregado');
+
 const CRM = (() => {
     function render() {
         const companies = Storage.loadData('crm_companies', []);
@@ -135,7 +136,7 @@ const CRM = (() => {
         }
     }
 
-    // Funções para os botões no pipeline
+    // FUNÇÕES PARA O PIPELINE
     function editCompany(id) {
         openCompanyForm(id);
     }
@@ -192,6 +193,14 @@ const CRM = (() => {
         return map[status] || status;
     }
 
-    window.CRM = { render, openCompanyForm, saveCompany, moveCompanyStage, editCompany, deleteCompany, exportToSheet, applyFilter };
-    return { render, openCompanyForm, saveCompany, moveCompanyStage, editCompany, deleteCompany, exportToSheet, applyFilter };
+    // EXPOSIÇÃO GLOBAL
+    window.CRM = {
+        render, openCompanyForm, saveCompany, moveCompanyStage,
+        editCompany, deleteCompany, exportToSheet, applyFilter
+    };
+
+    return {
+        render, openCompanyForm, saveCompany, moveCompanyStage,
+        editCompany, deleteCompany, exportToSheet, applyFilter
+    };
 })();
