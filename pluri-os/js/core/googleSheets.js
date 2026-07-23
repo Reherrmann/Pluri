@@ -68,6 +68,6 @@ const GoogleSheets = (() => {
   }
 }
 
-  window.GoogleSheets = { readSheet, appendRow, deleteRow, updateCell };
-  return { readSheet, appendRow, deleteRow, updateCell };
+  window.GoogleSheets = { readSheet, appendRow, deleteRow, updateCell, replaceSheet };
+return { readSheet, appendRow, deleteRow, updateCell, replaceSheet };
 })();
