@@ -1,5 +1,5 @@
 /**
- * PLURI OS V2 — CRM (visual original + tags, timeline, busca instantânea)
+ * PLURI OS V2 — CRM (visual original + equipe no responsável)
  */
 console.log('CRM carregado');
 
@@ -109,12 +109,18 @@ const CRM = (() => {
         return `<div class="card"><div class="timeline">${items}</div></div>`;
     }
 
-    // ==================== FORMULÁRIO (com tags) ====================
+    // ==================== FORMULÁRIO (com tags e select de responsável) ====================
     function openCompanyForm(editId = null) {
         const companies = Storage.loadData('crm_companies', []);
         const existing = editId ? companies.find(c => c.id === editId) : null;
         const stages = Storage.loadData('crm_pipeline_stages', []);
         const tagsStr = existing?.tags ? existing.tags.join(', ') : '';
+
+        // Select de responsável com membros da equipe
+        const teamMembers = Team.getActiveMembers();
+        const responsibleOptions = teamMembers.map(m =>
+            `<option value="${m.name}" ${existing?.responsible === m.name ? 'selected' : ''}>${m.name}</option>`
+        ).join('');
 
         Components.openModal({
             title: existing ? 'Editar Empresa' : 'Nova Empresa',
@@ -130,7 +136,13 @@ const CRM = (() => {
                     <div class="form-group"><label class="form-label">Cidade</label><input type="text" id="crm-city" class="form-input" value="${existing?.city || ''}"></div>
                     <div class="form-group"><label class="form-label">Estado</label><input type="text" id="crm-state" class="form-input" value="${existing?.state || ''}" maxlength="2"></div>
                 </div>
-                <div class="form-group"><label class="form-label">Responsável</label><input type="text" id="crm-responsible" class="form-input" value="${existing?.responsible || ''}"></div>
+                <div class="form-group">
+                    <label class="form-label">Responsável</label>
+                    <select id="crm-responsible" class="form-select">
+                        <option value="">Selecione um responsável...</option>
+                        ${responsibleOptions}
+                    </select>
+                </div>
                 <div class="form-group"><label class="form-label">WhatsApp</label><input type="text" id="crm-whatsapp" class="form-input" value="${existing?.whatsapp || ''}"></div>
                 <div class="form-group"><label class="form-label">Email</label><input type="email" id="crm-email" class="form-input" value="${existing?.email || ''}"></div>
                 <div class="form-group"><label class="form-label">Tags (separadas por vírgula)</label><input type="text" id="crm-tags" class="form-input" value="${tagsStr}" placeholder="VIP, Urgente, Parceiro"></div>
@@ -156,7 +168,7 @@ const CRM = (() => {
             stage: document.getElementById('crm-status').value,
             city: document.getElementById('crm-city').value.trim(),
             state: document.getElementById('crm-state').value.trim().toUpperCase(),
-            responsible: document.getElementById('crm-responsible').value.trim(),
+            responsible: document.getElementById('crm-responsible').value,
             whatsapp: document.getElementById('crm-whatsapp').value.trim(),
             email: document.getElementById('crm-email').value.trim(),
             tags: tags,
