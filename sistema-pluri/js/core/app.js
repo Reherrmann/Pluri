@@ -117,9 +117,11 @@ const PLURI = (() => {
         state.currentModule = moduleId;
 
         // Fecha o menu mobile ao navegar
+        const sidebar = document.getElementById('sidebar');
         if (window.innerWidth <= 768) {
-            document.getElementById('sidebar').classList.remove('mobile-open');
-            document.getElementById('sidebar-overlay')?.classList.remove('active');
+            sidebar.classList.remove('mobile-open');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (overlay) overlay.classList.remove('active');
         }
 
         // Atualiza sidebar
@@ -190,24 +192,49 @@ const PLURI = (() => {
      * Configura event listeners globais
      */
     function setupEventListeners() {
-        // Toggle sidebar
-        document.getElementById('sidebar-toggle').addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
-            state.sidebarCollapsed = sidebar.classList.contains('collapsed');
-            Storage.updateData('settings', { sidebarCollapsed: state.sidebarCollapsed });
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+
+        // Toggle sidebar (desktop e mobile)
+        toggleBtn.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                // Mobile: alterna a classe 'mobile-open' para mostrar/esconder
+                sidebar.classList.toggle('mobile-open');
+                // Garante que 'collapsed' não atrapalhe no mobile
+                sidebar.classList.remove('collapsed');
+            } else {
+                // Desktop: alterna colapso
+                sidebar.classList.toggle('collapsed');
+                // Remove mobile-open se existir
+                sidebar.classList.remove('mobile-open');
+                // Salva estado
+                state.sidebarCollapsed = sidebar.classList.contains('collapsed');
+                Storage.updateData('settings', { sidebarCollapsed: state.sidebarCollapsed });
+            }
         });
 
-        // Toggle sidebar (mobile)
-        const mobileMenuBtn = document.getElementById('mobile-menu-toggle');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        mobileMenuBtn?.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.add('mobile-open');
-            sidebarOverlay?.classList.add('active');
+        // Fecha o menu mobile ao clicar em um item da navegação
+        document.getElementById('sidebar-nav').addEventListener('click', (e) => {
+            if (e.target.closest('.nav-item') && window.innerWidth <= 768) {
+                sidebar.classList.remove('mobile-open');
+                const overlay = document.getElementById('sidebar-overlay');
+                if (overlay) overlay.classList.remove('active');
+            }
         });
-        sidebarOverlay?.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.remove('mobile-open');
-            sidebarOverlay?.classList.remove('active');
+
+        // Ao redimensionar para desktop, garante que mobile-open seja removido
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('mobile-open');
+                // Aplica o estado colapsado salvo
+                if (state.sidebarCollapsed) {
+                    sidebar.classList.add('collapsed');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                }
+                const overlay = document.getElementById('sidebar-overlay');
+                if (overlay) overlay.classList.remove('active');
+            }
         });
 
         // Toggle tema
