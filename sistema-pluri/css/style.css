@@ -462,8 +462,18 @@ body {
 @media (max-width: 768px) {
     .content-area { padding: 16px; }
     .top-header { padding: 0 16px; }
-    .sidebar { position: fixed; left: -100%; z-index: 200; width: var(--sidebar-width); min-width: var(--sidebar-width); }
-    .sidebar.mobile-open { left: 0; }
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        z-index: 200;
+        width: var(--sidebar-width);
+        min-width: var(--sidebar-width);
+        transition: left 0.3s ease;
+    }
+    .sidebar.mobile-open {
+        left: 0;
+        box-shadow: var(--shadow-lg);
+    }
     .sidebar .logo-text,
     .sidebar .user-details,
     .sidebar .sidebar-search input,
