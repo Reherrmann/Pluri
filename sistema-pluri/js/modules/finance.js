@@ -1,14 +1,14 @@
 /**
- * PLURI OS V2 — Módulo Financeiro V2
- * Visual premium estilo Stripe, filtros rápidos, gráficos modernos.
- * Mantém toda a lógica de negócio, sincronização com Google Sheets.
+ * PLURI OS V2 — Módulo Financeiro
+ * Visual original, com filtros rápidos e gráfico de barras.
+ * Integração com Google Sheets preservada.
  */
 const Finance = (() => {
     const SHEET_NAME = 'PLURI_Financeiro_2026';
     let isSyncing = false;
     let activeFilter = 'month'; // 'month', 'quarter', 'year'
 
-    // ==================== SINCRONIZAÇÃO (INALTERADA) ====================
+    // ==================== SINCRONIZAÇÃO ====================
     async function syncFromSheet() {
         if (isSyncing) return;
         isSyncing = true;
@@ -48,7 +48,6 @@ const Finance = (() => {
         return renderInternal();
     }
 
-    // ==================== RENDER INTERNO ====================
     function renderInternal() {
         const allTransactions = Storage.loadData('finance_transactions', []);
         const implantations = Storage.loadData('finance_implantations', []);
@@ -64,121 +63,66 @@ const Finance = (() => {
         const arr = mrr * 12;
         const totalImplantacoes = implantations.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
 
-        // Dados para gráfico de barras (receita vs despesa)
-        const barData = [totalReceitas, totalDespesas];
-
         return `
             <div class="fade-in">
-                <!-- HEADER -->
-                <div class="dv-header">
-                    <div>
-                        <h2 class="dv-greeting">Financeiro</h2>
-                        <p class="dv-date">Visão geral das finanças</p>
+                <!-- Cabeçalho com filtros -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+                    <h3 style="font-size:1.1rem;font-weight:600">Financeiro</h3>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        <span class="badge-tag ${activeFilter === 'month' ? 'info' : 'neutral'}" style="cursor:pointer" onclick="Finance.setFilter('month')">Este mês</span>
+                        <span class="badge-tag ${activeFilter === 'quarter' ? 'info' : 'neutral'}" style="cursor:pointer" onclick="Finance.setFilter('quarter')">Trimestre</span>
+                        <span class="badge-tag ${activeFilter === 'year' ? 'info' : 'neutral'}" style="cursor:pointer" onclick="Finance.setFilter('year')">Ano</span>
                     </div>
-                    <div style="display:flex;gap:8px">
-                        <button class="btn-primary" onclick="Finance.openTransactionForm()" style="background:var(--dv-accent);color:#0a0e17;border:none;font-weight:600">
-                            <i data-lucide="plus" class="icon-sm"></i> Nova Transação
-                        </button>
-                    </div>
+                    <button class="btn-primary" onclick="Finance.openTransactionForm()">
+                        <i data-lucide="plus" class="icon-sm"></i> Nova Transação
+                    </button>
                 </div>
 
-                <!-- MÉTRICAS PRINCIPAIS -->
-                <div class="dv-section-title">
-                    <i data-lucide="bar-chart-3" class="icon-sm" style="color:var(--dv-accent)"></i> Indicadores Financeiros
-                </div>
-                <div class="dv-finance-metrics">
-                    ${metricCard('Receitas', Utils.formatCurrency(totalReceitas), 'arrow-up-circle', '#10b981')}
-                    ${metricCard('Despesas', Utils.formatCurrency(totalDespesas), 'arrow-down-circle', '#ef4444')}
-                    ${metricCard('Lucro Bruto', Utils.formatCurrency(lucroBruto), 'dollar-sign', lucroBruto >= 0 ? '#10b981' : '#ef4444')}
-                    ${metricCard('MRR', Utils.formatCurrency(mrr), 'repeat', '#6366f1', `ARR: ${Utils.formatCurrency(arr)}`)}
-                    ${metricCard('Implantações', Utils.formatCurrency(totalImplantacoes), 'rocket', '#f59e0b')}
-                    ${metricCard('Ticket Médio', receitas.length ? Utils.formatCurrency(totalReceitas / receitas.length) : 'R$ 0,00', 'receipt', '#3b82f6')}
+                <!-- Cards de métricas (visual original) -->
+                <div class="cards-grid" style="margin-bottom:24px">
+                    ${Components.metricCard({ title: 'Receitas', value: Utils.formatCurrency(totalReceitas), icon: 'arrow-up-circle', color: 'success' })}
+                    ${Components.metricCard({ title: 'Despesas', value: Utils.formatCurrency(totalDespesas), icon: 'arrow-down-circle', color: 'danger' })}
+                    ${Components.metricCard({ title: 'Lucro Bruto', value: Utils.formatCurrency(lucroBruto), icon: 'dollar-sign', color: lucroBruto >= 0 ? 'success' : 'danger' })}
+                    ${Components.metricCard({ title: 'MRR', value: Utils.formatCurrency(mrr), icon: 'repeat', subtitle: `ARR: ${Utils.formatCurrency(arr)}`, color: 'accent' })}
+                    ${Components.metricCard({ title: 'Implantações', value: Utils.formatCurrency(totalImplantacoes), icon: 'rocket', color: 'info' })}
+                    ${Components.metricCard({ title: 'Ticket Médio', value: receitas.length ? Utils.formatCurrency(totalReceitas / receitas.length) : 'R$ 0,00', icon: 'receipt', color: 'warning' })}
                 </div>
 
-                <!-- GRÁFICO DE BARRAS -->
-                <div class="dv-section-title">
-                    <i data-lucide="bar-chart-2" class="icon-sm" style="color:var(--dv-accent)"></i> Receita vs Despesa (período)
-                </div>
-                <div class="dv-finance-chart">
-                    <div style="display:flex;align-items:flex-end;gap:40px;height:120px;padding:0 20px">
+                <!-- Gráfico de barras simples -->
+                <div class="card" style="margin-bottom:24px;padding:20px">
+                    <div style="font-weight:600;margin-bottom:16px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;font-size:0.8rem">Receita vs Despesa (período)</div>
+                    <div style="display:flex;align-items:flex-end;gap:40px;height:100px">
                         <div style="text-align:center;flex:1">
-                            <div style="height:${(totalReceitas / Math.max(totalReceitas, totalDespesas, 1)) * 100}px;background:#10b981;border-radius:6px 6px 0 0;transition:height 0.5s"></div>
-                            <div style="margin-top:8px;font-weight:600;color:var(--dv-text-primary)">${Utils.formatCurrency(totalReceitas)}</div>
-                            <div style="font-size:0.7rem;color:var(--dv-text-tertiary)">Receitas</div>
+                            <div style="height:${(totalReceitas / Math.max(totalReceitas, totalDespesas, 1)) * 80}px;background:var(--success);border-radius:6px 6px 0 0;transition:height 0.5s"></div>
+                            <div style="margin-top:8px;font-weight:600">${Utils.formatCurrency(totalReceitas)}</div>
+                            <div style="font-size:0.7rem;color:var(--text-tertiary)">Receitas</div>
                         </div>
                         <div style="text-align:center;flex:1">
-                            <div style="height:${(totalDespesas / Math.max(totalReceitas, totalDespesas, 1)) * 100}px;background:#ef4444;border-radius:6px 6px 0 0;transition:height 0.5s"></div>
-                            <div style="margin-top:8px;font-weight:600;color:var(--dv-text-primary)">${Utils.formatCurrency(totalDespesas)}</div>
-                            <div style="font-size:0.7rem;color:var(--dv-text-tertiary)">Despesas</div>
+                            <div style="height:${(totalDespesas / Math.max(totalReceitas, totalDespesas, 1)) * 80}px;background:var(--danger);border-radius:6px 6px 0 0;transition:height 0.5s"></div>
+                            <div style="margin-top:8px;font-weight:600">${Utils.formatCurrency(totalDespesas)}</div>
+                            <div style="font-size:0.7rem;color:var(--text-tertiary)">Despesas</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- FILTROS E TABELA -->
-                <div class="dv-section-title">
-                    <i data-lucide="list" class="icon-sm" style="color:var(--dv-accent)"></i> Transações (${filtered.length})
-                </div>
-                <div class="dv-finance-filter-bar">
-                    <span class="dv-finance-filter-chip ${activeFilter === 'month' ? 'active' : ''}" onclick="Finance.setFilter('month')">Este mês</span>
-                    <span class="dv-finance-filter-chip ${activeFilter === 'quarter' ? 'active' : ''}" onclick="Finance.setFilter('quarter')">Trimestre</span>
-                    <span class="dv-finance-filter-chip ${activeFilter === 'year' ? 'active' : ''}" onclick="Finance.setFilter('year')">Ano</span>
-                </div>
+                <!-- Tabela de transações (visual original) -->
+                <h3 style="font-size:1rem;font-weight:600;margin-bottom:12px">Transações (${filtered.length})</h3>
                 ${renderTransactionTable(filtered)}
             </div>
         `;
     }
 
-    // ==================== COMPONENTES ====================
-    function metricCard(title, value, icon, color, subtitle = '') {
-        return `
-            <div class="dv-finance-metric-card">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                    <span class="dv-kpi-label">${title}</span>
-                    <span style="background:${color}20;color:${color};padding:4px 8px;border-radius:6px;font-size:0.7rem">
-                        <i data-lucide="${icon}" class="icon-sm"></i>
-                    </span>
-                </div>
-                <div class="dv-kpi-value" style="margin:8px 0">${value}</div>
-                ${subtitle ? `<div style="font-size:0.75rem;color:var(--dv-text-tertiary)">${subtitle}</div>` : ''}
-            </div>
-        `;
-    }
-
     function renderTransactionTable(transactions) {
-        if (!transactions || !transactions.length) {
-            return `<div class="dv-card" style="text-align:center;padding:40px">Nenhuma transação no período.</div>`;
-        }
-        const rows = transactions.map(t => `
-            <tr>
-                <td>${t.description || '-'}</td>
-                <td><span class="badge-tag ${t.type === 'receita' || t.type === 'mensalidade' ? 'success' : 'danger'}">${t.type}</span></td>
-                <td>${t.category || '-'}</td>
-                <td>${Utils.formatCurrency(t.amount)}</td>
-                <td>${Utils.formatDate(t.date || t.createdAt)}</td>
-                <td>
-                    <button class="btn-icon btn-sm" onclick="Finance.deleteTransaction('${t.id}')" title="Excluir" style="color:var(--dv-danger)">
-                        <i data-lucide="trash-2" class="icon-sm"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-        return `
-            <div class="dv-card" style="overflow-x:auto;padding:0">
-                <table class="dv-finance-table">
-                    <thead>
-                        <tr>
-                            <th>Descrição</th>
-                            <th>Tipo</th>
-                            <th>Categoria</th>
-                            <th>Valor</th>
-                            <th>Data</th>
-                            <th style="width:60px">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>
-        `;
+        const headers = ['Descrição', 'Tipo', 'Categoria', 'Valor', 'Data', 'Ações'];
+        const rows = transactions.map(t => [
+            t.description || '-',
+            `<span class="badge-tag ${t.type === 'receita' || t.type === 'mensalidade' ? 'success' : 'danger'}">${t.type}</span>`,
+            t.category || '-',
+            Utils.formatCurrency(t.amount),
+            Utils.formatDate(t.date || t.createdAt),
+            `<button class="btn-icon btn-sm" onclick="Finance.deleteTransaction('${t.id}')" title="Excluir"><i data-lucide="trash-2" class="icon-sm"></i></button>`
+        ]);
+        return Components.createTable({ headers, rows, emptyMessage: 'Nenhuma transação no período.' });
     }
 
     // ==================== FILTRO DE PERÍODO ====================
@@ -187,18 +131,10 @@ const Finance = (() => {
         const thisMonth = now.getMonth();
         const thisYear = now.getFullYear();
         let startDate;
-
-        if (period === 'month') {
-            startDate = new Date(thisYear, thisMonth, 1);
-        } else if (period === 'quarter') {
-            const quarterMonth = Math.floor(thisMonth / 3) * 3;
-            startDate = new Date(thisYear, quarterMonth, 1);
-        } else if (period === 'year') {
-            startDate = new Date(thisYear, 0, 1);
-        } else {
-            return transactions; // sem filtro
-        }
-
+        if (period === 'month') startDate = new Date(thisYear, thisMonth, 1);
+        else if (period === 'quarter') startDate = new Date(thisYear, Math.floor(thisMonth / 3) * 3, 1);
+        else if (period === 'year') startDate = new Date(thisYear, 0, 1);
+        else return transactions;
         return transactions.filter(t => {
             const d = new Date(t.date || t.createdAt);
             return d >= startDate;
@@ -214,7 +150,7 @@ const Finance = (() => {
         }
     }
 
-    // ==================== FORMULÁRIO (INALTERADO) ====================
+    // ==================== CRUD (INALTERADO) ====================
     function openTransactionForm(editId = null) {
         const transactions = Storage.loadData('finance_transactions', []);
         const existing = editId ? transactions.find(t => t.id === editId) : null;
