@@ -142,13 +142,9 @@ const Finance = (() => {
     }
 
     function setFilter(period) {
-        activeFilter = period;
-        const area = document.getElementById('content-area');
-        if (area) {
-            area.innerHTML = renderInternal();
-            lucide.createIcons();
-        }
-    }
+    activeFilter = period;
+    PLURI.navigateTo('finance'); // recarrega o módulo com o novo filtro ativo
+}
 
     // ==================== CRUD (INALTERADO) ====================
     function openTransactionForm(editId = null) {
