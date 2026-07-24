@@ -1,12 +1,9 @@
 /**
- * PLURI OS V2 — Módulo CRM V2
- * Pipeline premium, tags, timeline de atividades, busca instantânea.
- * Mantém toda a lógica de negócio e integração com Google Sheets.
+ * PLURI OS V2 — CRM (visual original + tags, timeline, busca instantânea)
  */
-console.log('CRM V2 carregado');
+console.log('CRM carregado');
 
 const CRM = (() => {
-    // ==================== RENDER PRINCIPAL ====================
     function render() {
         const companies = Storage.loadData('crm_companies', []);
         const stages = Storage.loadData('crm_pipeline_stages', []);
@@ -29,11 +26,10 @@ const CRM = (() => {
 
         return `
             <div class="fade-in">
-                <!-- TOOLBAR -->
-                <div class="dv-crm-toolbar">
+                <!-- Toolbar -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
-                        <input type="text" id="crm-search" placeholder="Buscar empresa..." class="form-input" style="width:260px"
-                               value="${searchTerm}" oninput="CRM.applyFilter()">
+                        <input type="text" id="crm-search" placeholder="Buscar empresa..." class="form-input" style="width:260px" value="${searchTerm}" oninput="CRM.applyFilter()">
                         <select id="crm-filter" class="form-select" style="width:180px" onchange="CRM.applyFilter()">
                             <option value="all">Todos os status</option>
                             ${stages.map(s => `<option value="${s.id}" ${filter === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
@@ -43,182 +39,74 @@ const CRM = (() => {
                         <button class="btn-secondary btn-sm" onclick="CRM.exportToSheet()" title="Exportar para Google Sheets">
                             <i data-lucide="upload-cloud" class="icon-sm"></i> Exportar para Planilha
                         </button>
-                        <button class="btn-primary" onclick="CRM.openCompanyForm()" style="background:var(--dv-accent);color:#0a0e17;border:none;font-weight:600">
+                        <button class="btn-primary" onclick="CRM.openCompanyForm()">
                             <i data-lucide="plus" class="icon-sm"></i> Nova Empresa
                         </button>
                     </div>
                 </div>
 
-                <!-- PIPELINE -->
+                <!-- Pipeline (componente original com botões) -->
                 <div style="margin-bottom:24px">
-                    <div class="dv-section-title">
-                        <i data-lucide="columns" class="icon-sm" style="color:var(--dv-accent)"></i> Pipeline
-                    </div>
-                    ${renderPipelineV2(stages, filtered)}
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:12px">Pipeline</h3>
+                    ${Components.renderPipeline(stages, filtered, moveCompanyStage)}
                 </div>
 
-                <!-- TABELA -->
+                <!-- Tabela de empresas (componente original) -->
                 <div style="margin-top:32px">
-                    <div class="dv-section-title">
-                        <i data-lucide="list" class="icon-sm" style="color:var(--dv-accent)"></i> Todas as Empresas (${filtered.length})
-                    </div>
-                    ${renderTableV2(filtered)}
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:12px">Todas as Empresas (${filtered.length})</h3>
+                    ${renderTableOriginal(filtered)}
                 </div>
 
-                <!-- TIMELINE -->
+                <!-- Timeline de atividades (simples) -->
                 <div style="margin-top:32px">
-                    <div class="dv-section-title">
-                        <i data-lucide="clock" class="icon-sm" style="color:var(--dv-accent)"></i> Atividades Recentes
-                    </div>
-                    ${renderTimeline(companies)}
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:12px">Atividades Recentes</h3>
+                    ${renderTimelineSimple(companies)}
                 </div>
             </div>
         `;
     }
 
-    // ==================== PIPELINE V2 ====================
-    function renderPipelineV2(stages, items) {
-        const stageHTML = stages.map(stage => {
-            const stageItems = items.filter(item => item.stage === stage.id || item.status === stage.id);
-            const totalValue = stageItems.reduce((sum, item) => sum + (parseFloat(item.value || 0)), 0);
-
-            const cardsHTML = stageItems.map(item => {
-                const initials = (item.responsible || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-                return `
-                    <div class="dv-pipeline-card" draggable="true"
-                         data-id="${item.id}" data-stage="${stage.id}"
-                         ondragstart="event.dataTransfer.setData('text/plain', '${item.id}'); this.classList.add('dragging')"
-                         ondragend="this.classList.remove('dragging')">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-                            <strong style="font-size:0.85rem;color:var(--dv-text-primary)">${item.company || item.name || 'Sem nome'}</strong>
-                            <div class="dv-pipeline-card-actions">
-                                <button class="btn-icon btn-sm" onclick="event.stopPropagation(); CRM.editCompany('${item.id}')" title="Editar" style="color:var(--dv-text-tertiary)">
-                                    <i data-lucide="pencil" class="icon-sm"></i>
-                                </button>
-                                <button class="btn-icon btn-sm" onclick="event.stopPropagation(); CRM.deleteCompany('${item.id}')" title="Excluir" style="color:var(--dv-text-tertiary)">
-                                    <i data-lucide="trash-2" class="icon-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-                            <div style="width:22px;height:22px;border-radius:50%;background:var(--dv-accent-soft);color:var(--dv-accent);display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:600">${initials}</div>
-                            <span style="font-size:0.75rem;color:var(--dv-text-tertiary)">${item.responsible || 'Não atribuído'}</span>
-                        </div>
-                        ${item.value ? `<div style="font-size:0.9rem;font-weight:600;color:var(--dv-accent)">${Utils.formatCurrency(item.value)}</div>` : ''}
-                        ${item.tags && item.tags.length ? `<div style="margin-top:6px">${item.tags.map(t => `<span class="dv-tag">${t}</span>`).join('')}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-
-            return `
-                <div class="dv-pipeline-column"
-                     ondragover="event.preventDefault()"
-                     ondragenter="event.currentTarget.classList.add('drag-over')"
-                     ondragleave="event.currentTarget.classList.remove('drag-over')"
-                     ondrop="event.preventDefault();
-                              event.currentTarget.classList.remove('drag-over');
-                              const itemId = event.dataTransfer.getData('text/plain');
-                              const sourceStage = document.querySelector('.dv-pipeline-card.dragging')?.dataset.stage;
-                              if (itemId && sourceStage !== '${stage.id}') {
-                                  CRM.moveCompanyStage(itemId, '${stage.id}');
-                              }">
-                    <div class="dv-pipeline-column-header">
-                        <span>${stage.name}</span>
-                        <div style="display:flex;gap:6px;align-items:center">
-                            <span class="badge-tag neutral">${stageItems.length}</span>
-                            <span style="font-size:0.7rem;color:var(--dv-accent)">${Utils.formatCurrency(totalValue)}</span>
-                        </div>
-                    </div>
-                    ${cardsHTML || '<div style="padding:16px;text-align:center;color:var(--dv-text-tertiary);font-size:0.8rem">Arraste itens aqui</div>'}
-                </div>
-            `;
-        }).join('');
-
-        return `<div class="dv-pipeline">${stageHTML}</div>`;
+    // ==================== TABELA ORIGINAL ====================
+    function renderTableOriginal(companies) {
+        const headers = ['Empresa', 'Segmento', 'Cidade/UF', 'Responsável', 'Status', 'Tags', 'Último Contato', 'Ações'];
+        const rows = companies.map(c => [
+            c.company || c.name || '-',
+            c.segment || '-',
+            `${c.city || ''}${c.city && c.state ? '/' : ''}${c.state || ''}`,
+            c.responsible || '-',
+            `<span class="badge-tag ${getStatusClass(c.status)}">${getStatusLabel(c.status)}</span>`,
+            (c.tags || []).map(t => `<span class="badge-tag neutral" style="margin-right:4px">${t}</span>`).join('') || '-',
+            c.lastContact ? Utils.formatDate(c.lastContact) : '-',
+            `<button class="btn-icon btn-sm" onclick="CRM.editCompany('${c.id}')" title="Editar"><i data-lucide="pencil" class="icon-sm"></i></button>
+             <button class="btn-icon btn-sm" onclick="CRM.deleteCompany('${c.id}')" title="Excluir"><i data-lucide="trash-2" class="icon-sm"></i></button>`
+        ]);
+        return Components.createTable({ headers, rows, emptyMessage: 'Nenhuma empresa encontrada.' });
     }
 
-    // ==================== TABELA V2 ====================
-    function renderTableV2(companies) {
-        if (!companies || !companies.length) {
-            return `
-                <div class="dv-card" style="text-align:center;padding:40px">
-                    <div class="empty-icon" style="font-size:2rem;margin-bottom:12px">📋</div>
-                    <h4 style="color:var(--dv-text-primary)">Nenhuma empresa encontrada</h4>
-                    <p style="color:var(--dv-text-secondary);font-size:0.85rem">Cadastre uma nova empresa ou ajuste os filtros.</p>
-                </div>
-            `;
-        }
-
-        const rows = companies.map(c => `
-            <tr onclick="CRM.editCompany('${c.id}')">
-                <td><strong>${c.company || c.name || '-'}</strong></td>
-                <td>${c.segment || '-'}</td>
-                <td>${c.city || ''}${c.city && c.state ? '/' : ''}${c.state || ''}</td>
-                <td>${c.responsible || '-'}</td>
-                <td><span class="badge-tag ${getStatusClass(c.status)}">${getStatusLabel(c.status)}</span></td>
-                <td>${c.lastContact ? Utils.formatDate(c.lastContact) : '-'}</td>
-                <td>
-                    <button class="btn-icon btn-sm" onclick="event.stopPropagation(); CRM.editCompany('${c.id}')" title="Editar" style="color:var(--dv-text-tertiary)">
-                        <i data-lucide="pencil" class="icon-sm"></i>
-                    </button>
-                    <button class="btn-icon btn-sm" onclick="event.stopPropagation(); CRM.deleteCompany('${c.id}')" title="Excluir" style="color:var(--dv-danger)">
-                        <i data-lucide="trash-2" class="icon-sm"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-
-        return `
-            <div class="dv-card" style="overflow-x:auto;padding:0">
-                <table class="dv-crm-table">
-                    <thead>
-                        <tr>
-                            <th>Empresa</th>
-                            <th>Segmento</th>
-                            <th>Cidade/UF</th>
-                            <th>Responsável</th>
-                            <th>Status</th>
-                            <th>Último Contato</th>
-                            <th style="width:80px">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>
-        `;
-    }
-
-    // ==================== TIMELINE ====================
-    function renderTimeline(companies) {
-        const events = [];
-        companies
+    // ==================== TIMELINE SIMPLES ====================
+    function renderTimelineSimple(companies) {
+        const events = companies
             .filter(c => c.updatedAt)
             .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
             .slice(0, 10)
-            .forEach(c => {
-                const statusLabel = getStatusLabel(c.status);
-                const actionText = `${c.company || c.name} movida para ${statusLabel}`;
-                const who = c.responsible || 'Sistema';
-                events.push({
-                    text: actionText,
-                    time: Utils.timeAgo(c.updatedAt),
-                    who: who,
-                    icon: 'move-right',
-                });
-            });
+            .map(c => ({
+                text: `${c.company || c.name} → ${getStatusLabel(c.status)}`,
+                time: Utils.timeAgo(c.updatedAt),
+                who: c.responsible || 'Sistema'
+            }));
 
         if (!events.length) {
-            return '<div class="dv-card" style="text-align:center;padding:20px;color:var(--dv-text-tertiary)">Nenhuma atividade recente.</div>';
+            return `<div class="card" style="text-align:center;padding:20px;color:var(--text-tertiary)">Nenhuma atividade recente.</div>`;
         }
 
         const items = events.map(e => `
-            <div class="dv-timeline-item">
-                <div>${e.text}</div>
-                <div class="dv-timeline-time">${e.time} • ${e.who}</div>
+            <div class="timeline-item">
+                <div class="timeline-time">${e.time} • ${e.who}</div>
+                <div class="timeline-content">${e.text}</div>
             </div>
         `).join('');
 
-        return `<div class="dv-card"><div class="dv-timeline">${items}</div></div>`;
+        return `<div class="card"><div class="timeline">${items}</div></div>`;
     }
 
     // ==================== FORMULÁRIO (com tags) ====================
@@ -293,7 +181,7 @@ const CRM = (() => {
         PLURI.navigateTo('crm');
     }
 
-    // ==================== PIPELINE ACTIONS ====================
+    // ==================== AÇÕES DO PIPELINE ====================
     function moveCompanyStage(companyId, newStage) {
         const companies = Storage.loadData('crm_companies', []);
         const company = companies.find(c => c.id === companyId);
