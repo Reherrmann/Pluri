@@ -43,6 +43,7 @@ const PLURI = (() => {
         {
             section: 'Sistema',
             items: [
+                { id: 'team', label: 'Equipe', icon: 'users', module: 'Team' },
                 { id: 'settings', label: 'Configurações', icon: 'settings', module: 'Settings' },
             ],
         },
@@ -169,6 +170,7 @@ const PLURI = (() => {
             prompts: () => Prompts.render(),
             content: () => Content.render(),
             manual: () => Manual.render(),
+            team: () => Team.render(),
             settings: () => Settings.render(),
         };
 
