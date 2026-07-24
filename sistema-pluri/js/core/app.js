@@ -19,6 +19,7 @@ const PLURI = (() => {
                 { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', module: 'Dashboard' },
                 { id: 'planning', label: 'Planejamento', icon: 'target', module: 'Planning' },
                 { id: 'goals', label: 'Metas', icon: 'flag', module: 'Goals' },
+                { id: 'team', label: 'Equipe', icon: 'users', module: 'Team' },
             ],
         },
         {
@@ -43,7 +44,6 @@ const PLURI = (() => {
         {
             section: 'Sistema',
             items: [
-                { id: 'team', label: 'Equipe', icon: 'users', module: 'Team' },
                 { id: 'settings', label: 'Configurações', icon: 'settings', module: 'Settings' },
             ],
         },
