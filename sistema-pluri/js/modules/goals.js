@@ -129,7 +129,7 @@ const Goals = (() => {
       id: editId || Utils.generateId(),
       description: document.getElementById('goal-desc').value.trim(),
       period: document.getElementById('goal-period').value,
-      category: document.getElementById('goal-category').value.trim(),
+      category: document.getElementById('goal-category').value.trim().toLowerCase(),
       target: parseFloat(document.getElementById('goal-target').value) || 0,
       current: parseFloat(document.getElementById('goal-current').value) || 0,
       priority: document.getElementById('goal-priority').value,
