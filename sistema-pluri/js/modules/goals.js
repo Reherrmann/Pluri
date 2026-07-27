@@ -1,18 +1,23 @@
+/**
+ * PLURI OS — Módulo Metas (corrigido: sem duplicação, categoria normalizada)
+ */
 const Goals = (() => {
   const SHEET_NAME = 'Metas';
   let isSyncing = false;
 
+  // ==================== SINCRONIZAÇÃO (CORRIGIDA) ====================
   async function syncFromSheet() {
     if (isSyncing) return;
     isSyncing = true;
     try {
       const rows = await GoogleSheets.readSheet(SHEET_NAME);
       if (!rows || !rows.length) { isSyncing = false; return; }
+
       const goalsFromSheet = rows.map(row => ({
         id: row['ID'] || Utils.generateId(),
         description: row['Descrição'] || '',
         period: row['Período'] || 'monthly',
-        category: row['Categoria'] || 'geral',
+        category: (row['Categoria'] || 'geral').toLowerCase(), // normaliza
         target: parseFloat(row['Alvo']) || 0,
         current: parseFloat(row['Atual']) || 0,
         priority: row['Prioridade'] || 'Média',
@@ -20,10 +25,17 @@ const Goals = (() => {
         createdAt: row['Data Criação'] || new Date().toISOString(),
         source: 'planilha'
       }));
+
       const local = Storage.loadData('goals', []);
-      const manual = local.filter(g => g.source !== 'planilha');
-      const merged = [...manual, ...goalsFromSheet];
+      // Usa Map para garantir ID único (manual + planilha)
+      const mergedMap = new Map(
+        local.filter(g => g.source !== 'planilha').map(g => [g.id, g])
+      );
+      goalsFromSheet.forEach(g => mergedMap.set(g.id, g));
+      const merged = Array.from(mergedMap.values());
+
       Storage.saveData('goals', merged);
+
       if (PLURI.getState().currentModule === 'goals') {
         const area = document.getElementById('content-area');
         if (area) {
@@ -104,7 +116,7 @@ const Goals = (() => {
           <div class="form-group"><label class="form-label">Período</label><select id="goal-period" class="form-select">
             ${['daily','weekly','monthly','quarterly','annual'].map(p => `<option value="${p}" ${existing?.period === p ? 'selected' : ''}>${p === 'daily' ? 'Diária' : p === 'weekly' ? 'Semanal' : p === 'monthly' ? 'Mensal' : p === 'quarterly' ? 'Trimestral' : 'Anual'}</option>`).join('')}
           </select></div>
-          <div class="form-group"><label class="form-label">Categoria</label><input type="text" id="goal-category" class="form-input" value="${existing?.category || ''}"></div>
+          <div class="form-group"><label class="form-label">Categoria</label><input type="text" id="goal-category" class="form-input" value="${existing?.category || ''}" placeholder="Ex: receita, clientes, etc."></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="form-group"><label class="form-label">Valor Alvo</label><input type="number" id="goal-target" class="form-input" step="0.01" value="${existing?.target || ''}"></div>
@@ -129,7 +141,7 @@ const Goals = (() => {
       id: editId || Utils.generateId(),
       description: document.getElementById('goal-desc').value.trim(),
       period: document.getElementById('goal-period').value,
-      category: document.getElementById('goal-category').value.trim().toLowerCase(),
+      category: document.getElementById('goal-category').value.trim().toLowerCase(), // normaliza
       target: parseFloat(document.getElementById('goal-target').value) || 0,
       current: parseFloat(document.getElementById('goal-current').value) || 0,
       priority: document.getElementById('goal-priority').value,
@@ -196,7 +208,6 @@ const Goals = (() => {
     goal.current = newCurrent;
     Storage.saveData('goals', goals);
     Components.closeModal();
-    // Atualiza na planilha apenas localmente, pois não temos updateById. Pode ser aprimorado depois.
     Components.showToast('Progresso atualizado localmente! (planilha não alterada)', 'info');
     const area = document.getElementById('content-area');
     if (area) {
