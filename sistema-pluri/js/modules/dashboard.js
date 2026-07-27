@@ -67,7 +67,10 @@ const Dashboard = (() => {
         const revenueVar = revenueLastMonth > 0 ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1) : 0;
         const profitVar = profitLastMonth !== 0 ? ((profitThisMonth - profitLastMonth) / Math.abs(profitLastMonth) * 100).toFixed(1) : 0;
 
-        const monthlyRevenueGoal = goals.find(g => g.period === 'monthly' && g.category === 'receita');
+        const monthlyRevenueGoal = goals.find(g =>
+    (g.period === 'monthly' || g.period === 'mensal') &&
+    (g.category || '').toLowerCase() === 'receita'
+);
         const revenueGoalProgress = monthlyRevenueGoal ? Math.min((revenueThisMonth / parseFloat(monthlyRevenueGoal.target || 1)) * 100, 100).toFixed(1) : null;
         const revenueGoalRemaining = monthlyRevenueGoal ? Math.max(parseFloat(monthlyRevenueGoal.target) - revenueThisMonth, 0) : 0;
 
