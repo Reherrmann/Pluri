@@ -67,10 +67,11 @@ const Dashboard = (() => {
         const revenueVar = revenueLastMonth > 0 ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1) : 0;
         const profitVar = profitLastMonth !== 0 ? ((profitThisMonth - profitLastMonth) / Math.abs(profitLastMonth) * 100).toFixed(1) : 0;
 
+        // CORREÇÃO: busca flexível pela meta mensal de receita
         const monthlyRevenueGoal = goals.find(g =>
-    (g.period === 'monthly' || g.period === 'mensal') &&
-    (g.category || '').toLowerCase() === 'receita'
-);
+            (g.period === 'monthly' || g.period === 'mensal') &&
+            (g.category || '').toLowerCase() === 'receita'
+        );
         const revenueGoalProgress = monthlyRevenueGoal ? Math.min((revenueThisMonth / parseFloat(monthlyRevenueGoal.target || 1)) * 100, 100).toFixed(1) : null;
         const revenueGoalRemaining = monthlyRevenueGoal ? Math.max(parseFloat(monthlyRevenueGoal.target) - revenueThisMonth, 0) : 0;
 
@@ -262,7 +263,7 @@ const Dashboard = (() => {
                     <button class="btn-secondary btn-sm" style="margin-left:auto;border-color:var(--dv-accent);color:var(--dv-accent)" onclick="window.PLURI.navigateTo('goals')">Ver todas</button>
                 </div>
                 <div class="dv-card" style="margin-bottom:32px">
-                    ${data.revenueGoalProgress !== null ? renderGoalProgress('Receita Mensal', data.revenueThisMonth, parseFloat(data.goals?.find(g => g.category==='receita')?.target || 1), data.revenueGoalProgress, data.revenueGoalRemaining, data.forecastDays, data.avgDailyRevenue) : `
+                    ${data.revenueGoalProgress !== null ? renderGoalProgress('Receita Mensal', data.revenueThisMonth, parseFloat(data.goals?.find(g => (g.category || '').toLowerCase() === 'receita')?.target || 1), data.revenueGoalProgress, data.revenueGoalRemaining, data.forecastDays, data.avgDailyRevenue) : `
                         <div class="empty-state-enhanced" style="color:var(--dv-text-primary)">
                             <div class="empty-icon">🎯</div>
                             <h4 style="color:var(--dv-text-primary)">Nenhuma meta de receita</h4>
