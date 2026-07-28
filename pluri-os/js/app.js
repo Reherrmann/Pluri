@@ -108,7 +108,6 @@
 
     // ===== GOOGLE CALENDAR STUB =====
     function syncAppointmentWithGoogleCalendar(appointment) {
-        // Integração real será adicionada quando houver backend/API.
         console.log('Google Calendar sync stub:', appointment);
     }
 
@@ -346,6 +345,17 @@
         return `<span class="status-badge ${cls}"><span class="status-dot ${dotColor}"></span>${status}</span>`;
     }
 
+    // Retorna apenas a bolinha colorida para usar na semana
+    function statusDotOnly(status) {
+        if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') {
+            return '<span class="agenda-week-appointment-dot" style="background:var(--green);"></span>';
+        } else if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo') {
+            return '<span class="agenda-week-appointment-dot" style="background:#F59E0B;"></span>';
+        } else {
+            return '<span class="agenda-week-appointment-dot" style="background:#EF4444;"></span>';
+        }
+    }
+
     function buildDashboard() {
         const confirmed = state.appointments.filter(a => a.status === 'Confirmado').length;
         const pending = state.appointments.filter(a => a.status === 'Pendente').length;
@@ -406,7 +416,7 @@
                     </div>
                 </div>
             </div>
-            <div class="grid-3">
+            <div class="grid-4">
                 <div class="card"><div class="card-header"><h3>Atendimentos da semana</h3></div><div class="card-body"><div class="chart-container">${renderBarChart([18,22,26,21,28,12],['Seg','Ter','Qua','Qui','Sex','Sáb'],2)}</div></div></div>
                 <div class="card"><div class="card-header"><h3>Atividade recente</h3></div><div class="card-body"><div class="timeline">${state.activities.map(a => `<div class="timeline-item"><span class="timeline-time">${a.time}</span><div class="timeline-dot"></div><span class="timeline-text">${a.text}</span></div>`).join('')}</div></div></div>
                 <div class="card"><div class="card-header"><h3>Automações ativas</h3></div><div class="card-body">
@@ -420,6 +430,7 @@
                         <a class="btn btn-sm btn-outline js-nav" data-page="automacoes" style="margin-top:8px;width:100%;">Gerenciar</a>
                     </div>
                 </div></div>
+                <div class="card-placeholder">Espaço adaptável para a clínica</div>
             </div>`;
     }
 
@@ -490,6 +501,18 @@
             days.push({ dateStr, dayName, dd, appts });
         }
 
+        const fragment = document.createDocumentFragment();
+
+        // Legenda das cores
+        const legend = document.createElement('div');
+        legend.className = 'agenda-week-legend';
+        legend.innerHTML = `
+            <div class="agenda-week-legend-item"><span class="status-dot green"></span> Confirmado</div>
+            <div class="agenda-week-legend-item"><span class="status-dot amber"></span> Pendente</div>
+            <div class="agenda-week-legend-item"><span class="status-dot red"></span> Cancelado</div>
+        `;
+        fragment.appendChild(legend);
+
         const wrapper = document.createElement('div');
         wrapper.className = 'agenda-week-wrapper';
 
@@ -525,13 +548,13 @@
                     nameSpan.className = 'agenda-week-appointment-name';
                     nameSpan.textContent = a.patient;
 
-                    const badgeSpan = document.createElement('span');
-                    badgeSpan.className = 'agenda-week-appointment-badge';
-                    badgeSpan.innerHTML = statusBadge(a.status);
+                    // Apenas o dot colorido, sem texto
+                    const dotSpan = document.createElement('span');
+                    dotSpan.innerHTML = statusDotOnly(a.status);
 
                     apptDiv.appendChild(timeSpan);
                     apptDiv.appendChild(nameSpan);
-                    apptDiv.appendChild(badgeSpan);
+                    apptDiv.appendChild(dotSpan);
                     appointmentsDiv.appendChild(apptDiv);
                 });
             }
@@ -542,7 +565,9 @@
         });
 
         wrapper.appendChild(grid);
-        return wrapper;
+        fragment.appendChild(wrapper);
+
+        return fragment;
     }
 
     function buildAtendimentos() {
