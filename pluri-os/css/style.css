@@ -240,7 +240,7 @@ body{
     .main-content{margin-left:var(--sidebar-collapsed);}
     .grid-2{grid-template-columns:1fr 280px;}
     .topbar{padding:0 16px;}
-    .page-container{padding:0 16px 20px;}
+    .page-container{flex:1;padding:12px 28px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;}
     .clinic-badge{display:none;}
 }
 @media(max-width:767px){
