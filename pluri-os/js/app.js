@@ -46,9 +46,9 @@
         const todayStr = `${yyyy}-${mm}-${dd}`;
 
         state.patients = [
-            { id: 1, name: 'Maria Silva', phone: '(11) 98765-4321', email: 'maria@email.com', created: '10/01/2026', lastVisit: '22/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Prefere horário pela manhã.' },
+            { id: 1, name: 'Maria Silva', phone: '(11) 98765-4321', email: 'maria@email.com', created: '10/01/2026', lastVisit: '22/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Prefere contato pelo WhatsApp.' },
             { id: 2, name: 'João Santos', phone: '(11) 91234-5678', email: 'joao@email.com', created: '15/02/2026', lastVisit: '20/07/2026', nextAppt: '29/07/2026', status: 'Ativo', notes: '' },
-            { id: 3, name: 'Ana Oliveira', phone: '(21) 99876-5432', email: 'ana@email.com', created: '05/03/2026', lastVisit: '18/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Alergia a dipirona.' },
+            { id: 3, name: 'Ana Oliveira', phone: '(21) 99876-5432', email: 'ana@email.com', created: '05/03/2026', lastVisit: '18/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Prefere atendimento no período da manhã.' },
             { id: 4, name: 'Carlos Souza', phone: '(31) 98765-1234', email: 'carlos@email.com', created: '20/04/2026', lastVisit: '25/07/2026', nextAppt: '30/07/2026', status: 'Ativo', notes: '' },
             { id: 5, name: 'Fernanda Lima', phone: '(41) 99876-1111', email: 'fernanda@email.com', created: '12/05/2026', lastVisit: '15/07/2026', nextAppt: '28/07/2026', status: 'Inativo', notes: 'Retorno pendente.' },
             { id: 6, name: 'Mariana Costa', phone: '(51) 91234-9999', email: 'mariana@email.com', created: '01/06/2026', lastVisit: '-', nextAppt: '28/07/2026', status: 'Novo', notes: '' },
@@ -69,11 +69,11 @@
         ];
 
         state.conversations = [
-            { id: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', responsible: '-' },
-            { id: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', responsible: '-' },
-            { id: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', responsible: 'Recepção' },
-            { id: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', responsible: '-' },
-            { id: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', responsible: 'Recepção' },
+            { id: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', responsible: '-', phone: '(11) 98765-4321' },
+            { id: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', responsible: '-', phone: '(41) 99876-1111' },
+            { id: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', responsible: 'Recepção', phone: '(31) 98765-1234' },
+            { id: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', responsible: '-', phone: '' },
+            { id: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', responsible: 'Recepção', phone: '(91) 98765-6666' },
         ];
 
         state.activities = [
@@ -106,27 +106,23 @@
         }
     }
 
-    // ===== SIDEBAR / MOBILE =====
-    function toggleSidebar() {
-        getEl('sidebar')?.classList.toggle('open');
-        getEl('sidebarOverlay')?.classList.toggle('show');
+    // ===== GOOGLE CALENDAR STUB =====
+    function syncAppointmentWithGoogleCalendar(appointment) {
+        // Integração real será adicionada quando houver backend/API.
+        console.log('Google Calendar sync stub:', appointment);
     }
 
-    function closeSidebar() {
-        getEl('sidebar')?.classList.remove('open');
-        getEl('sidebarOverlay')?.classList.remove('show');
-    }
-
-    window.toggleSidebar = toggleSidebar;
-    window.closeSidebar = closeSidebar;
-
-    // ===== MODAL =====
-    function openModal(time = null) {
+    // ===== MODAL CONTROLS =====
+    function openModal(time = null, patientName = null, patientPhone = null) {
         getEl('modalOverlay')?.classList.add('show');
         const dateInput = getEl('apptDate');
         if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
         const timeInput = getEl('apptTime');
         if (timeInput) timeInput.value = time || '09:00';
+        const patientInput = getEl('apptPatient');
+        if (patientInput && patientName) patientInput.value = patientName;
+        const phoneInput = getEl('apptPhone');
+        if (phoneInput && patientPhone) phoneInput.value = patientPhone;
         refreshIcons();
     }
 
@@ -173,8 +169,9 @@
             });
         }
 
+        syncAppointmentWithGoogleCalendar(newAppt);
         closeModal();
-        showToast('Agendamento criado com sucesso!');
+        showToast('Agendamento criado com sucesso.');
         renderPage();
     }
 
@@ -248,7 +245,7 @@
         getEl('openModalBtn')?.addEventListener('click', () => openModal());
 
         getEl('googleCalendarBtn')?.addEventListener('click', () => {
-            showToast('Integração com Google Calendar em breve.');
+            showToast('Google Calendar pronto para integração.');
         });
 
         // Tabs da agenda
@@ -282,7 +279,7 @@
             });
         });
 
-        // Links genéricos de navegação
+        // Links de navegação
         document.querySelectorAll('.js-nav').forEach(el => {
             const page = el.dataset.page;
             if (page) el.addEventListener('click', (e) => {
@@ -299,7 +296,7 @@
             });
         });
 
-        // Pacientes - clique na linha
+        // Pacientes
         document.querySelectorAll('[data-patient-id]').forEach(el => {
             el.addEventListener('click', () => {
                 const id = parseInt(el.dataset.patientId, 10);
@@ -307,7 +304,7 @@
             });
         });
 
-        // Staff - clique na linha
+        // Staff
         document.querySelectorAll('[data-staff-id]').forEach(el => {
             el.addEventListener('click', () => {
                 const id = parseInt(el.dataset.staffId, 10);
@@ -358,24 +355,24 @@
         return `
             <div class="kpi-row">
                 <div class="kpi-card" data-link="atendimentos">
-                    <div class="kpi-value">${totalToday}</div>
+                    <div class="kpi-value">7</div>
                     <div class="kpi-label">Atendimentos hoje</div>
-                    <div class="kpi-sub">${confirmed} confirmados</div>
+                    <div class="kpi-sub">5 confirmados</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">18</div>
+                    <div class="kpi-label">Atendimentos automatizados</div>
+                    <div class="kpi-sub">Hoje</div>
+                </div>
+                <div class="kpi-card" data-link="agenda">
+                    <div class="kpi-value">2</div>
+                    <div class="kpi-label">Confirmações pendentes</div>
+                    <div class="kpi-sub amber">Precisam de atenção</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-value">${occupation}%</div>
                     <div class="kpi-label">Taxa de ocupação</div>
                     <div class="kpi-sub">+8% esta semana</div>
-                </div>
-                <div class="kpi-card" data-link="agenda">
-                    <div class="kpi-value">${pending}</div>
-                    <div class="kpi-label">Confirmações pendentes</div>
-                    <div class="kpi-sub amber">Precisam de atenção</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-value">12</div>
-                    <div class="kpi-label">Novos pacientes</div>
-                    <div class="kpi-sub">Nos últimos 7 dias</div>
                 </div>
             </div>
             <div class="grid-2">
@@ -414,7 +411,12 @@
                 <div class="card"><div class="card-header"><h3>Atividade recente</h3></div><div class="card-body"><div class="timeline">${state.activities.map(a => `<div class="timeline-item"><span class="timeline-time">${a.time}</span><div class="timeline-dot"></div><span class="timeline-text">${a.text}</span></div>`).join('')}</div></div></div>
                 <div class="card"><div class="card-header"><h3>Automações ativas</h3></div><div class="card-body">
                     <div style="display:flex;flex-direction:column;gap:8px;">
-                        ${[{name:'Confirmação de consultas',status:'Ativo'},{name:'Lembrete 24h antes',status:'Ativo'},{name:'Atendimento inicial',status:'Ativo'},{name:'Recuperação de faltas',status:'Pausado'}].map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="font-size:13px;">${a.name}</span>${statusBadge(a.status)}</div>`).join('')}
+                        ${[
+                            {name:'Confirmação de consultas',status:'Ativo',sent:'128 enviadas'},
+                            {name:'Lembrete 24h antes',status:'Ativo',sent:'256 enviados'},
+                            {name:'Atendimento inicial',status:'Ativo',sent:'342 realizados'},
+                            {name:'Recuperação de faltas',status:'Pausado',sent:'89 acompanhamentos'}
+                        ].map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="font-size:13px;">${a.name} <small style="color:var(--text-secondary);">${a.sent}</small></span>${statusBadge(a.status)}</div>`).join('')}
                         <a class="btn btn-sm btn-outline js-nav" data-page="automacoes" style="margin-top:8px;width:100%;">Gerenciar</a>
                     </div>
                 </div></div>
@@ -438,8 +440,11 @@
                     <button class="tab active" data-tab="today">Hoje</button>
                     <button class="tab" data-tab="week">Semana</button>
                 </div>
-                <div style="display:flex;gap:8px;">
-                    <button class="btn btn-outline btn-sm" id="googleCalendarBtn"><i data-lucide="calendar-plus" style="width:16px;height:16px;"></i> Conectar Google Calendar</button>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);">
+                        <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
+                        <span>Google Calendar · Preparado para integração</span>
+                    </div>
                     <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
                 </div>
             </div>
@@ -504,7 +509,7 @@
                 <div class="agenda-item" style="cursor:pointer;" data-conversation-id="${c.id}">
                     <div class="agenda-avatar">${getInitials(c.patient)}</div>
                     <div class="agenda-info">
-                        <div class="agenda-name">${c.patient} <span style="font-weight:400;font-size:11px;color:var(--text-secondary);">${c.channel}</span></div>
+                        <div class="agenda-name">${c.patient} <span style="font-weight:400;font-size:11px;color:var(--text-secondary);"><i data-lucide="message-circle" style="width:12px;height:12px;vertical-align:middle;"></i> ${c.channel}</span></div>
                         <div class="agenda-detail">${c.lastMsg}</div>
                     </div>
                     ${statusBadge(c.status)}
@@ -524,6 +529,7 @@
             <p style="font-size:13px;color:var(--text-secondary);">Horário: ${conv.time}</p>
             <div style="margin-top:16px;display:flex;gap:8px;">
                 <button class="btn btn-sm btn-outline js-nav" data-page="pacientes">Ver paciente</button>
+                <button class="btn btn-sm btn-outline" id="scheduleFromConversation">Agendar</button>
                 <button class="btn btn-sm btn-primary" id="resolveConversationBtn">Marcar como resolvido</button>
             </div>`;
         getEl('resolveConversationBtn')?.addEventListener('click', () => {
@@ -531,6 +537,14 @@
             closeSlidePanel();
             showToast('Atendimento marcado como resolvido.');
             renderPage();
+        });
+        getEl('scheduleFromConversation')?.addEventListener('click', () => {
+            closeSlidePanel();
+            navigateTo('agenda');
+            // Pequeno delay para garantir que a página da agenda seja renderizada antes de abrir o modal
+            setTimeout(() => {
+                openModal(null, conv.patient, conv.phone || '');
+            }, 100);
         });
         openSlidePanel();
     }
@@ -577,7 +591,7 @@
             p.email = email;
             p.notes = notes;
             closeSlidePanel();
-            showToast('Paciente atualizado com sucesso! (Google Sheets sincronizado)');
+            showToast('Paciente atualizado com sucesso!');
             renderPage();
         });
         openSlidePanel();
@@ -585,17 +599,17 @@
 
     function buildAutomacoes() {
         const autos = [
-            {name:'Atendimento inicial',desc:'Responde automaticamente novos contatos.',status:'Ativo',last:'Hoje, 10:31',count:342},
-            {name:'Confirmação de consulta',desc:'Solicita confirmação 48h antes.',status:'Ativo',last:'Hoje, 09:15',count:128},
-            {name:'Lembrete de consulta',desc:'Envia lembrete 24h antes.',status:'Ativo',last:'Ontem, 18:00',count:256},
-            {name:'Follow-up',desc:'Acompanha pacientes após atendimento.',status:'Pausado',last:'15/07/2026',count:89}
+            {name:'Atendimento inicial',desc:'Responde automaticamente novos contatos.',status:'Ativo',last:'Hoje, 10:31',result:'342 atendimentos realizados'},
+            {name:'Confirmação de consulta',desc:'Solicita confirmação 48h antes.',status:'Ativo',last:'Hoje, 09:15',result:'128 confirmações enviadas'},
+            {name:'Lembrete de consulta',desc:'Envia lembrete 24h antes.',status:'Ativo',last:'Ontem, 18:00',result:'256 lembretes enviados'},
+            {name:'Follow-up',desc:'Acompanha pacientes após atendimento.',status:'Pausado',last:'15/07/2026',result:'89 acompanhamentos realizados'}
         ];
         return `<div class="automation-grid">${autos.map(a => `
             <div class="automation-card">
                 <h4>${a.name}</h4><p>${a.desc}</p>
                 <div class="automation-meta">
                     ${statusBadge(a.status)}
-                    <span>Última: ${a.last} · ${a.count}x</span>
+                    <span>${a.result} · Última: ${a.last}</span>
                 </div>
             </div>`).join('')}</div>`;
     }
@@ -631,7 +645,11 @@
             </div></div>
             <div class="card"><div class="card-header"><h3>Integrações</h3></div><div class="card-body">
                 <div style="display:flex;flex-direction:column;gap:10px;">
-                    ${[{name:'WhatsApp',connected:true},{name:'Google Calendar',connected:false},{name:'E-mail',connected:false}].map(i => `<div style="display:flex;justify-content:space-between;align-items:center;"><span>${i.name}</span>${statusBadge(i.connected?'Conectado':'Não conectado')}</div>`).join('')}
+                    ${[
+                        {name:'WhatsApp',status:'Conectado'},
+                        {name:'Google Calendar',status:'Preparado para integração'},
+                        {name:'E-mail',status:'Não conectado'}
+                    ].map(i => `<div style="display:flex;justify-content:space-between;align-items:center;"><span>${i.name}</span>${statusBadge(i.status)}</div>`).join('')}
                 </div>
             </div></div>`;
     }
@@ -666,7 +684,7 @@
             member.phone = getEl('editStaffPhone')?.value?.trim() || member.phone;
             member.status = getEl('editStaffStatus')?.value || member.status;
             closeSlidePanel();
-            showToast('Membro da equipe atualizado! (Google Sheets sincronizado)');
+            showToast('Membro da equipe atualizado!');
             renderPage();
         });
         openSlidePanel();
@@ -677,20 +695,14 @@
         initMockData();
         loadTheme();
 
-        // Theme toggle
         getEl('themeToggle')?.addEventListener('click', toggleTheme);
 
-        // Sidebar navigation
         document.querySelectorAll('.sidebar-nav a').forEach(a => {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigateTo(a.dataset.page);
             });
         });
-
-        // Hamburger
-        getEl('hamburgerBtn')?.addEventListener('click', toggleSidebar);
-        getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
         // Modal
         getEl('modalClose')?.addEventListener('click', closeModal);
@@ -700,16 +712,11 @@
             if (e.target === e.currentTarget) closeModal();
         });
 
-        // Slide panel overlay
         getEl('slideOverlay')?.addEventListener('click', closeSlidePanel);
-
-        // Notifications
         getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
 
-        // Initial render
         renderPage();
 
-        // Global API
         window.pluri = {
             navigateTo,
             openConversation,
