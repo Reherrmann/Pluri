@@ -49,6 +49,10 @@
                 <p class="page-subtitle" id="pageSubtitle">Veja o que está acontecendo na clínica hoje.</p>
             </div>
             <div class="topbar-right">
+                <!-- Toggle tema claro/escuro -->
+                <button class="btn-icon" id="themeToggle" title="Alternar tema">
+                    <i data-lucide="sun"></i>
+                </button>
                 <button class="btn-icon" id="notifBtn"><i data-lucide="bell"></i><span class="badge-dot"></span></button>
                 <div class="clinic-badge"><span>Clínica Bem-Estar</span></div>
                 <div class="avatar-sm">R</div>
@@ -59,7 +63,7 @@
         </div>
     </main>
 
-    <!-- Modal -->
+    <!-- Modal: Novo Agendamento -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -86,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Slide Panel -->
+    <!-- Slide Panel (direita) -->
     <div class="slide-panel-overlay" id="slideOverlay"></div>
     <div class="slide-panel" id="slidePanel">
         <div class="slide-panel-content" id="slideContent"></div>
@@ -110,7 +114,7 @@
             }
         })();
 
-        // Garantir que o menu hamburguer funcione mesmo se o app.js falhar
+        // Garantir que o menu hamburguer funcione
         (function() {
             function toggleSidebar() {
                 const sidebar = document.getElementById('sidebar');
