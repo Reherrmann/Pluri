@@ -346,19 +346,20 @@
         .cta-subtitle { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 2.5rem; max-width: 460px; margin-left: auto; margin-right: auto; }
 
         /* FOOTER */
-        .footer { border-top: 1px solid var(--border-light); background: var(--white); }
-        .footer-inner {
-            max-width: var(--max-wide); margin: 0 auto; padding: 1.5rem 2rem;
-            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
-        }
-        .footer-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); font-size: 0.95rem; }
-        .footer-logo { width: 24px; height: 24px; }
-        .footer-links { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
-        .footer-links a { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; transition: color 0.15s; display: flex; align-items: center; gap: 0.35rem; }
-        .footer-links a:hover { color: var(--primary); }
-        .footer-links a i { width: 14px; height: 14px; }
-        .footer-bottom { width: 100%; text-align: center; font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.5rem; }
-
+        .footer {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background: var(--primary);
+}
+.footer-inner {
+    max-width: var(--max-wide); margin: 0 auto; padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    color: var(--white);
+}
+.footer-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: var(--white); }
+.footer-links { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.footer-links a { font-size: 0.8rem; color: rgba(255,255,255,0.8); font-weight: 500; transition: color 0.15s; display: flex; align-items: center; gap: 0.35rem; }
+.footer-links a:hover { color: var(--white); }
+.footer-bottom { width: 100%; text-align: center; font-size: 0.72rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; }
         /* ANIMATIONS */
         .fade-in { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
         .fade-in.visible { opacity: 1; transform: translateY(0); }
