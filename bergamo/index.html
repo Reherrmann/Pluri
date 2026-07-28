@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLURI OS</title>
+    <base href="/pluri-os/">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,450;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <svg class="logo-icon-svg" viewBox="0 0 28 28" fill="none">
+                <rect x="2" y="2" width="24" height="24" rx="6" fill="#002C47"/>
+                <path d="M8 10h12M8 15h12M8 20h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="logo-text">PLURI OS</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a data-page="dashboard" class="active"><i data-lucide="layout-dashboard"></i><span>Visão Geral</span></a>
+            <a data-page="agenda"><i data-lucide="calendar"></i><span>Agenda</span></a>
+            <a data-page="atendimentos"><i data-lucide="message-square"></i><span>Atendimentos</span></a>
+            <a data-page="pacientes"><i data-lucide="users"></i><span>Pacientes</span></a>
+            <a data-page="automacoes"><i data-lucide="zap"></i><span>Automações</span></a>
+            <a data-page="indicadores"><i data-lucide="bar-chart-3"></i><span>Indicadores</span></a>
+            <a data-page="configuracoes"><i data-lucide="settings"></i><span>Configurações</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="avatar-sm">R</div>
+                <div class="user-info">
+                    <div class="user-name">Recepção</div>
+                    <div class="user-role">Atendimento</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <button class="hamburger" id="hamburgerBtn">
+                <i data-lucide="menu" style="pointer-events:none;"></i>
+            </button>
+            <div class="topbar-left">
+                <h1 class="page-title" id="pageTitle">Bom dia, Recepção.</h1>
+                <p class="page-subtitle" id="pageSubtitle">Veja o que está acontecendo na clínica hoje.</p>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-icon" id="themeToggle" title="Alternar tema">
+                    <i data-lucide="sun"></i>
+                </button>
+                <button class="btn-icon" id="notifBtn"><i data-lucide="bell"></i><span class="badge-dot"></span></button>
+                <div class="clinic-badge"><span>Clínica Bem-Estar</span></div>
+                <div class="avatar-sm">R</div>
+            </div>
+        </header>
+        <div class="page-container" id="pageContainer">
+            <p style="padding:40px;text-align:center;color:#667085;">Carregando…</p>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Novo agendamento</h3>
+                <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>Paciente</label><input type="text" id="apptPatient" placeholder="Nome do paciente"></div>
+                <div class="form-group"><label>Telefone</label><input type="text" id="apptPhone" placeholder="(11) 9...."></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Profissional</label><select id="apptProfessional"><option>Dra. Ana</option><option>Dr. Carlos</option><option>Dra. Fernanda</option></select></div>
+                    <div class="form-group"><label>Serviço</label><select id="apptService"><option>Avaliação</option><option>Retorno</option><option>Procedimento</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Data</label><input type="date" id="apptDate"></div>
+                    <div class="form-group"><label>Horário</label><input type="time" id="apptTime"></div>
+                </div>
+                <div class="form-group"><label>Observações</label><textarea id="apptNotes" rows="2"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="modalCancel">Cancelar</button>
+                <button class="btn btn-primary" id="modalSave">Salvar agendamento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide Panel -->
+    <div class="slide-panel-overlay" id="slideOverlay"></div>
+    <div class="slide-panel" id="slidePanel">
+        <div class="slide-panel-content" id="slideContent"></div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Garantia absoluta de funcionamento do menu mobile
+        (function() {
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.toggle('open');
+                if (overlay) overlay.classList.toggle('show');
+            }
+            function closeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('show');
+            }
+            // Registrar listeners imediatamente após a definição
+            document.addEventListener('DOMContentLoaded', function() {
+                const hamburger = document.getElementById('hamburgerBtn');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
+                // Expor globalmente para qualquer outro uso
+                window.toggleSidebar = toggleSidebar;
+                window.closeSidebar = closeSidebar;
+            });
+            // Se o DOM já estiver pronto, executa imediatamente
+            if (document.readyState !== 'loading') {
+                const hamburger = document.getElementById('hamburgerBtn');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
+                window.toggleSidebar = toggleSidebar;
+                window.closeSidebar = closeSidebar;
+            }
+        })();
+
+        (function() {
+            function tryCreateIcons() {
+                if (window.lucide && typeof lucide.createIcons === 'function') {
+                    lucide.createIcons();
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryCreateIcons);
+            } else {
+                tryCreateIcons();
+            }
+        })();
+    </script>
+</body>
+</html>
