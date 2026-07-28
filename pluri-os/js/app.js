@@ -262,10 +262,9 @@
                 } else {
                     if (dayView) dayView.style.display = 'none';
                     if (weekView) {
-                        weekView.style.display = 'flex';
-                        weekView.style.flexWrap = 'wrap';
-                        weekView.style.gap = '16px';
-                        weekView.innerHTML = buildAgendaWeek();
+                        weekView.style.display = 'block';
+                        weekView.innerHTML = ''; // limpa antes de reconstruir
+                        weekView.appendChild(buildAgendaWeekElement());
                     }
                 }
                 refreshIcons();
@@ -436,16 +435,18 @@
         const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
 
         return `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div class="tabs" id="agendaTabs">
-                    <button class="tab active" data-tab="today">Hoje</button>
-                    <button class="tab" data-tab="week">Semana</button>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);">
+            <div class="agenda-toolbar">
+                <div class="agenda-toolbar-left">
+                    <div class="tabs" id="agendaTabs">
+                        <button class="tab active" data-tab="today">Hoje</button>
+                        <button class="tab" data-tab="week">Semana</button>
+                    </div>
+                    <div class="agenda-google-calendar" id="googleCalendarIndicator">
                         <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
                         <span>Google Calendar · Preparado para integração</span>
                     </div>
+                </div>
+                <div class="agenda-toolbar-right">
                     <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
                 </div>
             </div>
@@ -474,7 +475,7 @@
             <div id="agendaWeekView" style="display:none;"></div>`;
     }
 
-    function buildAgendaWeek() {
+    function buildAgendaWeekElement() {
         const today = new Date();
         const days = [];
         for (let i = 0; i < 7; i++) {
@@ -488,19 +489,60 @@
             const appts = state.appointments.filter(a => a.date === dateStr);
             days.push({ dateStr, dayName, dd, appts });
         }
-        return days.map(d => `
-            <div class="card" style="flex: 0 0 180px; min-width: 180px; margin-bottom: 8px;">
-                <div class="card-header" style="padding: 10px 14px;"><h3 style="font-size:14px;">${d.dayName} ${d.dd}</h3></div>
-                <div class="card-body no-padding" style="padding: 8px 0;">
-                    ${d.appts.length === 0 ? '<p style="padding:12px;color:var(--text-secondary);font-size:12px;">Nenhum agendamento</p>' :
-                    d.appts.map(a => `
-                        <div class="agenda-item" style="padding:8px 12px;">
-                            <span class="agenda-time" style="min-width:42px;font-size:12px;">${a.time}</span>
-                            <div class="agenda-info"><div class="agenda-name" style="font-size:12px;">${a.patient}</div></div>
-                            ${statusBadge(a.status)}
-                        </div>`).join('')}
-                </div>
-            </div>`).join('');
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'agenda-week-wrapper';
+
+        const grid = document.createElement('div');
+        grid.className = 'agenda-week-grid';
+
+        days.forEach(d => {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'agenda-week-day';
+
+            const header = document.createElement('div');
+            header.className = 'agenda-week-header';
+            header.textContent = `${d.dayName} ${d.dd}`;
+
+            const appointmentsDiv = document.createElement('div');
+            appointmentsDiv.className = 'agenda-week-appointments';
+
+            if (d.appts.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'agenda-week-empty';
+                empty.textContent = 'Nenhum agendamento';
+                appointmentsDiv.appendChild(empty);
+            } else {
+                d.appts.forEach(a => {
+                    const apptDiv = document.createElement('div');
+                    apptDiv.className = 'agenda-week-appointment';
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'agenda-week-appointment-time';
+                    timeSpan.textContent = a.time;
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'agenda-week-appointment-name';
+                    nameSpan.textContent = a.patient;
+
+                    const badgeSpan = document.createElement('span');
+                    badgeSpan.className = 'agenda-week-appointment-badge';
+                    badgeSpan.innerHTML = statusBadge(a.status);
+
+                    apptDiv.appendChild(timeSpan);
+                    apptDiv.appendChild(nameSpan);
+                    apptDiv.appendChild(badgeSpan);
+                    appointmentsDiv.appendChild(apptDiv);
+                });
+            }
+
+            dayDiv.appendChild(header);
+            dayDiv.appendChild(appointmentsDiv);
+            grid.appendChild(dayDiv);
+        });
+
+        wrapper.appendChild(grid);
+        return wrapper;
     }
 
     function buildAtendimentos() {
