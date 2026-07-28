@@ -439,4 +439,12 @@ body{
     .data-table td:nth-child(5){
         width:60px;
     }
+    input[type="tel"],
+    input[type="time"],
+    #apptPhone,
+    #apptTime {
+        padding: 8px 10px;
+        font-size: 13px;
+        max-width: 150px;
+    }
 }
