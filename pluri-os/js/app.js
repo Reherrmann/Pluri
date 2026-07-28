@@ -1,12 +1,10 @@
-// ========== PLURI OS V1 — APP ==========
+// pluri-os/js/app.js
 (function(){
     // ===== STATE =====
     const state = {
         currentPage: 'dashboard',
         appointments: [],
         patients: [],
-        professionals: ['Dra. Ana', 'Dr. Carlos', 'Dra. Fernanda'],
-        services: ['Avaliação', 'Retorno', 'Procedimento'],
         conversations: [],
         activities: [],
     };
@@ -344,7 +342,6 @@
             id:Date.now(),time,patient,professional,service,status:'Confirmado',date
         };
         state.appointments.unshift(newAppt);
-        // Add to patients if new
         if(!state.patients.find(p=>p.name.toLowerCase()===patient.toLowerCase())){
             state.patients.push({id:Date.now(),name:patient,phone:phone||'-',email:'-',created:new Date().toLocaleDateString('pt-BR'),lastVisit:'-',nextAppt:date.split('-').reverse().join('/'),status:'Novo',notes:notes||''});
         }
@@ -386,28 +383,21 @@
     // ===== INIT =====
     function init(){
         initMockData();
-        // Navigation
         document.querySelectorAll('.sidebar-nav a').forEach(a=>{
             a.addEventListener('click', function(e){
                 e.preventDefault();
                 navigateTo(this.dataset.page);
             });
         });
-        // Hamburger
         document.getElementById('hamburgerBtn').addEventListener('click', toggleSidebar);
         document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-        // Modal
         document.getElementById('modalClose').addEventListener('click', closeModal);
         document.getElementById('modalCancel').addEventListener('click', closeModal);
         document.getElementById('modalSave').addEventListener('click', saveAppointment);
         document.getElementById('modalOverlay').addEventListener('click', function(e){if(e.target===this)closeModal();});
-        // Slide panel
         document.getElementById('slideOverlay').addEventListener('click', closeSlidePanel);
-        // Notifications
         document.getElementById('notifBtn').addEventListener('click',()=>showToast('Nenhuma notificação nova.'));
-        // Render initial
         renderPage();
-        // Expose for inline onclick
         window.app = {navigateTo, openConversation, resolveConversation, openPatient, openModal, showToast};
     }
 
