@@ -22,7 +22,7 @@
     --shadow-sm:0 1px 3px rgba(0,0,0,0.06);
     --shadow-card:0 2px 6px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04);
     --radius:10px;--radius-sm:6px;--radius-lg:14px;
-    --sidebar-width:280px; /* largura fixa quando aberta */
+    --sidebar-width:280px;
     --topbar-height:64px;
     --transition:0.25s ease;
 }
@@ -58,13 +58,10 @@ body{
 }
 
 /* ===== SIDEBAR OVERLAY ===== */
-.sidebar-overlay{
-    display:none;position:fixed;inset:0;
-    background:rgba(0,0,0,0.3);z-index:99;
-}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:99;}
 .sidebar-overlay.show{display:block;}
 
-/* ===== SIDEBAR (sempre escondida, estilo mobile) ===== */
+/* ===== SIDEBAR ===== */
 .sidebar{
     position:fixed;top:0;left:0;
     width:var(--sidebar-width);
@@ -103,8 +100,8 @@ body{
 .user-name{font-size:13px;font-weight:600;color:var(--primary);line-height:1.2;}
 .user-role{font-size:11px;color:var(--text-secondary);line-height:1.2;}
 
-/* ===== MAIN CONTENT (sempre ocupa 100%) ===== */
-.main-content{flex:1;margin-left:0;display:flex;flex-direction:column;min-height:100vh;transition:none;}
+/* ===== MAIN CONTENT ===== */
+.main-content{flex:1;margin-left:0;display:flex;flex-direction:column;min-height:100vh;}
 
 /* ===== TOPBAR ===== */
 .topbar{height:var(--topbar-height);display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex-shrink:0;gap:16px;border-bottom:1px solid var(--border);background:var(--topbar-bg);}
@@ -122,8 +119,7 @@ body{
 .page-container{flex:1;padding:20px 28px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;}
 
 /* ===== CARDS ===== */
-.card{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);overflow:hidden;transition:box-shadow var(--transition);}
-.card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.card{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);overflow:hidden;}
 .card-header{padding:16px 20px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;background:var(--hover-bg);}
 .card-header h3{font-size:15px;font-weight:600;color:var(--primary);}
 .card-body{padding:20px;}
@@ -137,10 +133,7 @@ body{
     position:relative;overflow:hidden;
     transition:all var(--transition);cursor:pointer;
 }
-.kpi-card::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:4px;
-    background:var(--primary);
-}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--primary);}
 .kpi-card:nth-child(3)::before{background:var(--accent);}
 .kpi-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08);transform:translateY(-1px);}
 .kpi-value{font-size:30px;font-weight:700;color:var(--primary);letter-spacing:-0.02em;line-height:1;}
@@ -152,7 +145,7 @@ body{
 .grid-2{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start;}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:start;}
 
-/* ===== AGENDA LIST ===== */
+/* ===== AGENDA LIST (Hoje) ===== */
 .agenda-list{list-style:none;}
 .agenda-item{
     display:flex;align-items:center;gap:12px;padding:14px 20px;
@@ -231,6 +224,104 @@ body{
 .tab{padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-secondary);transition:all var(--transition);}
 .tab.active{background:var(--card-bg);color:var(--primary);box-shadow:var(--shadow-sm);}
 
+/* ===== AGENDA TOOLBAR ===== */
+.agenda-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+    gap:12px;
+    flex-wrap:wrap;
+}
+.agenda-toolbar-left{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+.agenda-toolbar-right{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.agenda-google-calendar{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--green);
+    white-space:nowrap;
+}
+
+/* ===== AGENDA WEEK GRID ===== */
+.agenda-week-wrapper{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+.agenda-week-grid{
+    display:grid;
+    grid-template-columns:repeat(7, minmax(0, 1fr));
+    gap:2px;
+    min-width:700px; /* garante scroll em telas menores */
+}
+.agenda-week-day{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    display:flex;
+    flex-direction:column;
+    min-height:200px;
+}
+.agenda-week-header{
+    padding:8px 10px;
+    border-bottom:1px solid var(--border-light);
+    background:var(--hover-bg);
+    font-size:13px;
+    font-weight:600;
+    color:var(--primary);
+    text-align:center;
+    white-space:nowrap;
+}
+.agenda-week-appointments{
+    flex:1;
+    padding:4px 6px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    overflow-y:auto;
+}
+.agenda-week-appointment{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:4px 6px;
+    background:var(--hover-bg);
+    border-radius:4px;
+    font-size:11px;
+    line-height:1.4;
+}
+.agenda-week-appointment-time{
+    font-weight:700;
+    color:var(--primary);
+}
+.agenda-week-appointment-name{
+    font-weight:500;
+    color:var(--text);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.agenda-week-appointment-badge{
+    align-self:flex-start;
+}
+.agenda-week-empty{
+    color:var(--text-secondary);
+    font-size:11px;
+    text-align:center;
+    padding:20px 8px;
+}
+
 /* ===== CHARTS ===== */
 .chart-container{width:100%;height:200px;display:flex;align-items:flex-end;gap:12px;padding:0 4px;}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
@@ -268,7 +359,6 @@ body{
 .search-bar input:focus{border-color:var(--primary);}
 
 /* ===== RESPONSIVE ===== */
-/* Ajustes apenas para telas menores, sem alterar o comportamento da sidebar (já padrão mobile) */
 @media(max-width:1200px){
     .grid-2{grid-template-columns:1fr 320px;}
     .grid-3{grid-template-columns:1fr 1fr;}
@@ -279,6 +369,8 @@ body{
     .topbar{padding:0 16px;}
     .page-container{padding:16px 16px 20px;}
     .clinic-badge{display:none;}
+    .agenda-toolbar{flex-direction:column;align-items:flex-start;}
+    .agenda-toolbar-right{align-self:flex-end;}
 }
 @media(max-width:767px){
     .grid-2,.grid-3{grid-template-columns:1fr;}
@@ -287,4 +379,5 @@ body{
     .topbar{padding:0 12px;height:auto;padding-top:12px;padding-bottom:8px;flex-wrap:wrap;}
     .page-title{font-size:18px;}
     .slide-panel{width:100vw;}
+    .agenda-google-calendar{font-size:10px;}
 }
