@@ -67,9 +67,9 @@
         state.conversations = [
             { id: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', responsible: '-' },
             { id: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', responsible: '-' },
-            { id: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', responsible: 'Paula' },
+            { id: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', responsible: 'Recepção' },
             { id: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', responsible: '-' },
-            { id: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', responsible: 'Paula' },
+            { id: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', responsible: 'Recepção' },
         ];
 
         state.activities = [
@@ -92,6 +92,10 @@
         getEl('sidebarOverlay')?.classList.remove('show');
     }
 
+    // Expor funções globais (também garantidas via script inline no HTML, mas redundância não prejudica)
+    window.toggleSidebar = toggleSidebar;
+    window.closeSidebar = closeSidebar;
+
     // ===== MODAL CONTROLS =====
     function openModal() {
         getEl('modalOverlay')?.classList.add('show');
@@ -100,6 +104,12 @@
         const timeInput = getEl('apptTime');
         if (timeInput) timeInput.value = '09:00';
         refreshIcons();
+    }
+
+    function openModalWithTime(time) {
+        openModal();
+        const timeInput = getEl('apptTime');
+        if (timeInput) timeInput.value = time;
     }
 
     function closeModal() {
@@ -203,7 +213,7 @@
 
     function updateTitleAndSubtitle(title, subtitle) {
         const titles = {
-            dashboard: ['Bom dia, Paula.', 'Veja o que está acontecendo na clínica hoje.'],
+            dashboard: ['Bom dia, Recepção.', 'Veja o que está acontecendo na clínica hoje.'],
             agenda: ['Agenda', 'Gerencie os horários da clínica.'],
             atendimentos: ['Atendimentos', 'Central de conversas com pacientes.'],
             pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
@@ -219,6 +229,34 @@
     function attachPageEvents() {
         // Agenda: botão de novo agendamento
         getEl('openModalBtn')?.addEventListener('click', openModal);
+
+        // Google Calendar simulado
+        getEl('googleCalendarBtn')?.addEventListener('click', () => {
+            showToast('Integração com Google Calendar em breve.');
+        });
+
+        // Tabs da agenda (Hoje / Semana)
+        document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const tabName = tab.dataset.tab;
+                const dayView = getEl('agendaDayView');
+                const weekView = getEl('agendaWeekView');
+                if (tabName === 'today') {
+                    if (dayView) dayView.style.display = 'block';
+                    if (weekView) weekView.style.display = 'none';
+                } else {
+                    if (dayView) dayView.style.display = 'none';
+                    if (weekView) {
+                        weekView.style.display = 'flex';
+                        weekView.style.gap = '14px';
+                        weekView.innerHTML = buildAgendaWeek();
+                    }
+                }
+                refreshIcons();
+            });
+        });
 
         // Dashboard: links internos
         document.querySelectorAll('.js-nav').forEach(el => {
@@ -257,7 +295,7 @@
         }
     }
 
-    // ===== BUILDERS (retornam string HTML) =====
+    // ===== BUILDERS =====
     function renderBarChart(values, labels, highlightIdx = -1) {
         const max = Math.max(...values, 1);
         return values.map((v, i) => {
@@ -337,23 +375,79 @@
 
     function buildAgenda() {
         const todayStr = new Date().toISOString().split('T')[0];
+        const allSlots = [];
+        for (let h = 8; h < 18; h++) {
+            for (let m = 0; m < 60; m += 30) {
+                const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                allSlots.push(time);
+            }
+        }
+        const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
+        const occupiedTimes = new Set(appointmentsToday.map(a => a.time));
+
         return `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div class="tabs">
-                    <button class="tab active">Hoje</button>
-                    <button class="tab">Semana</button>
+                <div class="tabs" id="agendaTabs">
+                    <button class="tab active" data-tab="today">Hoje</button>
+                    <button class="tab" data-tab="week">Semana</button>
                 </div>
-                <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-outline btn-sm" id="googleCalendarBtn"><i data-lucide="calendar-plus" style="width:16px;height:16px;"></i> Conectar Google Calendar</button>
+                    <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
+                </div>
             </div>
-            <div class="card"><div class="card-body no-padding">
-                <ul class="agenda-list">${state.appointments.filter(a => a.date === todayStr).map(a => `
-                    <li class="agenda-item">
-                        <span class="agenda-time">${a.time}</span>
-                        <div class="agenda-avatar">${getInitials(a.patient)}</div>
-                        <div class="agenda-info"><div class="agenda-name">${a.patient}</div><div class="agenda-detail">${a.service} · ${a.professional}</div></div>
-                        ${statusBadge(a.status)}
-                    </li>`).join('')}</ul>
-            </div></div>`;
+            <div id="agendaDayView" class="card"><div class="card-body no-padding">
+                <ul class="agenda-list">${allSlots.map(time => {
+                    const appt = appointmentsToday.find(a => a.time === time);
+                    if (appt) {
+                        return `
+                            <li class="agenda-item">
+                                <span class="agenda-time">${time}</span>
+                                <div class="agenda-avatar">${getInitials(appt.patient)}</div>
+                                <div class="agenda-info"><div class="agenda-name">${appt.patient}</div><div class="agenda-detail">${appt.service} · ${appt.professional}</div></div>
+                                ${statusBadge(appt.status)}
+                            </li>`;
+                    } else {
+                        return `
+                            <li class="agenda-item free-slot">
+                                <span class="agenda-time">${time}</span>
+                                <div class="agenda-avatar" style="background:#F0F4F8;color:var(--text-secondary);">—</div>
+                                <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
+                                <button class="btn btn-sm btn-outline" onclick="window.pluri.openModalWithTime('${time}')">Agendar</button>
+                            </li>`;
+                    }
+                }).join('')}</ul>
+            </div></div>
+            <div id="agendaWeekView" style="display:none;"></div>`;
+    }
+
+    function buildAgendaWeek() {
+        const today = new Date();
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() + i);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth()+1).padStart(2,'0');
+            const dd = String(d.getDate()).padStart(2,'0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+            const dayName = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()];
+            const appts = state.appointments.filter(a => a.date === dateStr);
+            days.push({ dateStr, dayName, dd, appts });
+        }
+        return days.map(d => `
+            <div class="card" style="flex:1;min-width:140px;">
+                <div class="card-header"><h3>${d.dayName} ${d.dd}</h3></div>
+                <div class="card-body no-padding">
+                    ${d.appts.length === 0 ? '<p style="padding:12px;color:var(--text-secondary);font-size:13px;">Nenhum agendamento</p>' :
+                    d.appts.map(a => `
+                        <div class="agenda-item" style="padding:10px 12px;">
+                            <span class="agenda-time">${a.time}</span>
+                            <div class="agenda-info"><div class="agenda-name">${a.patient}</div></div>
+                            ${statusBadge(a.status)}
+                        </div>`).join('')}
+                </div>
+            </div>`).join('');
     }
 
     function buildAtendimentos() {
@@ -467,14 +561,14 @@
             </div></div>
             <div class="card"><div class="card-header"><h3>Equipe</h3></div><div class="card-body no-padding">
                 <table class="data-table"><thead><tr><th>Nome</th><th>Função</th><th>Status</th></tr></thead>
-                    <tbody>${['Paula Santos|Gestora|Ativo','Dra. Ana|Dentista|Ativo','Dr. Carlos|Dentista|Ativo','Dra. Fernanda|Ortodontista|Ativo'].map(u => {
+                    <tbody>${['Recepção|Atendimento|Ativo','Dra. Ana|Dentista|Ativo','Dr. Carlos|Dentista|Ativo','Dra. Fernanda|Ortodontista|Ativo'].map(u => {
                         const [n,f,s] = u.split('|');
                         return `<tr><td>${n}</td><td>${f}</td><td>${statusBadge(s)}</td></tr>`;
                     }).join('')}</tbody></table>
             </div></div>
             <div class="card"><div class="card-header"><h3>Integrações</h3></div><div class="card-body">
                 <div style="display:flex;flex-direction:column;gap:10px;">
-                    ${[{name:'WhatsApp',connected:true},{name:'Google Calendar',connected:true},{name:'E-mail',connected:false}].map(i => `<div style="display:flex;justify-content:space-between;align-items:center;"><span>${i.name}</span>${statusBadge(i.connected?'Conectado':'Não conectado')}</div>`).join('')}
+                    ${[{name:'WhatsApp',connected:true},{name:'Google Calendar',connected:false},{name:'E-mail',connected:false}].map(i => `<div style="display:flex;justify-content:space-between;align-items:center;"><span>${i.name}</span>${statusBadge(i.connected?'Conectado':'Não conectado')}</div>`).join('')}
                 </div>
             </div></div>`;
     }
@@ -495,10 +589,6 @@
         getEl('hamburgerBtn')?.addEventListener('click', toggleSidebar);
         getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
-         window.toggleSidebar = toggleSidebar;
-    window.closeSidebar = closeSidebar;
-
-        
         // Modal
         getEl('modalClose')?.addEventListener('click', closeModal);
         getEl('modalCancel')?.addEventListener('click', closeModal);
@@ -517,7 +607,14 @@
         renderPage();
 
         // API global
-        window.pluri = { navigateTo, openConversation, openPatient, openModal, showToast };
+        window.pluri = {
+            navigateTo,
+            openConversation,
+            openPatient,
+            openModal,
+            openModalWithTime,
+            showToast
+        };
     }
 
     // Arranque seguro
