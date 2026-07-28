@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
             <svg class="logo-icon-svg" viewBox="0 0 28 28" fill="none">
@@ -41,7 +41,7 @@
 
     <main class="main-content">
         <header class="topbar">
-            <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+            <button class="hamburger" id="hamburgerBtn">
                 <i data-lucide="menu" style="pointer-events:none;"></i>
             </button>
             <div class="topbar-left">
@@ -49,7 +49,6 @@
                 <p class="page-subtitle" id="pageSubtitle">Veja o que está acontecendo na clínica hoje.</p>
             </div>
             <div class="topbar-right">
-                <!-- Toggle tema claro/escuro -->
                 <button class="btn-icon" id="themeToggle" title="Alternar tema">
                     <i data-lucide="sun"></i>
                 </button>
@@ -63,7 +62,7 @@
         </div>
     </main>
 
-    <!-- Modal: Novo Agendamento -->
+    <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -90,7 +89,7 @@
         </div>
     </div>
 
-    <!-- Slide Panel (direita) -->
+    <!-- Slide Panel -->
     <div class="slide-panel-overlay" id="slideOverlay"></div>
     <div class="slide-panel" id="slidePanel">
         <div class="slide-panel-content" id="slideContent"></div>
@@ -101,20 +100,7 @@
 
     <script src="js/app.js"></script>
     <script>
-        (function() {
-            function tryCreateIcons() {
-                if (window.lucide && typeof lucide.createIcons === 'function') {
-                    lucide.createIcons();
-                }
-            }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', tryCreateIcons);
-            } else {
-                tryCreateIcons();
-            }
-        })();
-
-        // Garantir que o menu hamburguer funcione
+        // Garantia absoluta de funcionamento do menu mobile
         (function() {
             function toggleSidebar() {
                 const sidebar = document.getElementById('sidebar');
@@ -128,8 +114,38 @@
                 if (sidebar) sidebar.classList.remove('open');
                 if (overlay) overlay.classList.remove('show');
             }
-            window.toggleSidebar = toggleSidebar;
-            window.closeSidebar = closeSidebar;
+            // Registrar listeners imediatamente após a definição
+            document.addEventListener('DOMContentLoaded', function() {
+                const hamburger = document.getElementById('hamburgerBtn');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
+                // Expor globalmente para qualquer outro uso
+                window.toggleSidebar = toggleSidebar;
+                window.closeSidebar = closeSidebar;
+            });
+            // Se o DOM já estiver pronto, executa imediatamente
+            if (document.readyState !== 'loading') {
+                const hamburger = document.getElementById('hamburgerBtn');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
+                window.toggleSidebar = toggleSidebar;
+                window.closeSidebar = closeSidebar;
+            }
+        })();
+
+        (function() {
+            function tryCreateIcons() {
+                if (window.lucide && typeof lucide.createIcons === 'function') {
+                    lucide.createIcons();
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryCreateIcons);
+            } else {
+                tryCreateIcons();
+            }
         })();
     </script>
 </body>
