@@ -142,8 +142,9 @@ body{
 .kpi-sub.amber{color:var(--yellow-text);}
 
 /* ===== GRID LAYOUTS ===== */
-.grid-2{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:start;}
+.grid-2{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:stretch;} /* stretch para igualar alturas */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:start;}
 
 /* ===== AGENDA LIST (Hoje) ===== */
 .agenda-list{list-style:none;}
@@ -259,11 +260,24 @@ body{
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
 }
+.agenda-week-legend{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    padding:8px 0;
+    font-size:11px;
+    color:var(--text-secondary);
+    margin-bottom:8px;
+}
+.agenda-week-legend-item{
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
 .agenda-week-grid{
     display:grid;
     grid-template-columns:repeat(7, minmax(0, 1fr));
     gap:2px;
-    min-width:700px; /* garante scroll em telas menores */
 }
 .agenda-week-day{
     background:var(--card-bg);
@@ -300,6 +314,7 @@ body{
     border-radius:4px;
     font-size:11px;
     line-height:1.4;
+    position:relative;
 }
 .agenda-week-appointment-time{
     font-weight:700;
@@ -311,15 +326,35 @@ body{
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
+    padding-right:16px; /* espaço para o dot */
 }
-.agenda-week-appointment-badge{
-    align-self:flex-start;
+.agenda-week-appointment-dot{
+    position:absolute;
+    top:4px;
+    right:4px;
+    width:8px;
+    height:8px;
+    border-radius:50%;
 }
 .agenda-week-empty{
     color:var(--text-secondary);
     font-size:11px;
     text-align:center;
     padding:20px 8px;
+}
+
+/* ===== PLACEHOLDER CARD (vazio) ===== */
+.card-placeholder{
+    background:var(--card-bg);
+    border:2px dashed var(--border);
+    border-radius:var(--radius-lg);
+    min-height:150px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-secondary);
+    font-size:13px;
+    opacity:0.7;
 }
 
 /* ===== CHARTS ===== */
@@ -361,7 +396,8 @@ body{
 /* ===== RESPONSIVE ===== */
 @media(max-width:1200px){
     .grid-2{grid-template-columns:1fr 320px;}
-    .grid-3{grid-template-columns:1fr 1fr;}
+    .grid-3{grid-template-columns:repeat(2,1fr);}
+    .grid-4{grid-template-columns:repeat(2,1fr);}
     .kpi-row{grid-template-columns:repeat(2,1fr);}
     .automation-grid{grid-template-columns:1fr;}
 }
@@ -373,11 +409,19 @@ body{
     .agenda-toolbar-right{align-self:flex-end;}
 }
 @media(max-width:767px){
-    .grid-2,.grid-3{grid-template-columns:1fr;}
+    .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
     .kpi-row{grid-template-columns:1fr 1fr;}
     .page-container{padding:14px 12px 16px;gap:14px;}
     .topbar{padding:0 12px;height:auto;padding-top:12px;padding-bottom:8px;flex-wrap:wrap;}
     .page-title{font-size:18px;}
     .slide-panel{width:100vw;}
     .agenda-google-calendar{font-size:10px;}
+
+    /* Semana: empilhar verticalmente no mobile */
+    .agenda-week-grid{
+        grid-template-columns:1fr;
+    }
+    .agenda-week-day{
+        min-height:auto;
+    }
 }
