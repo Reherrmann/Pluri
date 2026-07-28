@@ -10,7 +10,9 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- Overlay para fechar o menu mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
             <svg class="logo-icon-svg" viewBox="0 0 28 28" fill="none">
@@ -41,7 +43,10 @@
 
     <main class="main-content">
         <header class="topbar">
-            <button class="hamburger" id="hamburgerBtn"><i data-lucide="menu"></i></button>
+            <!-- Botão hamburguer com onclick inline e ícone sem eventos de clique -->
+            <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+                <i data-lucide="menu" style="pointer-events:none;"></i>
+            </button>
             <div class="topbar-left">
                 <h1 class="page-title" id="pageTitle">Bom dia, Paula.</h1>
                 <p class="page-subtitle" id="pageSubtitle">Veja o que está acontecendo na clínica hoje.</p>
