@@ -263,7 +263,8 @@
                     if (dayView) dayView.style.display = 'none';
                     if (weekView) {
                         weekView.style.display = 'flex';
-                        weekView.style.gap = '14px';
+                        weekView.style.flexWrap = 'wrap';
+                        weekView.style.gap = '16px';
                         weekView.innerHTML = buildAgendaWeek();
                     }
                 }
@@ -488,14 +489,14 @@
             days.push({ dateStr, dayName, dd, appts });
         }
         return days.map(d => `
-            <div class="card" style="flex:1;min-width:140px;">
-                <div class="card-header"><h3>${d.dayName} ${d.dd}</h3></div>
-                <div class="card-body no-padding">
-                    ${d.appts.length === 0 ? '<p style="padding:12px;color:var(--text-secondary);font-size:13px;">Nenhum agendamento</p>' :
+            <div class="card" style="flex: 0 0 180px; min-width: 180px; margin-bottom: 8px;">
+                <div class="card-header" style="padding: 10px 14px;"><h3 style="font-size:14px;">${d.dayName} ${d.dd}</h3></div>
+                <div class="card-body no-padding" style="padding: 8px 0;">
+                    ${d.appts.length === 0 ? '<p style="padding:12px;color:var(--text-secondary);font-size:12px;">Nenhum agendamento</p>' :
                     d.appts.map(a => `
-                        <div class="agenda-item" style="padding:10px 12px;">
-                            <span class="agenda-time">${a.time}</span>
-                            <div class="agenda-info"><div class="agenda-name">${a.patient}</div></div>
+                        <div class="agenda-item" style="padding:8px 12px;">
+                            <span class="agenda-time" style="min-width:42px;font-size:12px;">${a.time}</span>
+                            <div class="agenda-info"><div class="agenda-name" style="font-size:12px;">${a.patient}</div></div>
                             ${statusBadge(a.status)}
                         </div>`).join('')}
                 </div>
@@ -541,7 +542,6 @@
         getEl('scheduleFromConversation')?.addEventListener('click', () => {
             closeSlidePanel();
             navigateTo('agenda');
-            // Pequeno delay para garantir que a página da agenda seja renderizada antes de abrir o modal
             setTimeout(() => {
                 openModal(null, conv.patient, conv.phone || '');
             }, 100);
