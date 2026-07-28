@@ -1,230 +1,96 @@
-/* ===== RESET & BASE ===== */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-    --primary:#002C47;
-    --accent:#FFBE46;
-    --bg:#F6F8FB;
-    --white:#FFFFFF;
-    --text:#101828;
-    --text-secondary:#667085;
-    --border:#E5E7EB;
-    --border-light:#F2F4F7;
-    --green:#027A48;
-    --green-bg:#ECFDF3;
-    --yellow-bg:#FFFAEB;
-    --yellow-text:#B54708;
-    --red:#B91C1C;
-    --red-bg:#FEF3F2;
-    --shadow-sm:0 1px 3px rgba(0,0,0,0.04);
-    --shadow-card:0 1px 4px rgba(0,0,0,0.04),0 0 0 1px rgba(0,0,0,0.02);
-    --radius:10px;--radius-sm:6px;--radius-lg:14px;
-    --sidebar-width:232px;--sidebar-collapsed:64px;--topbar-height:64px;
-    --transition:0.2s ease;
-}
-body{
-    font-family:'Inter',system-ui,-apple-system,sans-serif;
-    background:var(--bg);color:var(--text);
-    display:flex;min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-    letter-spacing:-0.01em;line-height:1.5;
-}
+<!-- pluri-os/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLURI OS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,450;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Overlay mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-/* ===== SIDEBAR ===== */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:99;}
-.sidebar{
-    width:var(--sidebar-width);min-width:var(--sidebar-width);
-    height:100vh;background:var(--white);
-    border-right:1px solid var(--border);
-    display:flex;flex-direction:column;
-    position:fixed;left:0;top:0;z-index:100;
-    transition:all var(--transition);overflow:hidden;
-}
-.sidebar-logo{display:flex;align-items:center;gap:10px;padding:20px 18px 16px;flex-shrink:0;}
-.logo-icon-svg{width:30px;height:30px;flex-shrink:0;}
-.logo-text{font-weight:700;font-size:17px;color:var(--primary);white-space:nowrap;}
-.sidebar-nav{flex:1;padding:6px 10px;display:flex;flex-direction:column;gap:2px;}
-.sidebar-nav a{
-    display:flex;align-items:center;gap:10px;padding:9px 10px;
-    border-radius:var(--radius-sm);text-decoration:none;
-    color:var(--text-secondary);font-size:14px;font-weight:450;
-    transition:all var(--transition);white-space:nowrap;cursor:pointer;
-}
-.sidebar-nav a svg{width:18px;height:18px;flex-shrink:0;stroke-width:1.8;}
-.sidebar-nav a:hover{background:#F5F6F8;color:var(--primary);}
-.sidebar-nav a.active{background:#F0F3F7;color:var(--primary);font-weight:600;}
-.sidebar-nav a.active svg{stroke-width:2.2;}
-.sidebar-bottom{padding:8px 10px 14px;border-top:1px solid var(--border);flex-shrink:0;}
-.sidebar-user{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition);}
-.sidebar-user:hover{background:#F5F6F8;}
-.avatar-sm{width:32px;height:32px;border-radius:50%;background:#E8EDF3;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--primary);flex-shrink:0;}
-.user-info{white-space:nowrap;overflow:hidden;}
-.user-name{font-size:13px;font-weight:600;color:var(--primary);line-height:1.2;}
-.user-role{font-size:11px;color:var(--text-secondary);line-height:1.2;}
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <svg class="logo-icon-svg" viewBox="0 0 28 28" fill="none">
+                <rect x="2" y="2" width="24" height="24" rx="6" fill="#002C47"/>
+                <path d="M8 10h12M8 15h12M8 20h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="logo-text">PLURI OS</span>
+        </div>
+        <nav class="sidebar-nav" id="sidebarNav">
+            <a data-page="dashboard" class="active"><i data-lucide="layout-dashboard"></i><span>Visão Geral</span></a>
+            <a data-page="agenda"><i data-lucide="calendar"></i><span>Agenda</span></a>
+            <a data-page="atendimentos"><i data-lucide="message-square"></i><span>Atendimentos</span></a>
+            <a data-page="pacientes"><i data-lucide="users"></i><span>Pacientes</span></a>
+            <a data-page="automacoes"><i data-lucide="zap"></i><span>Automações</span></a>
+            <a data-page="indicadores"><i data-lucide="bar-chart-3"></i><span>Indicadores</span></a>
+            <a data-page="configuracoes"><i data-lucide="settings"></i><span>Configurações</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user" id="sidebarUser">
+                <div class="avatar-sm">PS</div>
+                <div class="user-info">
+                    <div class="user-name">Paula Santos</div>
+                    <div class="user-role">Gestora</div>
+                </div>
+            </div>
+        </div>
+    </aside>
 
-/* ===== MAIN ===== */
-.main-content{flex:1;margin-left:var(--sidebar-width);display:flex;flex-direction:column;min-height:100vh;transition:margin-left var(--transition);}
-.topbar{height:var(--topbar-height);display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex-shrink:0;gap:16px;}
-.hamburger{display:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--white);align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);flex-shrink:0;}
-.topbar-left{display:flex;flex-direction:column;gap:2px;}
-.page-title{font-size:22px;font-weight:700;color:var(--primary);letter-spacing:-0.02em;}
-.page-subtitle{font-size:13.5px;color:var(--text-secondary);font-weight:450;}
-.topbar-right{display:flex;align-items:center;gap:12px;}
-.btn-icon{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--text-secondary);transition:all var(--transition);}
-.btn-icon:hover{background:#F9FAFB;border-color:#CBD0D8;color:var(--primary);}
-.badge-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:2px solid var(--white);}
-.clinic-badge{font-size:13px;font-weight:500;color:var(--primary);white-space:nowrap;}
+    <!-- Main -->
+    <main class="main-content" id="mainContent">
+        <header class="topbar">
+            <button class="hamburger" id="hamburgerBtn"><i data-lucide="menu"></i></button>
+            <div class="topbar-left">
+                <h1 class="page-title" id="pageTitle">Bom dia, Paula.</h1>
+                <p class="page-subtitle" id="pageSubtitle">Veja o que está acontecendo na clínica hoje.</p>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-icon" id="notifBtn"><i data-lucide="bell"></i><span class="badge-dot"></span></button>
+                <div class="clinic-badge"><span>Clínica Bem-Estar</span></div>
+                <div class="avatar-sm">PS</div>
+            </div>
+        </header>
+        <div class="page-container" id="pageContainer"></div>
+    </main>
 
-/* ===== PAGE CONTAINER ===== */
-.page-container{flex:1;padding:0 28px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;}
+    <!-- Modal: Novo Agendamento -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header"><h3>Novo agendamento</h3><button class="modal-close" id="modalClose"><i data-lucide="x"></i></button></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Paciente</label><input type="text" id="apptPatient" placeholder="Nome do paciente"></div>
+                <div class="form-group"><label>Telefone</label><input type="text" id="apptPhone" placeholder="(11) 9...."></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Profissional</label><select id="apptProfessional"><option>Dra. Ana</option><option>Dr. Carlos</option><option>Dra. Fernanda</option></select></div>
+                    <div class="form-group"><label>Serviço</label><select id="apptService"><option>Avaliação</option><option>Retorno</option><option>Procedimento</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Data</label><input type="date" id="apptDate"></div>
+                    <div class="form-group"><label>Horário</label><input type="time" id="apptTime"></div>
+                </div>
+                <div class="form-group"><label>Observações</label><textarea id="apptNotes" rows="2"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="modalCancel">Cancelar</button>
+                <button class="btn btn-primary" id="modalSave">Salvar agendamento</button>
+            </div>
+        </div>
+    </div>
 
-/* ===== CARDS ===== */
-.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);overflow:hidden;}
-.card-header{padding:16px 20px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;}
-.card-header h3{font-size:15px;font-weight:600;color:var(--primary);}
-.card-body{padding:16px 20px;}
-.card-body.no-padding{padding:0;}
+    <!-- Slide Panel (direita) -->
+    <div class="slide-panel-overlay" id="slideOverlay"></div>
+    <div class="slide-panel" id="slidePanel"><div class="slide-panel-content" id="slideContent"></div></div>
 
-/* ===== KPI ROW ===== */
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-.kpi-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;gap:4px;}
-.kpi-value{font-size:28px;font-weight:700;color:var(--primary);letter-spacing:-0.02em;line-height:1;}
-.kpi-label{font-size:13px;color:var(--text-secondary);font-weight:450;}
-.kpi-sub{font-size:12px;font-weight:500;color:var(--text-secondary);}
-.kpi-sub.amber{color:var(--yellow-text);}
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
 
-/* ===== GRID LAYOUTS ===== */
-.grid-2{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:start;}
-
-/* ===== AGENDA LIST ===== */
-.agenda-list{list-style:none;}
-.agenda-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid #F9FAFB;transition:background var(--transition);}
-.agenda-item:hover{background:#FAFBFC;}
-.agenda-time{font-size:13px;font-weight:600;color:var(--primary);min-width:52px;}
-.agenda-avatar{width:34px;height:34px;border-radius:50%;background:#EEF2F7;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:var(--primary);}
-.agenda-info{flex:1;min-width:0;}
-.agenda-name{font-size:13.5px;font-weight:600;color:var(--primary);}
-.agenda-detail{font-size:12px;color:var(--text-secondary);}
-
-/* ===== STATUS BADGE ===== */
-.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:4px 10px;border-radius:20px;white-space:nowrap;}
-.status-badge.confirmed{background:var(--green-bg);color:var(--green);}
-.status-badge.pending{background:var(--yellow-bg);color:var(--yellow-text);}
-.status-badge.cancelled{background:var(--red-bg);color:var(--red);}
-.status-dot{width:6px;height:6px;border-radius:50%;}
-.status-dot.green{background:var(--green);}
-.status-dot.amber{background:#F59E0B;}
-.status-dot.red{background:#EF4444;}
-
-/* ===== BUTTONS ===== */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all var(--transition);letter-spacing:-0.01em;text-decoration:none;}
-.btn-primary{background:var(--primary);color:var(--white);border-color:var(--primary);}
-.btn-primary:hover{background:#003d5c;}
-.btn-outline{background:var(--white);color:var(--primary);border-color:var(--border);}
-.btn-outline:hover{background:#F9FAFB;border-color:#CBD0D8;}
-.btn-sm{padding:6px 12px;font-size:12px;}
-
-/* ===== MODAL ===== */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;display:none;align-items:center;justify-content:center;}
-.modal-overlay.show{display:flex;}
-.modal{background:var(--white);border-radius:var(--radius-lg);width:90%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;}
-.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border-light);}
-.modal-header h3{font-size:16px;font-weight:600;}
-.modal-close{background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:4px;border-radius:4px;}
-.modal-close:hover{color:var(--primary);}
-.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px;}
-.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--border-light);}
-.form-group{display:flex;flex-direction:column;gap:5px;flex:1;}
-.form-group label{font-size:12.5px;font-weight:500;color:var(--text-secondary);}
-.form-group input,.form-group select,.form-group textarea{
-    padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
-    font-size:13.5px;font-family:inherit;color:var(--text);background:var(--white);
-    transition:border-color var(--transition);outline:none;
-}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);}
-.form-row{display:flex;gap:12px;}
-
-/* ===== SLIDE PANEL ===== */
-.slide-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.2);z-index:150;display:none;}
-.slide-panel-overlay.show{display:block;}
-.slide-panel{position:fixed;top:0;right:0;width:420px;max-width:90vw;height:100vh;background:var(--white);z-index:151;box-shadow:-4px 0 24px rgba(0,0,0,0.08);transform:translateX(100%);transition:transform 0.25s ease;overflow-y:auto;}
-.slide-panel.show{transform:translateX(0);}
-.slide-panel-content{padding:20px;}
-
-/* ===== TOAST ===== */
-.toast-container{position:fixed;top:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px;}
-.toast{background:var(--primary);color:var(--white);padding:12px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.15);animation:slideIn 0.3s ease;max-width:360px;}
-@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
-
-/* ===== TABS ===== */
-.tabs{display:flex;gap:4px;background:#F2F4F7;border-radius:8px;padding:3px;}
-.tab{padding:7px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text-secondary);transition:all var(--transition);}
-.tab.active{background:var(--white);color:var(--primary);box-shadow:var(--shadow-sm);}
-
-/* ===== CHARTS (SVG simples) ===== */
-.chart-container{width:100%;height:200px;display:flex;align-items:flex-end;gap:8px;padding:0 4px;}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
-.bar-value{font-size:11px;font-weight:600;color:var(--text-secondary);}
-.bar-fill{width:100%;max-width:36px;border-radius:6px 6px 3px 3px;background:#DDE3EB;min-height:4px;transition:all var(--transition);cursor:pointer;}
-.bar-fill.today{background:var(--accent);}
-.bar-label{font-size:11px;color:var(--text-secondary);}
-
-/* ===== TIMELINE ===== */
-.timeline{display:flex;flex-direction:column;gap:0;}
-.timeline-item{display:flex;gap:10px;padding:8px 0;}
-.timeline-time{font-size:11.5px;font-weight:500;color:var(--text-secondary);min-width:44px;}
-.timeline-dot{width:8px;height:8px;border-radius:50%;background:#DDE3EB;flex-shrink:0;margin-top:3px;}
-.timeline-text{font-size:12.5px;color:var(--text);}
-
-/* ===== AUTOMATION CARD ===== */
-.automation-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.automation-card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:#FAFBFC;}
-.automation-card h4{font-size:14px;font-weight:600;margin-bottom:4px;}
-.automation-card p{font-size:12.5px;color:var(--text-secondary);margin-bottom:8px;}
-.automation-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-secondary);}
-
-/* ===== TABLE ===== */
-.data-table{width:100%;border-collapse:collapse;}
-.data-table th,.data-table td{padding:12px 16px;text-align:left;font-size:13px;border-bottom:1px solid #F2F4F7;}
-.data-table th{font-weight:600;color:var(--text-secondary);font-size:11.5px;text-transform:uppercase;letter-spacing:0.03em;}
-.data-table tr:hover td{background:#FAFBFC;}
-.search-bar{display:flex;gap:10px;margin-bottom:16px;}
-.search-bar input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;}
-.search-bar input:focus{border-color:var(--primary);}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:1200px){
-    .grid-2{grid-template-columns:1fr 320px;}
-    .grid-3{grid-template-columns:1fr 1fr;}
-    .kpi-row{grid-template-columns:repeat(2,1fr);}
-    .automation-grid{grid-template-columns:1fr;}
-}
-@media(max-width:1023px){
-    .sidebar{width:var(--sidebar-collapsed);min-width:var(--sidebar-collapsed);}
-    .sidebar .logo-text,.sidebar .user-info,.sidebar-nav a span{opacity:0;pointer-events:none;width:0;overflow:hidden;}
-    .sidebar-logo{justify-content:center;padding:16px 8px;}
-    .sidebar-nav a{justify-content:center;padding:10px 8px;gap:0;}
-    .sidebar-user{justify-content:center;padding:10px 8px;gap:0;}
-    .main-content{margin-left:var(--sidebar-collapsed);}
-    .grid-2{grid-template-columns:1fr 280px;}
-    .topbar{padding:0 16px;}
-    .page-container{padding:0 16px 20px;}
-    .clinic-badge{display:none;}
-}
-@media(max-width:767px){
-    .sidebar{transform:translateX(-100%);width:260px;min-width:260px;box-shadow:4px 0 24px rgba(0,0,0,0.12);}
-    .sidebar.open{transform:translateX(0);}
-    .sidebar .logo-text,.sidebar .user-info,.sidebar-nav a span{opacity:1;pointer-events:auto;width:auto;overflow:visible;}
-    .sidebar-logo{justify-content:flex-start;padding:20px 18px 16px;}
-    .sidebar-nav a{justify-content:flex-start;padding:9px 10px;gap:10px;}
-    .sidebar-user{justify-content:flex-start;padding:12px 10px;gap:10px;}
-    .sidebar-overlay.show{display:block;}
-    .main-content{margin-left:0;}
-    .hamburger{display:flex;}
-    .grid-2,.grid-3{grid-template-columns:1fr;}
-    .kpi-row{grid-template-columns:1fr 1fr;}
-    .page-container{padding:0 12px 16px;gap:14px;}
-    .topbar{padding:0 12px;height:auto;padding-top:12px;padding-bottom:8px;flex-wrap:wrap;}
-    .page-title{font-size:18px;}
-    .slide-panel{width:100vw;}
-}
+    <script src="js/app.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
