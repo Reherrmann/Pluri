@@ -439,6 +439,7 @@ body{
     .data-table td:nth-child(5){
         width:60px;
     }
+    /* Inputs menores para telefone e horário */
     input[type="tel"],
     input[type="time"],
     #apptPhone,
