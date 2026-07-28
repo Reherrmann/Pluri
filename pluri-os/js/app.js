@@ -495,6 +495,10 @@
         getEl('hamburgerBtn')?.addEventListener('click', toggleSidebar);
         getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
+         window.toggleSidebar = toggleSidebar;
+    window.closeSidebar = closeSidebar;
+
+        
         // Modal
         getEl('modalClose')?.addEventListener('click', closeModal);
         getEl('modalCancel')?.addEventListener('click', closeModal);
