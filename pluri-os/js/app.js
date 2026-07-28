@@ -73,6 +73,12 @@
         const title = document.getElementById('pageTitle');
         const subtitle = document.getElementById('pageSubtitle');
 
+        // Limpa listeners antigos para evitar duplicidade
+        if (window._modalBtnHandler) {
+            const oldBtn = document.getElementById('openModalBtn');
+            if (oldBtn) oldBtn.removeEventListener('click', window._modalBtnHandler);
+        }
+
         switch(state.currentPage){
             case 'dashboard': renderDashboard(container, title, subtitle); break;
             case 'agenda': renderAgenda(container, title, subtitle); break;
@@ -82,7 +88,7 @@
             case 'indicadores': renderIndicadores(container, title, subtitle); break;
             case 'configuracoes': renderConfiguracoes(container, title, subtitle); break;
         }
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
     }
 
     // ===== DASHBOARD =====
@@ -170,11 +176,19 @@
                         <span class="status-badge ${a.status==='Confirmado'?'confirmed':a.status==='Pendente'?'pending':a.status==='Concluído'?'confirmed':'cancelled'}"><span class="status-dot ${a.status==='Confirmado'||a.status==='Concluído'?'green':'amber'}"></span>${a.status}</span>
                     </li>`).join('')}</ul>
             </div></div>`;
-        document.getElementById('openModalBtn').addEventListener('click', openModal);
-        document.querySelectorAll('#agendaTabs .tab').forEach(tab=>tab.addEventListener('click',function(){
-            document.querySelectorAll('#agendaTabs .tab').forEach(t=>t.classList.remove('active'));
-            this.classList.add('active');
-        }));
+
+        const btn = document.getElementById('openModalBtn');
+        if (btn) {
+            window._modalBtnHandler = openModal;
+            btn.addEventListener('click', openModal);
+        }
+
+        document.querySelectorAll('#agendaTabs .tab').forEach(tab=>{
+            tab.addEventListener('click', function(){
+                document.querySelectorAll('#agendaTabs .tab').forEach(t=>t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
     }
 
     // ===== ATENDIMENTOS =====
@@ -325,6 +339,7 @@
         document.getElementById('modalOverlay').classList.add('show');
         document.getElementById('apptDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('apptTime').value = '09:00';
+        if (window.lucide) lucide.createIcons();
     }
     function closeModal(){
         document.getElementById('modalOverlay').classList.remove('show');
@@ -343,7 +358,17 @@
         };
         state.appointments.unshift(newAppt);
         if(!state.patients.find(p=>p.name.toLowerCase()===patient.toLowerCase())){
-            state.patients.push({id:Date.now(),name:patient,phone:phone||'-',email:'-',created:new Date().toLocaleDateString('pt-BR'),lastVisit:'-',nextAppt:date.split('-').reverse().join('/'),status:'Novo',notes:notes||''});
+            state.patients.push({
+                id:Date.now(),
+                name:patient,
+                phone:phone||'-',
+                email:'-',
+                created: new Date().toLocaleDateString('pt-BR'),
+                lastVisit:'-',
+                nextAppt: date.split('-').reverse().join('/'),
+                status:'Novo',
+                notes:notes||''
+            });
         }
         closeModal();
         showToast('Agendamento criado com sucesso!');
@@ -383,23 +408,48 @@
     // ===== INIT =====
     function init(){
         initMockData();
+
+        // Navigation
         document.querySelectorAll('.sidebar-nav a').forEach(a=>{
             a.addEventListener('click', function(e){
                 e.preventDefault();
                 navigateTo(this.dataset.page);
             });
         });
+
+        // Hamburger
         document.getElementById('hamburgerBtn').addEventListener('click', toggleSidebar);
         document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+        // Modal events
         document.getElementById('modalClose').addEventListener('click', closeModal);
         document.getElementById('modalCancel').addEventListener('click', closeModal);
         document.getElementById('modalSave').addEventListener('click', saveAppointment);
         document.getElementById('modalOverlay').addEventListener('click', function(e){if(e.target===this)closeModal();});
+
+        // Slide panel
         document.getElementById('slideOverlay').addEventListener('click', closeSlidePanel);
+
+        // Notification
         document.getElementById('notifBtn').addEventListener('click',()=>showToast('Nenhuma notificação nova.'));
+
+        // Primeira renderização
         renderPage();
-        window.app = {navigateTo, openConversation, resolveConversation, openPatient, openModal, showToast};
+
+        // Expor funções globalmente
+        window.app = {
+            navigateTo,
+            openConversation,
+            resolveConversation,
+            openPatient,
+            openModal,
+            showToast
+        };
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
