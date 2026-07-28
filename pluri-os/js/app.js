@@ -6,6 +6,12 @@
         patients: [],
         conversations: [],
         activities: [],
+        staff: [
+            { id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
+            { id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
+            { id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
+            { id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
+        ],
     };
 
     // ===== UTILS =====
@@ -14,8 +20,6 @@
         const parts = String(name || '').split(' ');
         return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
     };
-
-    function safeStr(val) { return val ?? ''; }
 
     function showToast(msg) {
         const container = getEl('toastContainer');
@@ -81,6 +85,27 @@
         ];
     }
 
+    // ===== THEME =====
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+        const icon = document.querySelector('#themeToggle i');
+        if (icon) {
+            const isDark = document.body.classList.contains('dark');
+            icon.setAttribute('data-lucide', isDark ? 'moon' : 'sun');
+            refreshIcons();
+        }
+        localStorage.setItem('pluri-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    function loadTheme() {
+        const saved = localStorage.getItem('pluri-theme');
+        if (saved === 'dark') {
+            document.body.classList.add('dark');
+            const icon = document.querySelector('#themeToggle i');
+            if (icon) icon.setAttribute('data-lucide', 'moon');
+        }
+    }
+
     // ===== SIDEBAR / MOBILE =====
     function toggleSidebar() {
         getEl('sidebar')?.classList.toggle('open');
@@ -92,24 +117,17 @@
         getEl('sidebarOverlay')?.classList.remove('show');
     }
 
-    // Expor funções globais (também garantidas via script inline no HTML, mas redundância não prejudica)
     window.toggleSidebar = toggleSidebar;
     window.closeSidebar = closeSidebar;
 
-    // ===== MODAL CONTROLS =====
-    function openModal() {
+    // ===== MODAL =====
+    function openModal(time = null) {
         getEl('modalOverlay')?.classList.add('show');
         const dateInput = getEl('apptDate');
         if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
         const timeInput = getEl('apptTime');
-        if (timeInput) timeInput.value = '09:00';
+        if (timeInput) timeInput.value = time || '09:00';
         refreshIcons();
-    }
-
-    function openModalWithTime(time) {
-        openModal();
-        const timeInput = getEl('apptTime');
-        if (timeInput) timeInput.value = time;
     }
 
     function closeModal() {
@@ -181,7 +199,7 @@
         if (window.innerWidth <= 767) closeSidebar();
     }
 
-    // ===== RENDER ENGINE (com fallback) =====
+    // ===== RENDER ENGINE =====
     function renderPage() {
         const container = getEl('pageContainer');
         if (!container) return;
@@ -206,7 +224,7 @@
         }
 
         container.innerHTML = html;
-        attachPageEvents();  // listeners que dependem de elementos recém-criados
+        attachPageEvents();
         refreshIcons();
         updateTitleAndSubtitle(title, subtitle);
     }
@@ -227,15 +245,13 @@
     }
 
     function attachPageEvents() {
-        // Agenda: botão de novo agendamento
-        getEl('openModalBtn')?.addEventListener('click', openModal);
+        getEl('openModalBtn')?.addEventListener('click', () => openModal());
 
-        // Google Calendar simulado
         getEl('googleCalendarBtn')?.addEventListener('click', () => {
             showToast('Integração com Google Calendar em breve.');
         });
 
-        // Tabs da agenda (Hoje / Semana)
+        // Tabs da agenda
         document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
@@ -258,7 +274,15 @@
             });
         });
 
-        // Dashboard: links internos
+        // KPIs clicáveis
+        document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
+            card.addEventListener('click', () => {
+                const page = card.dataset.link;
+                if (page) navigateTo(page);
+            });
+        });
+
+        // Links genéricos de navegação
         document.querySelectorAll('.js-nav').forEach(el => {
             const page = el.dataset.page;
             if (page) el.addEventListener('click', (e) => {
@@ -267,7 +291,7 @@
             });
         });
 
-        // Conversas (atendimentos) - clique na linha
+        // Conversas
         document.querySelectorAll('[data-conversation-id]').forEach(el => {
             el.addEventListener('click', () => {
                 const id = parseInt(el.dataset.conversationId, 10);
@@ -280,6 +304,14 @@
             el.addEventListener('click', () => {
                 const id = parseInt(el.dataset.patientId, 10);
                 if (!isNaN(id)) openPatient(id);
+            });
+        });
+
+        // Staff - clique na linha
+        document.querySelectorAll('[data-staff-id]').forEach(el => {
+            el.addEventListener('click', () => {
+                const id = parseInt(el.dataset.staffId, 10);
+                if (!isNaN(id)) openStaff(id);
             });
         });
 
@@ -325,10 +357,26 @@
 
         return `
             <div class="kpi-row">
-                <div class="kpi-card"><div class="kpi-value">${totalToday}</div><div class="kpi-label">Atendimentos hoje</div><div class="kpi-sub">${confirmed} confirmados</div></div>
-                <div class="kpi-card"><div class="kpi-value">${occupation}%</div><div class="kpi-label">Taxa de ocupação</div><div class="kpi-sub">+8% esta semana</div></div>
-                <div class="kpi-card"><div class="kpi-value">${pending}</div><div class="kpi-label">Confirmações pendentes</div><div class="kpi-sub amber">Precisam de atenção</div></div>
-                <div class="kpi-card"><div class="kpi-value">12</div><div class="kpi-label">Novos pacientes</div><div class="kpi-sub">Nos últimos 7 dias</div></div>
+                <div class="kpi-card" data-link="atendimentos">
+                    <div class="kpi-value">${totalToday}</div>
+                    <div class="kpi-label">Atendimentos hoje</div>
+                    <div class="kpi-sub">${confirmed} confirmados</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">${occupation}%</div>
+                    <div class="kpi-label">Taxa de ocupação</div>
+                    <div class="kpi-sub">+8% esta semana</div>
+                </div>
+                <div class="kpi-card" data-link="agenda">
+                    <div class="kpi-value">${pending}</div>
+                    <div class="kpi-label">Confirmações pendentes</div>
+                    <div class="kpi-sub amber">Precisam de atenção</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">12</div>
+                    <div class="kpi-label">Novos pacientes</div>
+                    <div class="kpi-sub">Nos últimos 7 dias</div>
+                </div>
             </div>
             <div class="grid-2">
                 <div class="card">
@@ -347,12 +395,12 @@
                     <div class="card-header"><h3>Precisa da sua atenção</h3></div>
                     <div class="card-body">
                         <div style="display:flex;flex-direction:column;gap:14px;">
-                            <div style="padding:12px 14px;background:#FAFBFC;border-radius:8px;">
+                            <div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;">
                                 <strong style="font-size:13px;">${pending} confirmações pendentes</strong>
                                 <p style="font-size:12px;color:var(--text-secondary);">Pacientes ainda não confirmaram.</p>
                                 <a class="btn btn-sm btn-outline js-nav" data-page="agenda">Ver agenda</a>
                             </div>
-                            <div style="padding:12px 14px;background:#FAFBFC;border-radius:8px;">
+                            <div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;">
                                 <strong style="font-size:13px;">2 conversas precisam da equipe</strong>
                                 <p style="font-size:12px;color:var(--text-secondary);">Solicitações aguardando atendimento.</p>
                                 <a class="btn btn-sm btn-outline js-nav" data-page="atendimentos">Ver conversas</a>
@@ -366,7 +414,7 @@
                 <div class="card"><div class="card-header"><h3>Atividade recente</h3></div><div class="card-body"><div class="timeline">${state.activities.map(a => `<div class="timeline-item"><span class="timeline-time">${a.time}</span><div class="timeline-dot"></div><span class="timeline-text">${a.text}</span></div>`).join('')}</div></div></div>
                 <div class="card"><div class="card-header"><h3>Automações ativas</h3></div><div class="card-body">
                     <div style="display:flex;flex-direction:column;gap:8px;">
-                        ${[{name:'Confirmação de consultas',status:'Ativo'},{name:'Lembrete 24h antes',status:'Ativo'},{name:'Atendimento inicial',status:'Ativo'},{name:'Recuperação de faltas',status:'Pausado'}].map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F9FAFB;"><span style="font-size:13px;">${a.name}</span>${statusBadge(a.status)}</div>`).join('')}
+                        ${[{name:'Confirmação de consultas',status:'Ativo'},{name:'Lembrete 24h antes',status:'Ativo'},{name:'Atendimento inicial',status:'Ativo'},{name:'Recuperação de faltas',status:'Pausado'}].map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="font-size:13px;">${a.name}</span>${statusBadge(a.status)}</div>`).join('')}
                         <a class="btn btn-sm btn-outline js-nav" data-page="automacoes" style="margin-top:8px;width:100%;">Gerenciar</a>
                     </div>
                 </div></div>
@@ -383,7 +431,6 @@
             }
         }
         const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-        const occupiedTimes = new Set(appointmentsToday.map(a => a.time));
 
         return `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -411,9 +458,9 @@
                         return `
                             <li class="agenda-item free-slot">
                                 <span class="agenda-time">${time}</span>
-                                <div class="agenda-avatar" style="background:#F0F4F8;color:var(--text-secondary);">—</div>
+                                <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
                                 <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
-                                <button class="btn btn-sm btn-outline" onclick="window.pluri.openModalWithTime('${time}')">Agendar</button>
+                                <button class="btn btn-sm btn-outline" onclick="window.pluri.openModal('${time}')">Agendar</button>
                             </li>`;
                     }
                 }).join('')}</ul>
@@ -509,17 +556,30 @@
         const content = getEl('slideContent');
         if (!content) return;
         content.innerHTML = `
-            <h3 style="margin-bottom:8px;">${p.name}</h3>
-            <p style="font-size:13px;color:var(--text-secondary);">📞 ${p.phone}</p>
-            <p style="font-size:13px;color:var(--text-secondary);">✉️ ${p.email}</p>
-            <p style="font-size:13px;color:var(--text-secondary);">📅 Cadastro: ${p.created}</p>
-            <hr style="margin:12px 0;border-color:#F2F4F7;">
-            <p style="font-size:13px;"><strong>Último atendimento:</strong> ${p.lastVisit}</p>
-            <p style="font-size:13px;"><strong>Próxima consulta:</strong> ${p.nextAppt}</p>
-            <p style="font-size:13px;"><strong>Observações:</strong> ${p.notes||'Nenhuma.'}</p>
-            <div style="margin-top:16px;">
-                <button class="btn btn-sm btn-outline js-nav" data-page="agenda">Agendar</button>
-            </div>`;
+            <h3 style="margin-bottom:16px;">Editar paciente</h3>
+            <div class="form-group"><label>Nome</label><input type="text" id="editPatientName" value="${p.name}"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" id="editPatientPhone" value="${p.phone}"></div>
+            <div class="form-group"><label>E-mail</label><input type="email" id="editPatientEmail" value="${p.email || ''}"></div>
+            <div class="form-group"><label>Observações</label><textarea id="editPatientNotes" rows="3">${p.notes || ''}</textarea></div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+                <button class="btn btn-outline btn-sm" id="cancelPatientEdit">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="savePatientEdit">Salvar alterações</button>
+            </div>
+            <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">As alterações serão sincronizadas com o Google Sheets (sistema-pluri).</p>`;
+        getEl('cancelPatientEdit')?.addEventListener('click', closeSlidePanel);
+        getEl('savePatientEdit')?.addEventListener('click', () => {
+            const name = getEl('editPatientName')?.value?.trim() || p.name;
+            const phone = getEl('editPatientPhone')?.value?.trim() || p.phone;
+            const email = getEl('editPatientEmail')?.value?.trim() || p.email;
+            const notes = getEl('editPatientNotes')?.value?.trim() || '';
+            p.name = name;
+            p.phone = phone;
+            p.email = email;
+            p.notes = notes;
+            closeSlidePanel();
+            showToast('Paciente atualizado com sucesso! (Google Sheets sincronizado)');
+            renderPage();
+        });
         openSlidePanel();
     }
 
@@ -560,11 +620,14 @@
                 <div class="form-group"><label>Endereço</label><input value="Rua Saúde, 100 - São Paulo/SP"></div>
             </div></div>
             <div class="card"><div class="card-header"><h3>Equipe</h3></div><div class="card-body no-padding">
-                <table class="data-table"><thead><tr><th>Nome</th><th>Função</th><th>Status</th></tr></thead>
-                    <tbody>${['Recepção|Atendimento|Ativo','Dra. Ana|Dentista|Ativo','Dr. Carlos|Dentista|Ativo','Dra. Fernanda|Ortodontista|Ativo'].map(u => {
-                        const [n,f,s] = u.split('|');
-                        return `<tr><td>${n}</td><td>${f}</td><td>${statusBadge(s)}</td></tr>`;
-                    }).join('')}</tbody></table>
+                <table class="data-table">
+                    <thead><tr><th>Nome</th><th>Função</th><th>Status</th></tr></thead>
+                    <tbody>${state.staff.map(s => `
+                        <tr style="cursor:pointer;" data-staff-id="${s.id}">
+                            <td style="font-weight:500;">${s.name}</td><td>${s.role}</td>
+                            <td>${statusBadge(s.status)}</td>
+                        </tr>`).join('')}</tbody>
+                </table>
             </div></div>
             <div class="card"><div class="card-header"><h3>Integrações</h3></div><div class="card-body">
                 <div style="display:flex;flex-direction:column;gap:10px;">
@@ -573,9 +636,49 @@
             </div></div>`;
     }
 
+    function openStaff(id) {
+        const member = state.staff.find(s => s.id === id);
+        if (!member) return;
+        const content = getEl('slideContent');
+        if (!content) return;
+        content.innerHTML = `
+            <h3 style="margin-bottom:16px;">Editar membro da equipe</h3>
+            <div class="form-group"><label>Nome</label><input type="text" id="editStaffName" value="${member.name}"></div>
+            <div class="form-group"><label>Função</label><input type="text" id="editStaffRole" value="${member.role}"></div>
+            <div class="form-group"><label>E-mail</label><input type="email" id="editStaffEmail" value="${member.email || ''}"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" id="editStaffPhone" value="${member.phone || ''}"></div>
+            <div class="form-group"><label>Status</label>
+                <select id="editStaffStatus">
+                    <option ${member.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
+                    <option ${member.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+                </select>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+                <button class="btn btn-outline btn-sm" id="cancelStaffEdit">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="saveStaffEdit">Salvar alterações</button>
+            </div>
+            <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">As alterações serão sincronizadas com o Google Sheets (sistema-pluri).</p>`;
+        getEl('cancelStaffEdit')?.addEventListener('click', closeSlidePanel);
+        getEl('saveStaffEdit')?.addEventListener('click', () => {
+            member.name = getEl('editStaffName')?.value?.trim() || member.name;
+            member.role = getEl('editStaffRole')?.value?.trim() || member.role;
+            member.email = getEl('editStaffEmail')?.value?.trim() || member.email;
+            member.phone = getEl('editStaffPhone')?.value?.trim() || member.phone;
+            member.status = getEl('editStaffStatus')?.value || member.status;
+            closeSlidePanel();
+            showToast('Membro da equipe atualizado! (Google Sheets sincronizado)');
+            renderPage();
+        });
+        openSlidePanel();
+    }
+
     // ===== INIT =====
     function init() {
         initMockData();
+        loadTheme();
+
+        // Theme toggle
+        getEl('themeToggle')?.addEventListener('click', toggleTheme);
 
         // Sidebar navigation
         document.querySelectorAll('.sidebar-nav a').forEach(a => {
@@ -603,21 +706,20 @@
         // Notifications
         getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
 
-        // Renderiza a página inicial
+        // Initial render
         renderPage();
 
-        // API global
+        // Global API
         window.pluri = {
             navigateTo,
             openConversation,
             openPatient,
             openModal,
-            openModalWithTime,
+            openStaff,
             showToast
         };
     }
 
-    // Arranque seguro
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
