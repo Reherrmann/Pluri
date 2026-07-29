@@ -47,24 +47,43 @@ async function saveAppointment() {
         status: 'Confirmado',
         date,
     };
-
-    // Adiciona ao state imediatamente (para feedback instantâneo)
     state.appointments.unshift(newAppt);
 
-    // Fecha o modal imediatamente para melhor experiência
+    // Fecha o modal imediatamente
     closeModal();
     showToast('Agendamento criado com sucesso.');
 
-    // Tenta salvar na planilha via API (em segundo plano)
+    // Tenta salvar na planilha via API
     if (window.pluriAPI) {
         try {
-            await window.pluriAPI.saveAppointment(newAppt);
+            const body = {
+                action: 'create',
+                sheet: 'Agendamentos',
+                values: {
+                    ID: newAppt.id.toString(),
+                    Horário: newAppt.time,
+                    Paciente: newAppt.patient,
+                    Profissional: newAppt.professional,
+                    Serviço: newAppt.service,
+                    Status: newAppt.status,
+                    Data: newAppt.date,
+                }
+            };
+
+            const res = await fetch(PLURI_CONFIG.appsScript.salvarAgendamento, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(body),
+            });
+            const result = await res.json();
+            console.log('Resultado do salvamento:', result);
+            if (!result.success) {
+                showToast('Agendamento salvo localmente, mas houve erro ao sincronizar com a planilha.');
+            }
         } catch (e) {
-            console.warn('Não foi possível salvar na planilha:', e.message);
-            showToast('Agendamento salvo localmente, mas houve erro ao sincronizar.');
+            console.warn('Erro ao salvar na planilha:', e.message);
         }
     }
 
-    // Re-renderiza a página para refletir as mudanças
     renderPage();
 }
