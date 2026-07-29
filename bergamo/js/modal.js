@@ -1,22 +1,30 @@
 // js/modal.js
 function openModal(time = null, patientName = null, patientPhone = null) {
-    getEl('modalOverlay')?.classList.add('show');
+    const overlay = getEl('modalOverlay');
+    if (!overlay) return;
+    overlay.classList.add('show');
+
     const dateInput = getEl('apptDate');
     if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
     const timeInput = getEl('apptTime');
     if (timeInput) timeInput.value = time || '09:00';
+
     const patientInput = getEl('apptPatient');
     if (patientInput && patientName) patientInput.value = patientName;
+
     const phoneInput = getEl('apptPhone');
     if (phoneInput && patientPhone) phoneInput.value = patientPhone;
+
     refreshIcons();
 }
 
 function closeModal() {
-    getEl('modalOverlay')?.classList.remove('show');
+    const overlay = getEl('modalOverlay');
+    if (overlay) overlay.classList.remove('show');
 }
 
-function saveAppointment() {
+async function saveAppointment() {
     const patient = getEl('apptPatient')?.value?.trim() || '';
     const phone = getEl('apptPhone')?.value?.trim() || '';
     const professional = getEl('apptProfessional')?.value || 'Dra. Ana';
@@ -39,28 +47,24 @@ function saveAppointment() {
         status: 'Confirmado',
         date,
     };
+
+    // Adiciona ao state imediatamente (para feedback instantâneo)
     state.appointments.unshift(newAppt);
 
-    if (!state.patients.some(p => p.name.toLowerCase() === patient.toLowerCase())) {
-        state.patients.push({
-            id: Date.now(),
-            name: patient,
-            phone: phone || '-',
-            email: '-',
-            created: new Date().toLocaleDateString('pt-BR'),
-            lastVisit: '-',
-            nextAppt: date.split('-').reverse().join('/'),
-            status: 'Novo',
-            notes,
-        });
-    }
-
-    // Salvar via Apps Script
-    if (window.pluriAPI) {
-        window.pluriAPI.saveAppointment(newAppt);
-    }
-
+    // Fecha o modal imediatamente para melhor experiência
     closeModal();
     showToast('Agendamento criado com sucesso.');
+
+    // Tenta salvar na planilha via API (em segundo plano)
+    if (window.pluriAPI) {
+        try {
+            await window.pluriAPI.saveAppointment(newAppt);
+        } catch (e) {
+            console.warn('Não foi possível salvar na planilha:', e.message);
+            showToast('Agendamento salvo localmente, mas houve erro ao sincronizar.');
+        }
+    }
+
+    // Re-renderiza a página para refletir as mudanças
     renderPage();
 }
