@@ -45,6 +45,8 @@ function updateTitleAndSubtitle(title, subtitle) {
 
 function attachPageEvents() {
     getEl('openModalBtn')?.addEventListener('click', () => openModal());
+    getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
+    getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
