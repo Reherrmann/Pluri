@@ -16,15 +16,48 @@ class PluriAPI {
     }
 
     async getPatients() {
-        return await this.fetchFromAppsScript(this.config.appsScript.pacientes);
+        const data = await this.fetchFromAppsScript(this.config.appsScript.pacientes);
+        if (!data || !Array.isArray(data)) return [];
+        return data.map(p => ({
+            _row: p._row,
+            id: p._row,
+            name: p['Nome'] || '',
+            phone: p['Telefone'] || '',
+            email: p['E-mail'] || '',
+            created: p['Data de cadastro'] || '',
+            lastVisit: p['Último atendimento'] || '',
+            nextAppt: p['Próxima consulta'] || '',
+            status: p['Status'] || 'Ativo',
+            notes: p['Observações'] || '',
+        }));
     }
 
     async getAppointments() {
-        return await this.fetchFromAppsScript(this.config.appsScript.agendamentos);
+        const data = await this.fetchFromAppsScript(this.config.appsScript.agendamentos);
+        if (!data || !Array.isArray(data)) return [];
+        return data.map(a => ({
+            id: parseInt(a['ID']) || a._row,
+            time: a['Horário'] || '',
+            patient: a['Paciente'] || '',
+            professional: a['Profissional'] || '',
+            service: a['Serviço'] || '',
+            status: a['Status'] || 'Pendente',
+            date: a['Data'] || '',
+        }));
     }
 
     async getStaff() {
-        return await this.fetchFromAppsScript(this.config.appsScript.equipe);
+        const data = await this.fetchFromAppsScript(this.config.appsScript.equipe);
+        if (!data || !Array.isArray(data)) return [];
+        return data.map(s => ({
+            _row: s._row,
+            id: s._row,
+            name: s['Nome'] || '',
+            role: s['Função'] || '',
+            status: s['Status'] || 'Ativo',
+            email: s['E-mail'] || '',
+            phone: s['Telefone'] || '',
+        }));
     }
 
     async saveAppointment(appointment) {
