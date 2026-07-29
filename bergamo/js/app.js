@@ -131,13 +131,12 @@ async function init() {
             console.log('✅ Pacientes carregados:', patients.length);
         }
 
-        // 👇 ALTERAÇÃO PRINCIPAL: priorizar Google Calendar
+        // Priorizar Google Calendar
         const calendarAppts = await window.pluriAPI.getCalendarAppointments();
         if (calendarAppts && calendarAppts.length > 0) {
             state.appointments = calendarAppts;
             console.log('✅ Agendamentos carregados do Google Calendar:', calendarAppts.length);
         } else {
-            // fallback para planilha
             const appointments = await window.pluriAPI.getAppointments();
             if (appointments && appointments.length > 0) {
                 state.appointments = appointments;
