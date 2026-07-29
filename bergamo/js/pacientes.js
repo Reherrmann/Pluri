@@ -1,18 +1,21 @@
 // js/pacientes.js
 function buildPacientes() {
     return `
-        <div class="search-bar" style="display:flex;gap:8px;">
-            <input type="text" id="patientSearch" placeholder="Buscar por nome ou telefone..." style="flex:1;">
-            <button class="btn btn-primary" id="newPatientBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo paciente</button>
-        </div>
+        <div class="search-bar"><input type="text" id="patientSearch" placeholder="Buscar por nome ou telefone..."></div>
         <div class="card"><div class="card-body no-padding" style="overflow-x:auto;">
             <table class="data-table">
                 <thead><tr><th>Paciente</th><th>Telefone</th><th>Último atendimento</th><th>Próxima consulta</th><th>Status</th></tr></thead>
-                <tbody id="patientTableBody">${state.patients.map(p => `
-                    <tr style="cursor:pointer;" data-patient-id="${p.id}">
-                        <td style="font-weight:500;">${p.name}</td><td>${p.phone}</td><td>${p.lastVisit}</td><td>${p.nextAppt}</td>
-                        <td>${statusBadge(p.status)}</td>
-                    </tr>`).join('')}</tbody>
+                <tbody id="patientTableBody">
+                    ${state.patients.map(p => `
+                        <tr style="cursor:pointer;" data-patient-id="${p.id}">
+                            <td style="font-weight:500;">${p.name}</td>
+                            <td>${p.phone}</td>
+                            <td>${p.lastVisit}</td>
+                            <td>${p.nextAppt}</td>
+                            <td>${statusBadge(p.status)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
             </table>
         </div></div>`;
 }
