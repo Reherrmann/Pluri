@@ -8,8 +8,7 @@ class PluriAPI {
         try {
             const res = await fetch(url);
             if (!res.ok) throw new Error('Erro ao buscar dados');
-            const data = await res.json();
-            return data;
+            return await res.json();
         } catch (e) {
             console.warn('Apps Script:', e.message);
             return null;
@@ -30,31 +29,38 @@ class PluriAPI {
 
     async saveAppointment(appointment) {
         try {
-            const params = new URLSearchParams();
-            params.append('action', 'append');
-            params.append('sheet', 'Agendamentos');
-            params.append('row', JSON.stringify([
-                appointment.id.toString(),
-                appointment.time,
-                appointment.patient,
-                appointment.professional,
-                appointment.service,
-                appointment.status,
-                appointment.date,
-            ]));
+            const body = {
+                action: 'create',
+                sheet: 'Agendamentos',
+                values: {
+                    ID: appointment.id.toString(),
+                    Horário: appointment.time,
+                    Paciente: appointment.patient,
+                    Profissional: appointment.professional,
+                    Serviço: appointment.service,
+                    Status: appointment.status,
+                    Data: appointment.date,
+                }
+            };
 
             const res = await fetch(this.config.appsScript.salvarAgendamento, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString(),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(body),
             });
-            const result = await res.json();
-            console.log('Agendamento salvo:', result);
-            return result;
+            return await res.json();
         } catch (e) {
             console.warn('Erro ao salvar:', e.message);
             return null;
         }
+    }
+
+    async getCalendarAppointments(dateStr = null) {
+        let url = this.config.appsScript.calendarEvents;
+        if (dateStr) url = this.config.appsScript.calendarEventsDate + dateStr;
+        const events = await this.fetchFromAppsScript(url);
+        if (!events || !Array.isArray(events)) return [];
+        return events;
     }
 }
 
