@@ -45,6 +45,8 @@ function updateTitleAndSubtitle(title, subtitle) {
 
 function attachPageEvents() {
     getEl('openModalBtn')?.addEventListener('click', () => openModal());
+    getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
+    getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -90,17 +92,17 @@ function attachPageEvents() {
         });
     });
 
-    document.querySelectorAll('[data-patient-id]').forEach(el => {
+    document.querySelectorAll('[data-patient-row]').forEach(el => {
         el.addEventListener('click', () => {
-            const id = parseInt(el.dataset.patientId, 10);
-            if (!isNaN(id) && typeof openPatient === 'function') openPatient(id);
+            const row = parseInt(el.dataset.patientRow, 10);
+            if (!isNaN(row)) openPatient(row);
         });
     });
 
-    document.querySelectorAll('[data-staff-id]').forEach(el => {
+    document.querySelectorAll('[data-staff-row]').forEach(el => {
         el.addEventListener('click', () => {
-            const id = parseInt(el.dataset.staffId, 10);
-            if (!isNaN(id) && typeof openStaff === 'function') openStaff(id);
+            const row = parseInt(el.dataset.staffRow, 10);
+            if (!isNaN(row)) openStaff(row);
         });
     });
 
@@ -165,13 +167,12 @@ async function init() {
     
     renderPage();
     
-    // Expor API global com segurança
     window.pluri = {
         navigateTo,
         openConversation,
-        openPatient: typeof openPatient === 'function' ? openPatient : () => {},
+        openPatient,
         openModal,
-        openStaff: typeof openStaff === 'function' ? openStaff : () => {},
+        openStaff,
         showToast
     };
 }
