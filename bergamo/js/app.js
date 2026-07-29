@@ -19,7 +19,7 @@ function renderPage() {
         }
     } catch (e) {
         console.error('Erro ao renderizar página:', e);
-        html = `<div style="padding:40px;text-align:center;color:#B91C1C;">Erro ao carregar a página.</div>`;
+        html = '<div style="padding:40px;text-align:center;color:#B91C1C;">Erro ao carregar a página.</div>';
     }
 
     container.innerHTML = html;
@@ -46,7 +46,6 @@ function updateTitleAndSubtitle(title, subtitle) {
 function attachPageEvents() {
     getEl('openModalBtn')?.addEventListener('click', () => openModal());
 
-    // Tabs da agenda
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
@@ -69,7 +68,6 @@ function attachPageEvents() {
         });
     });
 
-    // KPIs clicáveis
     document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
         card.addEventListener('click', () => {
             const page = card.dataset.link;
@@ -77,7 +75,6 @@ function attachPageEvents() {
         });
     });
 
-    // Links de navegação
     document.querySelectorAll('.js-nav').forEach(el => {
         const page = el.dataset.page;
         if (page) el.addEventListener('click', (e) => {
@@ -86,7 +83,6 @@ function attachPageEvents() {
         });
     });
 
-    // Conversas
     document.querySelectorAll('[data-conversation-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.conversationId, 10);
@@ -94,7 +90,6 @@ function attachPageEvents() {
         });
     });
 
-    // Pacientes
     document.querySelectorAll('[data-patient-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.patientId, 10);
@@ -102,7 +97,6 @@ function attachPageEvents() {
         });
     });
 
-    // Staff
     document.querySelectorAll('[data-staff-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.staffId, 10);
@@ -110,7 +104,6 @@ function attachPageEvents() {
         });
     });
 
-    // Busca de pacientes
     const searchInput = getEl('patientSearch');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -133,16 +126,19 @@ async function init() {
         const patients = await window.pluriAPI.getPatients();
         if (patients && patients.length > 0) {
             state.patients = patients;
+            console.log('✅ Pacientes carregados:', patients.length);
         }
 
         const appointments = await window.pluriAPI.getAppointments();
         if (appointments && appointments.length > 0) {
             state.appointments = appointments;
+            console.log('✅ Agendamentos carregados:', appointments.length);
         }
 
         const staff = await window.pluriAPI.getStaff();
         if (staff && staff.length > 0) {
             state.staff = staff;
+            console.log('✅ Equipe carregada:', staff.length);
         }
     } catch (e) {
         console.warn('Usando dados mock:', e.message);
@@ -150,12 +146,14 @@ async function init() {
 
     loadTheme();
     getEl('themeToggle')?.addEventListener('click', toggleTheme);
+    
     document.querySelectorAll('.sidebar-nav a').forEach(a => {
         a.addEventListener('click', (e) => {
             e.preventDefault();
             navigateTo(a.dataset.page);
         });
     });
+    
     getEl('modalClose')?.addEventListener('click', closeModal);
     getEl('modalCancel')?.addEventListener('click', closeModal);
     getEl('modalSave')?.addEventListener('click', saveAppointment);
