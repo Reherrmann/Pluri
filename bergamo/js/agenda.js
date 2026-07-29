@@ -1,10 +1,14 @@
 // js/agenda.js
 function buildAgenda() {
+    if (!state || !state.appointments) {
+        return '<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>';
+    }
+
     const todayStr = new Date().toISOString().split('T')[0];
     const allSlots = [];
     for (let h = 8; h < 18; h++) {
         for (let m = 0; m < 60; m += 30) {
-            const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+            const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             allSlots.push(time);
         }
     }
@@ -52,22 +56,30 @@ function buildAgenda() {
 }
 
 function buildAgendaWeekElement() {
+    // Garantir que state existe
+    if (!state || !state.appointments) {
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = 'Erro ao carregar dados da semana.';
+        return errorDiv;
+    }
+
     const today = new Date();
     const days = [];
     for (let i = 0; i < 7; i++) {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
         const yyyy = d.getFullYear();
-        const mm = String(d.getMonth()+1).padStart(2,'0');
-        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
         const dateStr = `${yyyy}-${mm}-${dd}`;
-        const dayName = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()];
+        const dayName = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d.getDay()];
         const appts = state.appointments.filter(a => a.date === dateStr);
         days.push({ dateStr, dayName, dd, appts });
     }
 
     const fragment = document.createDocumentFragment();
 
+    // Legenda das cores
     const legend = document.createElement('div');
     legend.className = 'agenda-week-legend';
     legend.innerHTML = `
@@ -130,5 +142,5 @@ function buildAgendaWeekElement() {
     wrapper.appendChild(grid);
     fragment.appendChild(wrapper);
 
-    return fragment;
+    return fragment; // Retorna um DocumentFragment que pode ser anexado ao DOM
 }
