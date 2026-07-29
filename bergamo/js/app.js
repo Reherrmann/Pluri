@@ -44,10 +44,10 @@ function updateTitleAndSubtitle(title, subtitle) {
 }
 
 function attachPageEvents() {
+    // Botão de novo agendamento (presente apenas na página Agenda)
     getEl('openModalBtn')?.addEventListener('click', () => openModal());
-    getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
-    getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
 
+    // Tabs da agenda (Hoje / Semana)
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
@@ -70,6 +70,7 @@ function attachPageEvents() {
         });
     });
 
+    // KPIs clicáveis no dashboard
     document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
         card.addEventListener('click', () => {
             const page = card.dataset.link;
@@ -77,6 +78,7 @@ function attachPageEvents() {
         });
     });
 
+    // Links de navegação com a classe .js-nav
     document.querySelectorAll('.js-nav').forEach(el => {
         const page = el.dataset.page;
         if (page) el.addEventListener('click', (e) => {
@@ -85,6 +87,7 @@ function attachPageEvents() {
         });
     });
 
+    // Clique em conversas (Atendimentos)
     document.querySelectorAll('[data-conversation-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.conversationId, 10);
@@ -92,6 +95,7 @@ function attachPageEvents() {
         });
     });
 
+    // Clique em pacientes (tabela)
     document.querySelectorAll('[data-patient-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.patientId, 10);
@@ -99,6 +103,7 @@ function attachPageEvents() {
         });
     });
 
+    // Clique em membros da equipe (tabela em Configurações)
     document.querySelectorAll('[data-staff-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.staffId, 10);
@@ -106,6 +111,7 @@ function attachPageEvents() {
         });
     });
 
+    // Busca de pacientes (filtro)
     const searchInput = getEl('patientSearch');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
