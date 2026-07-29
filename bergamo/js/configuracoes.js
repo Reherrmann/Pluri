@@ -12,11 +12,15 @@ function buildConfiguracoes() {
         </div><div class="card-body no-padding">
             <table class="data-table">
                 <thead><tr><th>Nome</th><th>Função</th><th>Status</th></tr></thead>
-                <tbody>${state.staff.map(s => `
-                    <tr style="cursor:pointer;" data-staff-id="${s.id}">
-                        <td style="font-weight:500;">${s.name}</td><td>${s.role}</td>
-                        <td>${statusBadge(s.status)}</td>
-                    </tr>`).join('')}</tbody>
+                <tbody>
+    ${state.staff.map(s => `
+        <tr style="cursor:pointer;" data-staff-id="${s.id}">
+            <td style="font-weight:500;">${s.name}</td>
+            <td>${s.role}</td>
+            <td>${statusBadge(s.status)}</td>
+        </tr>
+    `).join('')}
+</tbody>
             </table>
         </div></div>
         <div class="card"><div class="card-header"><h3>Integrações</h3></div><div class="card-body">
