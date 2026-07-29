@@ -44,10 +44,8 @@ function updateTitleAndSubtitle(title, subtitle) {
 }
 
 function attachPageEvents() {
-    // Botão de novo agendamento (presente apenas na página Agenda)
     getEl('openModalBtn')?.addEventListener('click', () => openModal());
 
-    // Tabs da agenda (Hoje / Semana)
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
@@ -70,7 +68,6 @@ function attachPageEvents() {
         });
     });
 
-    // KPIs clicáveis no dashboard
     document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
         card.addEventListener('click', () => {
             const page = card.dataset.link;
@@ -78,7 +75,6 @@ function attachPageEvents() {
         });
     });
 
-    // Links de navegação com a classe .js-nav
     document.querySelectorAll('.js-nav').forEach(el => {
         const page = el.dataset.page;
         if (page) el.addEventListener('click', (e) => {
@@ -87,7 +83,6 @@ function attachPageEvents() {
         });
     });
 
-    // Clique em conversas (Atendimentos)
     document.querySelectorAll('[data-conversation-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.conversationId, 10);
@@ -95,23 +90,20 @@ function attachPageEvents() {
         });
     });
 
-    // Clique em pacientes (tabela)
     document.querySelectorAll('[data-patient-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.patientId, 10);
-            if (!isNaN(id)) openPatient(id);
+            if (!isNaN(id) && typeof openPatient === 'function') openPatient(id);
         });
     });
 
-    // Clique em membros da equipe (tabela em Configurações)
     document.querySelectorAll('[data-staff-id]').forEach(el => {
         el.addEventListener('click', () => {
             const id = parseInt(el.dataset.staffId, 10);
-            if (!isNaN(id)) openStaff(id);
+            if (!isNaN(id) && typeof openStaff === 'function') openStaff(id);
         });
     });
 
-    // Busca de pacientes (filtro)
     const searchInput = getEl('patientSearch');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -173,12 +165,13 @@ async function init() {
     
     renderPage();
     
+    // Expor API global com segurança
     window.pluri = {
         navigateTo,
         openConversation,
-        openPatient,
+        openPatient: typeof openPatient === 'function' ? openPatient : () => {},
         openModal,
-        openStaff,
+        openStaff: typeof openStaff === 'function' ? openStaff : () => {},
         showToast
     };
 }
