@@ -1,4 +1,53 @@
 // js/api.js — Integração via Google Apps Script
+
+// Mapeamento: cabeçalho real da planilha -> campo usado no front-end
+const FIELD_MAPS = {
+    pacientes: {
+        'Nome': 'name',
+        'Telefone': 'phone',
+        'E-mail': 'email',
+        'Data de cadastro': 'created',
+        'Último atendimento': 'lastVisit',
+        'Próxima consulta': 'nextAppt',
+        'Status': 'status',
+        'Observações': 'notes',
+    },
+    agendamentos: {
+        'ID': 'id',
+        'Horário': 'time',
+        'Paciente': 'patient',
+        'Profissional': 'professional',
+        'Serviço': 'service',
+        'Status': 'status',
+        'Data': 'date',
+    },
+    equipe: {
+        'Nome': 'name',
+        'Função': 'role',
+        'Status': 'status',
+        'E-mail': 'email',
+        'Telefone': 'phone',
+    },
+};
+
+function normalizeRow(row, map) {
+    const out = { _row: row._row };
+    Object.entries(map).forEach(([sheetKey, appKey]) => {
+        out[appKey] = row[sheetKey] !== undefined ? row[sheetKey] : '';
+    });
+    return out;
+}
+
+function denormalizeValues(values, map) {
+    // values chega em camelCase (name, phone...) -> converte para os
+    // cabeçalhos reais da planilha (Nome, Telefone...) antes de enviar
+    const out = {};
+    Object.entries(map).forEach(([sheetKey, appKey]) => {
+        if (values[appKey] !== undefined) out[sheetKey] = values[appKey];
+    });
+    return out;
+}
+
 class PluriAPI {
     constructor(config) {
         this.config = config;
@@ -7,22 +56,23 @@ class PluriAPI {
     }
 
     // ---------- leitura ----------
-    async readSheet(sheetName) {
+    async readSheet(sheetName, mapKey) {
         try {
             const url = `${this.baseUrl}?action=read&sheet=${encodeURIComponent(sheetName)}`;
             const res = await fetch(url);
             const data = await res.json();
             if (data.error) throw new Error(data.error);
-            return data;
+            const map = FIELD_MAPS[mapKey];
+            return map ? data.map(row => normalizeRow(row, map)) : data;
         } catch (e) {
             console.warn('Apps Script (read):', e.message);
             return null;
         }
     }
 
-    getPatients() { return this.readSheet(this.sheets.pacientes); }
-    getAppointments() { return this.readSheet(this.sheets.agendamentos); }
-    getStaff() { return this.readSheet(this.sheets.equipe); }
+    getPatients() { return this.readSheet(this.sheets.pacientes, 'pacientes'); }
+    getAppointments() { return this.readSheet(this.sheets.agendamentos, 'agendamentos'); }
+    getStaff() { return this.readSheet(this.sheets.equipe, 'equipe'); }
 
     // ---------- escrita (create / update / delete) ----------
     // Content-Type 'text/plain' de propósito: evita o preflight CORS que
@@ -43,26 +93,33 @@ class PluriAPI {
         }
     }
 
-    createRow(sheetName, values) {
-        return this.postAction({ action: 'create', sheet: sheetName, values });
+    createRow(sheetName, values, mapKey) {
+        const map = FIELD_MAPS[mapKey];
+        const sheetValues = map ? denormalizeValues(values, map) : values;
+        return this.postAction({ action: 'create', sheet: sheetName, values: sheetValues });
     }
 
-    updateRow(sheetName, row, values) {
-        return this.postAction({ action: 'update', sheet: sheetName, row, values });
+    updateRow(sheetName, row, values, mapKey) {
+        const map = FIELD_MAPS[mapKey];
+        const sheetValues = map ? denormalizeValues(values, map) : values;
+        return this.postAction({ action: 'update', sheet: sheetName, row, values: sheetValues });
     }
 
     deleteRow(sheetName, row) {
         return this.postAction({ action: 'delete', sheet: sheetName, row });
     }
 
-    // Atalhos específicos de paciente, usados em pacientes.js
-    updatePatient(row, values) { return this.updateRow(this.sheets.pacientes, row, values); }
+    // Atalhos usados em pacientes.js / configuracoes.js / modal.js
+    createPatient(values) { return this.createRow(this.sheets.pacientes, values, 'pacientes'); }
+    updatePatient(row, values) { return this.updateRow(this.sheets.pacientes, row, values, 'pacientes'); }
     deletePatient(row) { return this.deleteRow(this.sheets.pacientes, row); }
-    createPatient(values) { return this.createRow(this.sheets.pacientes, values); }
 
-    // Mantido por compatibilidade com o código de agenda existente
+    createStaff(values) { return this.createRow(this.sheets.equipe, values, 'equipe'); }
+    updateStaff(row, values) { return this.updateRow(this.sheets.equipe, row, values, 'equipe'); }
+    deleteStaff(row) { return this.deleteRow(this.sheets.equipe, row); }
+
     async saveAppointment(appointment) {
-        return this.createRow(this.sheets.agendamentos, appointment);
+        return this.createRow(this.sheets.agendamentos, appointment, 'agendamentos');
     }
 }
 
