@@ -4,38 +4,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script>
+    <script>
     // ==========================================
     // PROTEÇÃO DE ACESSO — PLURI OS
     // ==========================================
 
-    (function () {
-        const sessionRaw = localStorage.getItem('pluri_session');
+    const PLURI_AUTH_API =
+        'https://script.google.com/macros/s/AKfycbzYGzXwZ4QIwGkBK9TUmTsvhmtpGtA4Wrfu1ifW9lspm1G1YiEoAOFVSnuLKinyOT7kgg/exec';
 
-        // Sem sessão = volta para o login
+
+    (async function () {
+
+        const sessionRaw =
+            localStorage.getItem('pluri_session');
+
+
+        // Sem sessão no navegador
         if (!sessionRaw) {
             window.location.replace('login.html');
             return;
         }
 
-        try {
-            const session = JSON.parse(sessionRaw);
 
-            // Sessão inválida ou sem usuário
-            if (!session || !session.user || !session.user.id) {
+        try {
+
+            const session =
+                JSON.parse(sessionRaw);
+
+
+            // Sessão local incompleta
+            if (
+                !session ||
+                !session.token ||
+                !session.user ||
+                !session.user.id
+            ) {
                 localStorage.removeItem('pluri_session');
                 window.location.replace('login.html');
                 return;
             }
 
-            // Disponibiliza a sessão para o restante da PLURI
+
+            // Verifica também a validade local
+            if (session.expiraEm) {
+
+                const expiration =
+                    new Date(session.expiraEm).getTime();
+
+                if (
+                    !Number.isFinite(expiration) ||
+                    expiration <= Date.now()
+                ) {
+                    localStorage.removeItem('pluri_session');
+                    window.location.replace('login.html');
+                    return;
+                }
+            }
+
+
+            // ==========================================
+            // VALIDA A SESSÃO NO BACKEND DA PLURI
+            // ==========================================
+
+            const params =
+                new URLSearchParams({
+                    action: 'validateSession',
+                    token: session.token
+                });
+
+
+            const response =
+                await fetch(
+                    `${PLURI_AUTH_API}?${params.toString()}`
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    'Não foi possível validar a sessão.'
+                );
+            }
+
+
+            const validation =
+                await response.json();
+
+
+            if (!validation.valid) {
+
+                localStorage.removeItem('pluri_session');
+
+                window.location.replace('login.html');
+
+                return;
+            }
+
+
+            /*
+             * Segurança adicional:
+             * o ClinicaID do token precisa ser o mesmo
+             * ClinicaID recebido no login.
+             */
+            if (
+                String(validation.clinicaId) !==
+                String(session.user.clinicaId)
+            ) {
+
+                localStorage.removeItem('pluri_session');
+
+                window.location.replace('login.html');
+
+                return;
+            }
+
+
+            // Sessão validada pelo servidor
             window.PLURI_SESSION = session;
             window.PLURI_USER = session.user;
+            window.PLURI_SESSION_VALIDATED = true;
+
 
         } catch (error) {
+
+            console.error(
+                'Erro ao validar sessão PLURI:',
+                error
+            );
+
             localStorage.removeItem('pluri_session');
+
             window.location.replace('login.html');
+
         }
+
     })();
 </script>
     
