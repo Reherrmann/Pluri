@@ -440,17 +440,26 @@
                     return;
                 }
 
+if (!data.token) {
 
-                /*
-                 * Nunca salvamos a senha.
-                 *
-                 * Somente os dados que o backend
-                 * retornou depois da autenticação.
-                 */
+    showError(
+        'Não foi possível criar uma sessão segura.'
+    );
+
+    return;
+}
+
+
+/*
+ * Guardamos o token criado pelo backend.
+ * A senha nunca é armazenada no navegador.
+ */
                 const session = {
-                    user: data.user,
-                    loggedAt: new Date().toISOString()
-                };
+    token: data.token,
+    expiraEm: data.expiraEm,
+    user: data.user,
+    loggedAt: new Date().toISOString()
+};
 
 
                 localStorage.setItem(
