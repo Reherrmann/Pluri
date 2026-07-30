@@ -396,15 +396,53 @@
 
         if (!logoutBtn) return;
 
-        logoutBtn.addEventListener('click', function () {
+        logoutBtn.addEventListener('click', async function () {
 
-            localStorage.removeItem('pluri_session');
+    const sessionRaw =
+        localStorage.getItem('pluri_session');
 
-            window.PLURI_SESSION = null;
-            window.PLURI_USER = null;
+    try {
 
-            window.location.replace('login.html');
-        });
+        if (sessionRaw) {
+
+            const session =
+                JSON.parse(sessionRaw);
+
+            if (session && session.token) {
+
+                const params =
+                    new URLSearchParams({
+                        action: 'logout',
+                        token: session.token
+                    });
+
+                await fetch(
+                    `${PLURI_AUTH_API}?${params.toString()}`
+                );
+            }
+        }
+
+    } catch (error) {
+
+        console.warn(
+            'Não foi possível encerrar a sessão no servidor:',
+            error
+        );
+
+    } finally {
+
+        // Remove a sessão do navegador independentemente
+        // da resposta do servidor.
+        localStorage.removeItem('pluri_session');
+
+        window.PLURI_SESSION = null;
+        window.PLURI_USER = null;
+        window.PLURI_SESSION_VALIDATED = false;
+
+        window.location.replace('login.html');
+    }
+
+});
 
     });
 </script>
