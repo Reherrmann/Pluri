@@ -66,10 +66,13 @@
         </nav>
         <div class="sidebar-bottom">
     <div class="sidebar-user" id="logoutBtn" title="Sair da PLURI">
-        <div class="avatar-sm">B</div>
+        <div class="avatar-sm" id="sidebarUserAvatar">--</div>
+
         <div class="user-info">
-            <div class="user-name">Recepção</div>
-            <div class="user-role">Atendimento · Sair</div>
+            <div class="user-name" id="sidebarUserName">Usuário</div>
+            <div class="user-role">
+                <span id="sidebarUserRole">Perfil</span> · Sair
+            </div>
         </div>
     </div>
 </div>
@@ -82,7 +85,7 @@
                 <i data-lucide="menu" style="pointer-events:none;"></i>
             </button>
             <div class="topbar-left">
-                <h1 class="page-title" id="pageTitle">Bom dia, bergamo.</h1>
+                <h1 class="page-title" id="pageTitle">Bom dia, Bergamo.</h1>
                 <p class="page-subtitle" id="pageSubtitle">Veja o que está acontecendo na clínica hoje.</p>
             </div>
             <div class="topbar-right">
@@ -90,7 +93,9 @@
                     <i data-lucide="sun"></i>
                 </button>
                 <button class="btn-icon" id="notifBtn"><i data-lucide="bell"></i><span class="badge-dot"></span></button>
-                <div class="clinic-badge"><span>Bergamo</span></div>
+                <div class="clinic-badge">
+    <span id="currentClinicName">Clínica</span>
+</div>
                 <div class="avatar-sm">R</div>
             </div>
         </header>
@@ -200,12 +205,90 @@
             }
         })();
     </script>
-    <script>
-    // ==========================================
-    // LOGOUT — PLURI OS
-    // ==========================================
-
+   <script>
     document.addEventListener('DOMContentLoaded', function () {
+
+        // ==========================================
+        // USUÁRIO LOGADO — PLURI OS
+        // ==========================================
+
+        const sessionRaw = localStorage.getItem('pluri_session');
+
+        if (sessionRaw) {
+            try {
+                const session = JSON.parse(sessionRaw);
+                const user = session.user;
+
+                if (user) {
+
+                    const nameEl =
+                        document.getElementById('sidebarUserName');
+
+                    const roleEl =
+                        document.getElementById('sidebarUserRole');
+
+                    const avatarEl =
+                        document.getElementById('sidebarUserAvatar');
+
+                    const clinicEl =
+                        document.getElementById('currentClinicName');
+
+
+                    // Nome do usuário
+                    if (nameEl) {
+                        nameEl.textContent =
+                            user.nome || 'Usuário';
+                    }
+
+
+                    // Perfil do usuário
+                    if (roleEl) {
+                        roleEl.textContent =
+                            user.perfil || 'Usuário';
+                    }
+
+
+                    // Nome da clínica
+                    if (clinicEl) {
+                        clinicEl.textContent =
+                            user.clinica || 'Clínica';
+                    }
+
+
+                    // Iniciais do usuário
+                    if (avatarEl) {
+
+                        const nome =
+                            String(user.nome || 'U').trim();
+
+                        const partes =
+                            nome.split(/\s+/);
+
+                        let iniciais =
+                            partes[0]?.charAt(0) || 'U';
+
+                        if (partes.length > 1) {
+                            iniciais +=
+                                partes[partes.length - 1].charAt(0);
+                        }
+
+                        avatarEl.textContent =
+                            iniciais.toUpperCase();
+                    }
+                }
+
+            } catch (error) {
+                console.error(
+                    'Erro ao carregar usuário da sessão:',
+                    error
+                );
+            }
+        }
+
+
+        // ==========================================
+        // LOGOUT — PLURI OS
+        // ==========================================
 
         const logoutBtn =
             document.getElementById('logoutBtn');
