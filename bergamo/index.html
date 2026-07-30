@@ -65,13 +65,14 @@
             <a data-page="configuracoes"><i data-lucide="settings"></i><span>Configurações</span></a>
         </nav>
         <div class="sidebar-bottom">
-            <div class="sidebar-user">
-                <div class="avatar-sm">R</div>
-                <div class="user-info">
-                    <div class="user-name">Recepção</div>
-                    <div class="user-role">Atendimento</div>
-                </div>
-            </div>
+    <div class="sidebar-user" id="logoutBtn" title="Sair da PLURI">
+        <div class="avatar-sm">B</div>
+        <div class="user-info">
+            <div class="user-name">Recepção</div>
+            <div class="user-role">Atendimento · Sair</div>
+        </div>
+    </div>
+</div>
         </div>
     </aside>
 
@@ -199,5 +200,29 @@
             }
         })();
     </script>
+    <script>
+    // ==========================================
+    // LOGOUT — PLURI OS
+    // ==========================================
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const logoutBtn =
+            document.getElementById('logoutBtn');
+
+        if (!logoutBtn) return;
+
+        logoutBtn.addEventListener('click', function () {
+
+            localStorage.removeItem('pluri_session');
+
+            window.PLURI_SESSION = null;
+            window.PLURI_USER = null;
+
+            window.location.replace('login.html');
+        });
+
+    });
+</script>
 </body>
 </html>
