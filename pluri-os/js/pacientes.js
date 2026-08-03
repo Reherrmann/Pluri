@@ -66,10 +66,23 @@ function openNewPatient() {
             return;
         }
 
-        state.patients.push({ _row: newRow, ...values });
-        closeSlidePanel();
-        showToast('Paciente criado com sucesso!');
-        renderPage();
+        try {
+
+    state.patients = await window.pluriAPI.getPatients();
+
+    closeSlidePanel();
+
+    showToast('Paciente criado com sucesso!');
+
+    renderPage();
+
+} catch (e) {
+
+    console.error(e);
+
+    showToast('Paciente salvo, mas não foi possível atualizar a lista.');
+
+}
     });
     openSlidePanel();
 }
@@ -112,13 +125,23 @@ function openPatient(row) {
             return;
         }
 
-        p.name = name;
-        p.phone = phone;
-        p.email = email;
-        p.notes = notes;
-        closeSlidePanel();
-        showToast('Paciente atualizado com sucesso!');
-        renderPage();
+        ptry {
+
+    state.patients = await window.pluriAPI.getPatients();
+
+    closeSlidePanel();
+
+    showToast('Paciente atualizado com sucesso!');
+
+    renderPage();
+
+} catch (e) {
+
+    console.error(e);
+
+    showToast('Paciente atualizado.');
+
+}
     });
     openSlidePanel();
 }
