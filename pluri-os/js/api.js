@@ -1,9 +1,62 @@
 // js/api.js
 
 class PluriAPI {
+
     constructor(config) {
         this.config = config;
     }
+
+    formatTime(value) {
+
+        if (!value) return '';
+
+        if (typeof value === 'string') {
+
+            if (/^\d{2}:\d{2}$/.test(value))
+                return value;
+
+            const d = new Date(value);
+
+            if (!isNaN(d))
+                return d.toLocaleTimeString(
+                    'pt-BR',
+                    {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }
+                );
+        }
+
+        const d = new Date(value);
+
+        if (!isNaN(d))
+            return d.toLocaleTimeString(
+                'pt-BR',
+                {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }
+            );
+
+        return '';
+    }
+
+    formatDate(value) {
+
+    if (!value) return '';
+
+    const d = new Date(value);
+
+    if (isNaN(d))
+        return '';
+
+    return [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0')
+    ].join('-');
+}
+
 
     // =========================================================
     // MÉTODOS BASE
@@ -95,9 +148,9 @@ class PluriAPI {
             phone: p['Telefone'] || '',
             email: p['E-mail'] || '',
 
-            created: p['Data de cadastro'] || '',
-            lastVisit: p['Último atendimento'] || '',
-            nextAppt: p['Próxima consulta'] || '',
+            created: this.formatDate(p['Data de cadastro']),
+lastVisit: this.formatDate(p['Último atendimento']),
+nextAppt: this.formatDate(p['Próxima consulta']),
 
             status: p['Status'] || 'Ativo',
             notes: p['Observações'] || ''
@@ -220,15 +273,15 @@ class PluriAPI {
 
         return data.map(a => ({
     _row: a._row,
-    id: a.ID || a._row,
+    id: Number(a.ID) || a._row,
 
-    time: a.horario || '',
+    time: this.formatTime(a.horario),
     patient: a.paciente || '',
     professional: a.profissional || '',
     service: a['serviço'] || '',
 
     status: a.status || 'Pendente',
-    date: a.data || ''
+    date: this.formatDate(a.data)
 }));
     }
 
@@ -239,14 +292,22 @@ class PluriAPI {
             sheet: 'Agendamentos',
 
             values: {
-                ID: appointment.id.toString(),
-                Horário: appointment.time,
-                Paciente: appointment.patient,
-                Profissional: appointment.professional,
-                Serviço: appointment.service,
-                Status: appointment.status,
-                Data: appointment.date
-            }
+
+    ID: appointment.id.toString(),
+
+    horario: appointment.time,
+
+    paciente: appointment.patient,
+
+    profissional: appointment.professional,
+
+    serviço: appointment.service,
+
+    status: appointment.status,
+
+    data: appointment.date
+
+}
         };
 
         return this.postToAppsScript(body);
@@ -281,7 +342,9 @@ async getConversations() {
 
         lastMsg: c['Resumo_conversa'] || '',
 
-        conversationDate: c['data da conversa'] || '',
+       conversationDate: this.formatDate(
+    c['data da conversa']
+),
 
         status: c['status'] || 'Aguardando'
 
@@ -325,12 +388,12 @@ async getConversations() {
 
             return events.map(event => ({
                 id: event.id || '',
-                time: event.time || '',
+                time: this.formatTime(event.time),
                 patient: event.patient || '',
                 professional: event.professional || '',
                 service: event.service || '',
                 status: event.status || 'Confirmado',
-                date: event.date || ''
+                date: this.formatDate(event.date),
             }));
 
         } catch (e) {
