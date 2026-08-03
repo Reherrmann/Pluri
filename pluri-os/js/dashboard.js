@@ -70,37 +70,45 @@ const automatedToday = state.conversations.filter(c =>
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    <h3>Precisa da sua atenção</h3>
-                </div>
+    <div class="card-header">
+        <h3>Atividade recente</h3>
+    </div>
 
-                <div class="card-body">
-                    <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="card-body">
+        <div class="timeline">
 
-                        <div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;">
-                            <strong style="font-size:13px;">${pending} confirmações pendentes</strong>
-                            <p style="font-size:12px;color:var(--text-secondary);">
-                                Pacientes ainda não confirmaram.
-                            </p>
-                            <a class="btn btn-sm btn-outline js-nav" data-page="agenda">
-                                Ver agenda
-                            </a>
-                        </div>
+            ${[...state.conversations]
+                .sort((a, b) =>
+                    new Date(b.conversationDate || 0) -
+                    new Date(a.conversationDate || 0)
+                )
+                .slice(0, 5)
+                .map(c => `
+                    <div class="timeline-item">
 
-                        <div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;">
-                            <strong style="font-size:13px;">
-                                ${conversationsWaiting} conversas precisam da equipe
-                            </strong>
-                            <p style="font-size:12px;color:var(--text-secondary);">
-                                Solicitações aguardando atendimento.
-                            </p>
-                            <a class="btn btn-sm btn-outline js-nav" data-page="atendimentos">
-                                Ver conversas
-                            </a>
-                        </div>
+                        <span class="timeline-time">
+                            ${
+                                c.conversationDate
+                                    ? new Date(c.conversationDate).toLocaleTimeString('pt-BR', {
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                      })
+                                    : '--:--'
+                            }
+                        </span>
+
+                        <div class="timeline-dot"></div>
+
+                        <span class="timeline-text">
+                            ${c.summary || c.lastMsg || 'Nova conversa'}
+                        </span>
 
                     </div>
-                </div>
+                `).join('')}
+
+        </div>
+    </div>
+</div>
             </div>
         </div>
 
