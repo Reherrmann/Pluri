@@ -2,21 +2,22 @@
 const state = {
 
     clinic: {
-        id: "",
-        name: "",
-        phone: "",
-        email: "",
-        address: "",
-        timezone: "America/Sao_Paulo",
+    id: "",
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    schedule: "",
+    timezone: "America/Sao_Paulo",
 
-        integrations: {
-            calendar: false,
-            whatsapp: false,
-            email: false
-        },
-
-        onboarding: false
+    integrations: {
+        calendar: false,
+        whatsapp: false,
+        email: false
     },
+
+    onboarding: false
+},
 
     currentPage: 'dashboard',
 
