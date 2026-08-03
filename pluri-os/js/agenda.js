@@ -13,7 +13,7 @@ function buildAgenda() {
         }
     }
     const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-
+    const appointmentsToday.sort((a, b) => a.time.localeCompare(b.time));
     return `
         <div class="agenda-toolbar">
             <div class="agenda-toolbar-left">
@@ -23,7 +23,7 @@ function buildAgenda() {
                 </div>
                 <div class="agenda-google-calendar" id="googleCalendarIndicator">
                     <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
-                    <span>Google Calendar · Preparado para integração</span>
+                    <span>Google Calendar · Não conectado</span>
                 </div>
             </div>
             <div class="agenda-toolbar-right">
@@ -32,7 +32,9 @@ function buildAgenda() {
         </div>
         <div id="agendaDayView" class="card"><div class="card-body no-padding">
             <ul class="agenda-list">${allSlots.map(time => {
-                const appt = appointmentsToday.find(a => a.time === time);
+                const appt = appointmentsToday.find(
+    a => String(a.time).trim() === time
+);
                 if (appt) {
                     return `
                         <li class="agenda-item">
