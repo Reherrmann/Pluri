@@ -13,7 +13,7 @@ function buildAgenda() {
         }
     }
     const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-    const appointmentsToday.sort((a, b) => a.time.localeCompare(b.time));
+    appointmentsToday.sort((a, b) => a.time.localeCompare(b.time));
     return `
         <div class="agenda-toolbar">
             <div class="agenda-toolbar-left">
