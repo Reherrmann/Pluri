@@ -124,7 +124,16 @@ function attachPageEvents() {
 
 async function init() {
     initMockData();
-    
+
+    // Dados da clínica (temporário até implementarmos o login real)
+    state.clinic = {
+        ...state.clinic,
+        name: "",
+        phone: "",
+        email: "",
+        address: ""
+    };
+
     if (!window.pluriAPI) {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
