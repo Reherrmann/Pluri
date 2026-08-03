@@ -1,10 +1,30 @@
 // js/state.js
 const state = {
+
+    clinic: {
+        id: "",
+        name: "",
+        phone: "",
+        email: "",
+        address: "",
+        timezone: "America/Sao_Paulo",
+
+        integrations: {
+            calendar: false,
+            whatsapp: false,
+            email: false
+        },
+
+        onboarding: false
+    },
+
     currentPage: 'dashboard',
+
     appointments: [],
     patients: [],
     conversations: [],
     activities: [],
+
     staff: [
         { id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bergamo.com', phone: '(11) 3000-1234' },
         { id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bergamo.com', phone: '(11) 98765-1111' },
