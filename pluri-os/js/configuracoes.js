@@ -1,11 +1,63 @@
 // js/configuracoes.js
 function buildConfiguracoes() {
     return `
-        <div class="card"><div class="card-header"><h3>Clínica</h3></div><div class="card-body">
-            <div class="form-row"><div class="form-group"><label>Nome</label><input value="Bergamo"></div><div class="form-group"><label>Telefone</label><input value="(11) 3000-1234"></div></div>
-            <div class="form-row"><div class="form-group"><label>E-mail</label><input value="contato@bergamo.com"></div><div class="form-group"><label>Horário</label><input value="08:00 - 18:00"></div></div>
-            <div class="form-group"><label>Endereço</label><input value="Rua Saúde, 100 - São Paulo/SP"></div>
-        </div></div>
+        <div class="card">
+    <div class="card-header">
+        <h3>Clínica</h3>
+    </div>
+
+    <div class="card-body">
+
+        <div class="form-row">
+
+            <div class="form-group">
+                <label>Nome</label>
+                <input
+                    id="clinicName"
+                    type="text"
+                    value="${state.clinic?.name || ''}">
+            </div>
+
+            <div class="form-group">
+                <label>Telefone</label>
+                <input
+                    id="clinicPhone"
+                    type="text"
+                    value="${state.clinic?.phone || ''}">
+            </div>
+
+        </div>
+
+        <div class="form-row">
+
+            <div class="form-group">
+                <label>E-mail</label>
+                <input
+                    id="clinicEmail"
+                    type="email"
+                    value="${state.clinic?.email || ''}">
+            </div>
+
+            <div class="form-group">
+                <label>Horário de funcionamento</label>
+                <input
+                    id="clinicSchedule"
+                    type="text"
+                    value="${state.clinic?.schedule || ''}">
+            </div>
+
+        </div>
+
+        <div class="form-group">
+            <label>Endereço</label>
+            <input
+                id="clinicAddress"
+                type="text"
+                value="${state.clinic?.address || ''}">
+        </div>
+
+    </div>
+</div>
         <div class="card"><div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
             <h3>Equipe</h3>
             <button class="btn btn-primary btn-sm" id="newStaffBtn"><i data-lucide="plus" style="width:14px;height:14px;"></i> Novo membro</button>
@@ -80,10 +132,23 @@ function openNewStaff() {
             return;
         }
 
-        state.staff.push({ _row: newRow, ...values });
-        closeSlidePanel();
-        showToast('Membro da equipe adicionado!');
-        renderPage();
+        try {
+
+    state.staff = await window.pluriAPI.getStaff();
+
+    closeSlidePanel();
+
+    showToast('Membro da equipe adicionado!');
+
+    renderPage();
+
+} catch (e) {
+
+    console.error(e);
+
+    showToast('Membro salvo, mas não foi possível atualizar a lista.');
+
+}
     });
     openSlidePanel();
 }
@@ -133,14 +198,23 @@ function openStaff(row) {
             return;
         }
 
-        member.name = name;
-        member.role = role;
-        member.email = email;
-        member.phone = phone;
-        member.status = status;
-        closeSlidePanel();
-        showToast('Membro da equipe atualizado!');
-        renderPage();
+        try {
+
+    state.staff = await window.pluriAPI.getStaff();
+
+    closeSlidePanel();
+
+    showToast('Membro da equipe atualizado!');
+
+    renderPage();
+
+} catch (e) {
+
+    console.error(e);
+
+    showToast('Membro atualizado.');
+
+}
     });
     openSlidePanel();
 }
