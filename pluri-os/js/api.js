@@ -6,26 +6,24 @@ class PluriAPI {
         this.config = config;
     }
 
-    formatTime(value) {
+    formatDate(value) {
 
-        if (!value) return '';
+    if (!value) return '';
 
-        if (typeof value === 'string') {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value))
+        return value;
 
-            if (/^\d{2}:\d{2}$/.test(value))
-                return value;
+    const d = new Date(value);
 
-            const d = new Date(value);
+    if (isNaN(d))
+        return '';
 
-            if (!isNaN(d))
-                return d.toLocaleTimeString(
-                    'pt-BR',
-                    {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }
-                );
-        }
+    return [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2,'0'),
+        String(d.getDate()).padStart(2,'0')
+    ].join('-');
+}
 
         const d = new Date(value);
 
@@ -293,7 +291,9 @@ nextAppt: this.formatDate(p['Próxima consulta']),
 
             values: {
 
-    ID: appointment.id.toString(),
+    ID: String(
+    appointment.id || Date.now()
+),
 
     horario: appointment.time,
 
