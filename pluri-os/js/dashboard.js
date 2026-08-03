@@ -3,7 +3,11 @@ function buildDashboard() {
     const confirmed = state.appointments.filter(a => a.status === 'Confirmado').length;
     const pending = state.appointments.filter(a => a.status === 'Pendente').length;
     const totalToday = state.appointments.length;
-    const automatedToday = state.activities.length;
+    const todayStr = new Date().toISOString().split('T')[0];
+
+const automatedToday = state.conversations.filter(c =>
+    String(c.conversationDate || '').startsWith(todayStr)
+).length;
     const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
     const occupation = totalToday > 0 ? Math.round((confirmed / totalToday) * 100) : 0;
 
@@ -40,17 +44,27 @@ function buildDashboard() {
 
                 <div class="card-body no-padding">
                     <ul class="agenda-list">
-                        ${state.appointments.slice(0,6).map(a => `
-                            <li class="agenda-item">
-                                <span class="agenda-time">${a.time}</span>
-                                <div class="agenda-avatar">${getInitials(a.patient)}</div>
-                                <div class="agenda-info">
-                                    <div class="agenda-name">${a.patient}</div>
-                                    <div class="agenda-detail">${a.service} · ${a.professional}</div>
-                                </div>
-                                ${statusBadge(a.status)}
-                            </li>
-                        `).join('')}
+                        ${[...state.appointments]
+    .sort((a, b) => String(a.time).localeCompare(String(b.time)))
+    .slice(0, 6)
+    .map(a => `
+        <li class="agenda-item">
+            <span class="agenda-time">${a.time}</span>
+
+            <div class="agenda-avatar">
+                ${getInitials(a.patient)}
+            </div>
+
+            <div class="agenda-info">
+                <div class="agenda-name">${a.patient}</div>
+                <div class="agenda-detail">
+                    ${a.service} · ${a.professional}
+                </div>
+            </div>
+
+            ${statusBadge(a.status)}
+        </li>
+    `).join('')}
                     </ul>
                 </div>
             </div>
@@ -111,7 +125,30 @@ function buildDashboard() {
 
                 <div class="card-body">
                     <div class="timeline">
-                        ${state.activities.map(a => `
+                        ${[...state.conversations]
+.sort((a,b)=>new Date(b.conversationDate||0)-new Date(a.conversationDate||0))
+.slice(0,5)
+.map(c=>`
+    <div class="timeline-item">
+        <span class="timeline-time">
+            ${
+                c.conversationDate
+                ? new Date(c.conversationDate).toLocaleTimeString('pt-BR',{
+                    hour:'2-digit',
+                    minute:'2-digit'
+                })
+                : '--:--'
+            }
+        </span>
+
+        <div class="timeline-dot"></div>
+
+        <span class="timeline-text">
+            ${c.summary || c.lastMsg || 'Nova conversa'}
+        </span>
+
+    </div>
+`).join('')} `
                             <div class="timeline-item">
                                 <span class="timeline-time">${a.time}</span>
                                 <div class="timeline-dot"></div>
