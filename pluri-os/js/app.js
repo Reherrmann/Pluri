@@ -30,7 +30,12 @@ function renderPage() {
 
 function updateTitleAndSubtitle(title, subtitle) {
     const titles = {
-        dashboard: ['Bom dia, bergamo.', 'Veja o que está acontecendo na clínica hoje.'],
+        dashboard: [
+    state.clinic.name
+        ? `Bom dia, ${state.clinic.name}.`
+        : 'Bem-vindo à PLURI.',
+    'Veja o que está acontecendo na clínica hoje.'
+],
         agenda: ['Agenda', 'Gerencie os horários da clínica.'],
         atendimentos: ['Atendimentos', 'Central de conversas com pacientes.'],
         pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
