@@ -23,7 +23,7 @@ function buildAgenda() {
                 </div>
                 <div class="agenda-google-calendar" id="googleCalendarIndicator">
                     <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
-                    <span>Google Calendar · Não conectado</span>
+                    <span>Sincronizado com Google Calendar</span>
                 </div>
             </div>
             <div class="agenda-toolbar-right">
