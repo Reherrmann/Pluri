@@ -219,15 +219,17 @@ class PluriAPI {
         }
 
         return data.map(a => ({
-            id: parseInt(a['ID']) || a._row,
+    _row: a._row,
+    id: a.ID || a._row,
 
-            time: a['Horário'] || '',
-            patient: a['Paciente'] || '',
-            professional: a['Profissional'] || '',
-            service: a['Serviço'] || '',
-            status: a['Status'] || 'Pendente',
-            date: a['Data'] || ''
-        }));
+    time: a.horario || '',
+    patient: a.paciente || '',
+    professional: a.profissional || '',
+    service: a['serviço'] || '',
+
+    status: a.status || 'Pendente',
+    date: a.data || ''
+}));
     }
 
 
