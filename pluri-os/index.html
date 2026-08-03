@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script>
+    // ==========================================
+    // PROTEÇÃO DE ACESSO — PLURI OS
+    // ==========================================
+
+    const PLURI_AUTH_API =
+        'https://script.google.com/macros/s/AKfycbzYGzXwZ4QIwGkBK9TUmTsvhmtpGtA4Wrfu1ifW9lspm1G1YiEoAOFVSnuLKinyOT7kgg/exec';
+
+
+    (async function () {
+
+        const sessionRaw =
+            localStorage.getItem('pluri_session');
+
+
+        // Sem sessão no navegador
+        if (!sessionRaw) {
+            window.location.replace('login.html');
+            return;
+        }
+
+
+        try {
+
+            const session =
+                JSON.parse(sessionRaw);
+
+
+            // Sessão local incompleta
+            if (
+                !session ||
+                !session.token ||
+                !session.user ||
+                !session.user.id
+            ) {
+                localStorage.removeItem('pluri_session');
+                window.location.replace('login.html');
+                return;
+            }
+
+
+            // Verifica também a validade local
+            if (session.expiraEm) {
+
+                const expiration =
+                    new Date(session.expiraEm).getTime();
+
+                if (
+                    !Number.isFinite(expiration) ||
+                    expiration <= Date.now()
+                ) {
+                    localStorage.removeItem('pluri_session');
+                    window.location.replace('login.html');
+                    return;
+                }
+            }
+
+
+            // ==========================================
+            // VALIDA A SESSÃO NO BACKEND DA PLURI
+            // ==========================================
+
+            const params =
+                new URLSearchParams({
+                    action: 'validateSession',
+                    token: session.token
+                });
+
+
+            const response =
+                await fetch(
+                    `${PLURI_AUTH_API}?${params.toString()}`
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    'Não foi possível validar a sessão.'
+                );
+            }
+
+
+            const validation =
+                await response.json();
+
+
+            if (!validation.valid) {
+
+                localStorage.removeItem('pluri_session');
+
+                window.location.replace('login.html');
+
+                return;
+            }
+
+
+            /*
+             * Segurança adicional:
+             * o ClinicaID do token precisa ser o mesmo
+             * ClinicaID recebido no login.
+             */
+            if (
+                String(validation.clinicaId) !==
+                String(session.user.clinicaId)
+            ) {
+
+                localStorage.removeItem('pluri_session');
+
+                window.location.replace('login.html');
+
+                return;
+            }
+
+
+            // Sessão validada pelo servidor
+            window.PLURI_SESSION = session;
+            window.PLURI_USER = session.user;
+            window.PLURI_SESSION_VALIDATED = true;
+
+
+        } catch (error) {
+
+            console.error(
+                'Erro ao validar sessão PLURI:',
+                error
+            );
+
+            localStorage.removeItem('pluri_session');
+
+            window.location.replace('login.html');
+
+        }
+
+    })();
+</script>
+    
+    <title>PLURI OS | bergamo</title>
+    <base href="/bergamo/">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,450;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <svg class="logo-icon-svg" viewBox="0 0 28 28" fill="none">
+                <rect x="2" y="2" width="24" height="24" rx="6" fill="#002C47"/>
+                <path d="M8 10h12M8 15h12M8 20h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="logo-text">PLURI OS</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a data-page="dashboard" class="active"><i data-lucide="layout-dashboard"></i><span>Visão Geral</span></a>
+            <a data-page="agenda"><i data-lucide="calendar"></i><span>Agenda</span></a>
+            <a data-page="atendimentos"><i data-lucide="message-square"></i><span>Atendimentos</span></a>
+            <a data-page="pacientes"><i data-lucide="users"></i><span>Pacientes</span></a>
+            <a data-page="automacoes"><i data-lucide="zap"></i><span>Automações</span></a>
+            <a data-page="indicadores"><i data-lucide="bar-chart-3"></i><span>Indicadores</span></a>
+            <a data-page="configuracoes"><i data-lucide="settings"></i><span>Configurações</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+    <div class="sidebar-user" id="logoutBtn" title="Sair da PLURI">
+        <div class="avatar-sm" id="sidebarUserAvatar">--</div>
+
+        <div class="user-info">
+            <div class="user-name" id="sidebarUserName">Usuário</div>
+            <div class="user-role">
+                <span id="sidebarUserRole">Perfil</span> · Sair
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <button class="hamburger" id="hamburgerBtn">
+                <i data-lucide="menu" style="pointer-events:none;"></i>
+            </button>
+            <div class="topbar-left">
+                <h1 class="page-title" id="pageTitle">Bom dia, Bergamo.</h1>
+                <p class="page-subtitle" id="pageSubtitle">Veja o que está acontecendo na clínica hoje.</p>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-icon" id="themeToggle" title="Alternar tema">
+                    <i data-lucide="sun"></i>
+                </button>
+                <button class="btn-icon" id="notifBtn"><i data-lucide="bell"></i><span class="badge-dot"></span></button>
+                <div class="clinic-badge">
+    <span id="currentClinicName">Clínica</span>
+</div>
+                <div class="avatar-sm">R</div>
+            </div>
+        </header>
+        <div class="page-container" id="pageContainer">
+            <p style="padding:40px;text-align:center;color:#667085;">Carregando…</p>
+        </div>
+    </main>
+
+    <!-- Modal: Novo Agendamento -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Novo agendamento</h3>
+                <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>Paciente</label><input type="text" id="apptPatient" placeholder="Nome do paciente"></div>
+                <div class="form-group"><label>Telefone</label><input type="text" id="apptPhone" placeholder="(11) 9...."></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Profissional</label><select id="apptProfessional"><option>Dra. Ana</option><option>Dr. Carlos</option><option>Dra. Fernanda</option></select></div>
+                    <div class="form-group"><label>Serviço</label><select id="apptService"><option>Avaliação</option><option>Retorno</option><option>Procedimento</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Data</label><input type="date" id="apptDate"></div>
+                    <div class="form-group"><label>Horário</label><input type="time" id="apptTime"></div>
+                </div>
+                <div class="form-group"><label>Observações</label><textarea id="apptNotes" rows="2"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="modalCancel">Cancelar</button>
+                <button class="btn btn-primary" id="modalSave">Salvar agendamento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide Panel -->
+    <div class="slide-panel-overlay" id="slideOverlay"></div>
+    <div class="slide-panel" id="slidePanel">
+        <div class="slide-panel-content" id="slideContent"></div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts modulares (ordem importa!) -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/slidepanel.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/agenda.js"></script>
+    <script src="js/atendimentos.js"></script>
+    <script src="js/pacientes.js"></script>
+    <script src="js/automacoes.js"></script>
+    <script src="js/indicadores.js"></script>
+    <script src="js/configuracoes.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Inicialização dos ícones Lucide -->
+    <script>
+        (function() {
+            function tryCreateIcons() {
+                if (window.lucide && typeof lucide.createIcons === 'function') {
+                    lucide.createIcons();
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryCreateIcons);
+            } else {
+                tryCreateIcons();
+            }
+        })();
+
+        // Garantir que o menu hamburguer funcione
+        (function() {
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.toggle('open');
+                if (overlay) overlay.classList.toggle('show');
+            }
+            function closeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('show');
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                const hamburger = document.getElementById('hamburgerBtn');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
+                window.toggleSidebar = toggleSidebar;
+                window.closeSidebar = closeSidebar;
+            });
+            if (document.readyState !== 'loading') {
+                const hamburger = document.getElementById('hamburgerBtn');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
+                window.toggleSidebar = toggleSidebar;
+                window.closeSidebar = closeSidebar;
+            }
+        })();
+    </script>
+   <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // ==========================================
+        // USUÁRIO LOGADO — PLURI OS
+        // ==========================================
+
+        const sessionRaw = localStorage.getItem('pluri_session');
+
+        if (sessionRaw) {
+            try {
+                const session = JSON.parse(sessionRaw);
+                const user = session.user;
+
+                if (user) {
+
+                    const nameEl =
+                        document.getElementById('sidebarUserName');
+
+                    const roleEl =
+                        document.getElementById('sidebarUserRole');
+
+                    const avatarEl =
+                        document.getElementById('sidebarUserAvatar');
+
+                    const clinicEl =
+                        document.getElementById('currentClinicName');
+
+
+                    // Nome do usuário
+                    if (nameEl) {
+                        nameEl.textContent =
+                            user.nome || 'Usuário';
+                    }
+
+
+                    // Perfil do usuário
+                    if (roleEl) {
+                        roleEl.textContent =
+                            user.perfil || 'Usuário';
+                    }
+
+
+                    // Nome da clínica
+                    if (clinicEl) {
+                        clinicEl.textContent =
+                            user.clinica || 'Clínica';
+                    }
+
+
+                    // Iniciais do usuário
+                    if (avatarEl) {
+
+                        const nome =
+                            String(user.nome || 'U').trim();
+
+                        const partes =
+                            nome.split(/\s+/);
+
+                        let iniciais =
+                            partes[0]?.charAt(0) || 'U';
+
+                        if (partes.length > 1) {
+                            iniciais +=
+                                partes[partes.length - 1].charAt(0);
+                        }
+
+                        avatarEl.textContent =
+                            iniciais.toUpperCase();
+                    }
+                }
+
+            } catch (error) {
+                console.error(
+                    'Erro ao carregar usuário da sessão:',
+                    error
+                );
+            }
+        }
+
+
+        // ==========================================
+        // LOGOUT — PLURI OS
+        // ==========================================
+
+        const logoutBtn =
+            document.getElementById('logoutBtn');
+
+        if (!logoutBtn) return;
+
+        logoutBtn.addEventListener('click', async function () {
+
+    const sessionRaw =
+        localStorage.getItem('pluri_session');
+
+    try {
+
+        if (sessionRaw) {
+
+            const session =
+                JSON.parse(sessionRaw);
+
+            if (session && session.token) {
+
+                const params =
+                    new URLSearchParams({
+                        action: 'logout',
+                        token: session.token
+                    });
+
+                await fetch(
+                    `${PLURI_AUTH_API}?${params.toString()}`
+                );
+            }
+        }
+
+    } catch (error) {
+
+        console.warn(
+            'Não foi possível encerrar a sessão no servidor:',
+            error
+        );
+
+    } finally {
+
+        // Remove a sessão do navegador independentemente
+        // da resposta do servidor.
+        localStorage.removeItem('pluri_session');
+
+        window.PLURI_SESSION = null;
+        window.PLURI_USER = null;
+        window.PLURI_SESSION_VALIDATED = false;
+
+        window.location.replace('login.html');
+    }
+
+});
+
+    });
+</script>
+</body>
+</html>
