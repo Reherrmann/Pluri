@@ -125,7 +125,7 @@ function openPatient(row) {
             return;
         }
 
-        ptry {
+        try {
 
     state.patients = await window.pluriAPI.getPatients();
 
