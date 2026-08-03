@@ -250,6 +250,38 @@ class PluriAPI {
         return this.postToAppsScript(body);
     }
 
+    // =========================================================
+// CONVERSAS
+// =========================================================
+
+async getConversations() {
+
+    const data = await this.fetchFromAppsScript(
+        this.config.appsScript.conversas
+    );
+
+    if (!data || !Array.isArray(data)) {
+        return [];
+    }
+
+    return data.map(c => ({
+        id: c.id,
+
+        patient: c.patient || '',
+        phone: c.phone || '',
+        email: c.email || '',
+
+        procedure: c.procedure || '',
+
+        summary: c.summary || '',
+
+        lastMsg: c.lastMsg || c.summary || '',
+
+        conversationDate: c.conversationDate || '',
+
+        status: c.status || 'Aguardando'
+    }));
+}
 
     // =========================================================
     // GOOGLE CALENDAR
