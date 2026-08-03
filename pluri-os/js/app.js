@@ -156,6 +156,14 @@ async function init() {
             state.staff = staff;
             console.log('✅ Equipe carregada:', staff.length);
         }
+
+const conversations = await window.pluriAPI.getConversations();
+
+if (conversations && conversations.length > 0) {
+    state.conversations = conversations;
+    console.log('✅ Conversas carregadas:', conversations.length);
+}
+        
     } catch (e) {
         console.warn('Usando dados mock:', e.message);
     }
