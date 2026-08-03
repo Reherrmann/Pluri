@@ -265,21 +265,24 @@ async getConversations() {
     }
 
     return data.map(c => ({
-        id: c.id,
 
-        patient: c.patient || '',
-        phone: c.phone || '',
-        email: c.email || '',
+        _row: c._row,
+        id: c._row,
 
-        procedure: c.procedure || '',
+        patient: c['nome'] || '',
+        phone: c['telefone'] || '',
+        email: c['e-mail'] || '',
 
-        summary: c.summary || '',
+        procedure: c['procedimento'] || '',
 
-        lastMsg: c.lastMsg || c.summary || '',
+        summary: c['Resumo_conversa'] || '',
 
-        conversationDate: c.conversationDate || '',
+        lastMsg: c['Resumo_conversa'] || '',
 
-        status: c.status || 'Aguardando'
+        conversationDate: c['data da conversa'] || '',
+
+        status: c['status'] || 'Aguardando'
+
     }));
 }
 
