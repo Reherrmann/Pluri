@@ -6,56 +6,56 @@ class PluriAPI {
         this.config = config;
     }
 
-    formatDate(value) {
+    formatTime(value) {
 
-    if (!value) return '';
+        if (!value) return '';
 
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value))
-        return value;
+        let d;
 
-    const d = new Date(value);
+        if (typeof value === 'string') {
 
-    if (isNaN(d))
-        return '';
+            if (/^\d{2}:\d{2}$/.test(value)) {
+                return value;
+            }
 
-    return [
-        d.getFullYear(),
-        String(d.getMonth() + 1).padStart(2,'0'),
-        String(d.getDate()).padStart(2,'0')
-    ].join('-');
-}
+            d = new Date(value);
 
-        const d = new Date(value);
+        } else {
 
-        if (!isNaN(d))
-            return d.toLocaleTimeString(
-                'pt-BR',
-                {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }
-            );
+            d = new Date(value);
 
-        return '';
+        }
+
+        if (isNaN(d)) {
+            return '';
+        }
+
+        return d.toLocaleTimeString(
+            'pt-BR',
+            {
+                hour: '2-digit',
+                minute: '2-digit'
+            }
+        );
     }
 
     formatDate(value) {
 
-    if (!value) return '';
+        if (!value) return '';
 
-    const d = new Date(value);
+        const d = new Date(value);
 
-    if (isNaN(d))
-        return '';
+        if (isNaN(d))
+            return '';
 
-    return [
-        d.getFullYear(),
-        String(d.getMonth() + 1).padStart(2, '0'),
-        String(d.getDate()).padStart(2, '0')
-    ].join('-');
-}
+        return [
+            d.getFullYear(),
+            String(d.getMonth() + 1).padStart(2, '0'),
+            String(d.getDate()).padStart(2, '0')
+        ].join('-');
+    }
 
-
+   
     // =========================================================
     // MÉTODOS BASE
     // =========================================================
