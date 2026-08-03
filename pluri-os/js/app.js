@@ -138,19 +138,15 @@ async function init() {
             console.log('✅ Pacientes carregados:', patients.length);
         }
 
-        // Priorizar Google Calendar
-        const calendarAppts = await window.pluriAPI.getCalendarAppointments();
-        if (calendarAppts && calendarAppts.length > 0) {
-            state.appointments = calendarAppts;
-            console.log('✅ Agendamentos carregados do Google Calendar:', calendarAppts.length);
-        } else {
-            const appointments = await window.pluriAPI.getAppointments();
-            if (appointments && appointments.length > 0) {
-                state.appointments = appointments;
-                console.log('✅ Agendamentos carregados da planilha:', appointments.length);
-            }
-        }
+        // Carregar agenda SOMENTE do Google Calendar
+const appointments = await window.pluriAPI.getCalendarAppointments();
 
+state.appointments = appointments || [];
+
+console.log(
+    '✅ Agenda carregada do Google Calendar:',
+    state.appointments.length
+);
         const staff = await window.pluriAPI.getStaff();
         if (staff && staff.length > 0) {
             state.staff = staff;
