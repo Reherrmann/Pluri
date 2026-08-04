@@ -1,89 +1,123 @@
 // js/modal.js
+
 function openModal(time = null, patientName = null, patientPhone = null) {
     const overlay = getEl('modalOverlay');
     if (!overlay) return;
     overlay.classList.add('show');
-
     const dateInput = getEl('apptDate');
-    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
-
+    if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
     const timeInput = getEl('apptTime');
-    if (timeInput) timeInput.value = time || '09:00';
-
+    if (timeInput) {
+        timeInput.value = time || '09:00';
+    }
     const patientInput = getEl('apptPatient');
-    if (patientInput && patientName) patientInput.value = patientName;
-
+    if (patientInput) {
+        patientInput.value = patientName || '';
+    }
     const phoneInput = getEl('apptPhone');
-    if (phoneInput && patientPhone) phoneInput.value = patientPhone;
-
+    if (phoneInput) {
+        phoneInput.value = patientPhone || '';
+    }
     refreshIcons();
 }
-
 function closeModal() {
     const overlay = getEl('modalOverlay');
-    if (overlay) overlay.classList.remove('show');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
 }
 
 async function saveAppointment() {
-    const patient = getEl('apptPatient')?.value?.trim() || '';
-    const phone = getEl('apptPhone')?.value?.trim() || '';
-    const professional = getEl('apptProfessional')?.value || 'Dra. Ana';
-    const service = getEl('apptService')?.value || 'Avaliação';
-    const date = getEl('apptDate')?.value || '';
-    const time = getEl('apptTime')?.value || '';
-    const notes = getEl('apptNotes')?.value?.trim() || '';
+    const patient =
+        getEl('apptPatient')?.value?.trim() || '';
+    const phone =
+        getEl('apptPhone')?.value?.trim() || '';
+
+    const professional =
+        getEl('apptProfessional')?.value || 'Dra. Ana';
+
+    const service =
+        getEl('apptService')?.value || 'Avaliação';
+
+    const date =
+        getEl('apptDate')?.value || '';
+
+    const time =
+        getEl('apptTime')?.value || '';
+
+    const notes =
+        getEl('apptNotes')?.value?.trim() || '';
 
     if (!patient || !date || !time) {
-        showToast('Preencha paciente, data e horário.');
+
+        showToast(
+            'Preencha paciente, data e horário.'
+        );
         return;
     }
+    if (!window.pluriAPI) {
+        showToast(
+            'API não inicializada.'
+        );
+        return;
+    }
+    try {
+        const result =
+            await window.pluriAPI.createAppointment({
 
-    const newAppt = {
-        id: Date.now(),
-        time,
-        patient,
-        professional,
-        service,
-        status: 'Confirmado',
-        date,
-    };
-    state.appointments.unshift(newAppt);
+                patient,
+                phone,
+                professional,
+                service,
+                date,
+                time,
+                notes,
+                status: 'Confirmado'
 
-    // Fecha o modal imediatamente
-    closeModal();
-    showToast('Agendamento criado com sucesso.');
-
-    // Tenta salvar na planilha via API
-    if (window.pluriAPI) {
-        try {
-            const body = {
-                action: 'create',
-                sheet: 'Agendamentos',
-                values: {
-                    ID: newAppt.id.toString(),
-                    Horário: newAppt.time,
-                    Paciente: newAppt.patient,
-                    Profissional: newAppt.professional,
-                    Serviço: newAppt.service,
-                    Status: newAppt.status,
-                    Data: newAppt.date,
-                }
-            };
-
-            const res = await fetch(PLURI_CONFIG.appsScript.salvarAgendamento, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(body),
             });
-            const result = await res.json();
-            console.log('Resultado do salvamento:', result);
-            if (!result.success) {
-                showToast('Agendamento salvo localmente, mas houve erro ao sincronizar com a planilha.');
-            }
-        } catch (e) {
-            console.warn('Erro ao salvar na planilha:', e.message);
+
+        console.log(
+            'Resultado do Google Calendar:',
+            result
+        );
+
+        if (!result.success) {
+
+            showToast(
+
+                result.error ||
+
+                'Erro ao criar evento.'
+
+            );
+
+            return;
+
         }
+
+        state.appointments =
+            await window.pluriAPI.getCalendarAppointments();
+
+        closeModal();
+
+        renderPage();
+
+        showToast(
+            'Agendamento criado com sucesso.'
+        );
+
     }
 
-    renderPage();
+    catch (e) {
+
+        console.error(e);
+
+        showToast(
+            'Erro ao sincronizar com o Google Calendar.'
+        );
+
+    }
+
 }
