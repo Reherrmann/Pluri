@@ -45,67 +45,39 @@ class PluriAPI {
                     json.error
                 );
             }
-
             return json;
         }
-
         catch(e){
-
             console.error(
-
                 '[GET]',
-
                 e.message
-
             );
-
             return null;
-
         }
-
     }
-
     async post(body){
-
         try{
-
             const controller =
                 new AbortController();
-
             const timer =
                 setTimeout(()=>{
-
                     controller.abort();
-
                 },this.timeout);
-
             const response =
                 await fetch(
-
                     this.config.appsScript.baseUrl,
-
                     {
-
                         method:'POST',
-
                         signal:
-
                             controller.signal,
-
                         headers:{
-
                             'Content-Type':
-
                                 'text/plain;charset=utf-8'
 
                         },
-
                         body:
-
                             JSON.stringify(body)
-
                     }
-
                 );
 
             clearTimeout(timer);
