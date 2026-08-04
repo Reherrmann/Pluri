@@ -1,13 +1,9 @@
 // js/api.js
 
 class PluriAPI {
-
     constructor(config) {
-
         this.config = config;
-
         this.timeout = 15000;
-
     }
 
     // =====================================================
@@ -15,36 +11,23 @@ class PluriAPI {
     // =====================================================
 
     async get(url){
-
         try{
-
             const controller =
                 new AbortController();
-
             const timer =
                 setTimeout(()=>{
-
                     controller.abort();
-
                 },this.timeout);
-
             const response =
                 await fetch(
-
                     url,
-
                     {
-
                         signal:
-
                             controller.signal
-
                     }
-
                 );
 
             clearTimeout(timer);
-
             if(!response.ok){
 
                 throw new Error(
@@ -57,19 +40,13 @@ class PluriAPI {
 
             const json =
                 await response.json();
-
             if(json?.error){
-
                 throw new Error(
-
                     json.error
-
                 );
-
             }
 
             return json;
-
         }
 
         catch(e){
@@ -1075,21 +1052,14 @@ class PluriAPI {
                     clinic.phone,
 
                 'E-mail':
-
                     clinic.email,
-
                 Endereço:
-
                     clinic.address,
-
                 Horário:
-
                     clinic.hours
-
             }
-
         });
-
     }
+}
 // A instância será criada pelo app.js
 window.pluriAPI = null;
