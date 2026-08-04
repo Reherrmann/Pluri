@@ -139,7 +139,8 @@ async function init() {
         }
 
         // Carregar agenda SOMENTE do Google Calendar
-const appointments = await window.pluriAPI.getCalendarAppointments();
+const appointments =
+    await window.pluriAPI.getCalendarAppointments();
 
 state.appointments = appointments || [];
 
@@ -147,17 +148,24 @@ console.log(
     '✅ Agenda carregada do Google Calendar:',
     state.appointments.length
 );
-        const staff = await window.pluriAPI.getStaff();
-        if (staff && staff.length > 0) {
-            state.staff = staff;
-            console.log('✅ Equipe carregada:', staff.length);
-        }
 
-const conversations = await window.pluriAPI.getConversations();
+// ADICIONE ISSO
+console.table(state.appointments);
 
-if (conversations && conversations.length > 0) {
-    state.conversations = conversations;
-    console.log('✅ Conversas carregadas:', conversations.length);
+// ou, se preferir ver tudo:
+// console.log(JSON.stringify(state.appointments, null, 2));
+
+const staff = await window.pluriAPI.getStaff();
+
+if (staff && staff.length > 0) {
+
+    state.staff = staff;
+
+    console.log(
+        '✅ Equipe carregada:',
+        staff.length
+    );
+
 }
         
     } catch (e) {
