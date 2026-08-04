@@ -969,88 +969,49 @@ class PluriAPI {
     // =====================================================
 
     async getClinic(){
-
         const data =
             await this.get(
-
                 this.config.appsScript.baseUrl +
-
                 '?action=clinic'
-
             );
-
         if(!data){
-
             return null;
-
         }
-
         return this.mapClinic(
-
             data.clinic ||
-
             data
-
         );
-
     }
 
     mapClinic(clinic){
-
         return{
-
             name:
-
                 clinic.name ||
-
                 '',
-
             phone:
-
                 clinic.phone ||
-
                 '',
-
             email:
-
                 clinic.email ||
-
                 '',
-
             address:
-
                 clinic.address ||
-
                 '',
-
             hours:
-
                 clinic.hours ||
-
                 ''
-
         };
-
     }
 
     async updateClinic(clinic){
-
         return this.post({
-
             action:
-
                 'updateClinic',
-
             values:{
-
                 Nome:
-
                     clinic.name,
-
                 Telefone:
-
                     clinic.phone,
-
                 'E-mail':
                     clinic.email,
                 Endereço:
