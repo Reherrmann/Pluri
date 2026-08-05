@@ -4,6 +4,20 @@ function renderPage() {
     console.log('🔍 Renderizando página:', state.currentPage);
     // ... resto do código
 }
+
+function getSessionToken() {
+    // Tenta obter da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) return token;
+
+    // Tenta obter do localStorage
+    const storedToken = localStorage.getItem('pluri_token');
+    if (storedToken) return storedToken;
+
+    // Se não encontrado, retorna null
+    return null;
+}
 function renderPage() {
     const container = getEl('pageContainer');
     if (!container) return;
@@ -130,13 +144,21 @@ function attachPageEvents() {
 async function init() {
     initMockData();
 
-    
-
     if (!window.pluriAPI) {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
 
+    // 🔑 Obtém e define o token de sessão
+    const token = getSessionToken();
+    if (token) {
+        window.pluriAPI.setSessionToken(token);
+        console.log('🔑 Token de sessão configurado.');
+    } else {
+        console.warn('⚠️ Token de sessão não encontrado. A agenda do Google Calendar pode não carregar.');
+    }
+
     try {
+        // ... resto do código permanece igual ...
         const patients = await window.pluriAPI.getPatients();
         if (patients && patients.length > 0) {
             state.patients = patients;
