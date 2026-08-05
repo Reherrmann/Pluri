@@ -28,7 +28,7 @@ function buildAgenda() {
             </div>
             <div class="agenda-toolbar-right">
                 <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
-            </div>
+            <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button> </div>
         </div>
         <div id="agendaDayView" class="card"><div class="card-body no-padding">
             <ul class="agenda-list">${allSlots.map(time => {
