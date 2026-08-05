@@ -32,11 +32,9 @@ function renderPage() {
 function updateTitleAndSubtitle(title, subtitle) {
     const titles = {
         dashboard: [
-    state.clinic.name
-        ? `Bom dia, ${state.clinic.name}.`
-        : 'Bem-vindo à PLURI.',
-    'Veja o que está acontecendo na clínica hoje.'
-],
+            state.clinic.name ? `Bom dia, ${state.clinic.name}.` : 'Bem-vindo à PLURI.',
+            'Veja o que está acontecendo na clínica hoje.'
+        ],
         agenda: ['Agenda', 'Gerencie os horários da clínica.'],
         atendimentos: ['Atendimentos', 'Central de conversas com pacientes.'],
         pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
@@ -53,6 +51,22 @@ function attachPageEvents() {
     getEl('openModalBtn')?.addEventListener('click', () => openModal());
     getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
     getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
+
+    // Evento do botão "Conectar Google Calendar"
+    getEl('btnConnectCalendar')?.addEventListener('click', async () => {
+        try {
+            const url = await window.pluriAPI.getCalendarAuthUrl();
+            const popup = window.open(url, 'googleAuth', 'width=600,height=600');
+            const timer = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(timer);
+                    location.reload();
+                }
+            }, 500);
+        } catch (e) {
+            alert('Erro ao conectar: ' + e.message);
+        }
+    });
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -132,6 +146,7 @@ function getSessionToken() {
     const storedToken = localStorage.getItem('pluri_token');
     if (storedToken) return storedToken;
 
+    // Fallback de teste – REMOVA APÓS IMPLEMENTAR LOGIN REAL
     return 'd0a79467-fc23-4a77-ab33-345f6ea81d5b2e43f24d3f66473183cf219de7347f66';
 }
 
@@ -192,6 +207,14 @@ async function init() {
     getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
 
     renderPage();
+
+    // Exibe o botão de conectar se o calendário não estiver vinculado
+    window.addEventListener('calendar:not_connected', () => {
+        const connectBtn = document.getElementById('btnConnectCalendar');
+        if (connectBtn) {
+            connectBtn.style.display = 'inline-block';
+        }
+    });
 
     window.pluri = {
         navigateTo,
