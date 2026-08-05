@@ -1,24 +1,6 @@
 // js/app.js
 
 function renderPage() {
-    console.log('🔍 Renderizando página:', state.currentPage);
-    // ... resto do código
-}
-
-function getSessionToken() {
-    // Tenta obter da URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (token) return token;
-
-    // Tenta obter do localStorage
-    const storedToken = localStorage.getItem('pluri_token');
-    if (storedToken) return storedToken;
-
-    // Se não encontrado, retorna null
-    return null;
-}
-function renderPage() {
     const container = getEl('pageContainer');
     if (!container) return;
     const title = getEl('pageTitle');
@@ -141,6 +123,18 @@ function attachPageEvents() {
     }
 }
 
+// 🔑 NOVA FUNÇÃO - obtém o token de sessão da URL ou do localStorage
+function getSessionToken() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) return token;
+
+    const storedToken = localStorage.getItem('pluri_token');
+    if (storedToken) return storedToken;
+
+    return null;
+}
+
 async function init() {
     initMockData();
 
@@ -148,7 +142,7 @@ async function init() {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
 
-    // 🔑 Obtém e define o token de sessão
+    // 🔑 Configura o token de sessão na API
     const token = getSessionToken();
     if (token) {
         window.pluriAPI.setSessionToken(token);
@@ -158,57 +152,36 @@ async function init() {
     }
 
     try {
-        // ... resto do código permanece igual ...
         const patients = await window.pluriAPI.getPatients();
         if (patients && patients.length > 0) {
             state.patients = patients;
             console.log('✅ Pacientes carregados:', patients.length);
         }
 
-        // Carregar agenda SOMENTE do Google Calendar
-const appointments =
-    await window.pluriAPI.getCalendarAppointments();
+        const appointments = await window.pluriAPI.getCalendarAppointments();
+        state.appointments = appointments || [];
+        console.log('✅ Agenda carregada do Google Calendar:', state.appointments.length);
+        console.table(state.appointments);
 
-state.appointments = appointments || [];
-
-console.log(
-    '✅ Agenda carregada do Google Calendar:',
-    state.appointments.length
-);
-
-// ADICIONE ISSO
-console.table(state.appointments);
-
-// ou, se preferir ver tudo:
-// console.log(JSON.stringify(state.appointments, null, 2));
-
-const staff = await window.pluriAPI.getStaff();
-
-if (staff && staff.length > 0) {
-
-    state.staff = staff;
-
-    console.log(
-        '✅ Equipe carregada:',
-        staff.length
-    );
-
-}
-        
+        const staff = await window.pluriAPI.getStaff();
+        if (staff && staff.length > 0) {
+            state.staff = staff;
+            console.log('✅ Equipe carregada:', staff.length);
+        }
     } catch (e) {
         console.warn('Usando dados mock:', e.message);
     }
 
     loadTheme();
     getEl('themeToggle')?.addEventListener('click', toggleTheme);
-    
+
     document.querySelectorAll('.sidebar-nav a').forEach(a => {
         a.addEventListener('click', (e) => {
             e.preventDefault();
             navigateTo(a.dataset.page);
         });
     });
-    
+
     getEl('modalClose')?.addEventListener('click', closeModal);
     getEl('modalCancel')?.addEventListener('click', closeModal);
     getEl('modalSave')?.addEventListener('click', saveAppointment);
@@ -217,9 +190,9 @@ if (staff && staff.length > 0) {
     });
     getEl('slideOverlay')?.addEventListener('click', closeSlidePanel);
     getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
-    
+
     renderPage();
-    
+
     window.pluri = {
         navigateTo,
         openConversation,
