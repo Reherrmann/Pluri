@@ -1,4 +1,9 @@
 // js/app.js
+
+function renderPage() {
+    console.log('🔍 Renderizando página:', state.currentPage);
+    // ... resto do código
+}
 function renderPage() {
     const container = getEl('pageContainer');
     if (!container) return;
