@@ -16,26 +16,23 @@ class PluriAPI {
     // HTTP
     // =====================================================
 
-    async get(url) {
-        try {
-          //  const controller = new AbortController();
-          //  const timer = setTimeout(() => controller.abort(), this.timeout);
-            const response = await fetch(url, { signal: controller.signal });
-          //  clearTimeout(timer);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const json = await response.json();
-            if (json?.error) {
-                throw new Error(json.error);
-            }
-            return json;
-        } catch (e) {
-            console.error('[GET]', e.message);
-            return null;
+   async get(url) {
+    try {
+        console.log('🌐 [GET]', url); // <-- adicione esta linha para ver a URL
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
+        const json = await response.json();
+        if (json?.error) {
+            throw new Error(json.error);
+        }
+        return json;
+    } catch (e) {
+        console.error('[GET]', e.message);
+        return null;
     }
-
+}
     async post(body) {
         try {
             const controller = new AbortController();
