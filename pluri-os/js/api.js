@@ -18,10 +18,10 @@ class PluriAPI {
 
     async get(url) {
         try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), this.timeout);
+          //  const controller = new AbortController();
+          //  const timer = setTimeout(() => controller.abort(), this.timeout);
             const response = await fetch(url, { signal: controller.signal });
-            clearTimeout(timer);
+          //  clearTimeout(timer);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
