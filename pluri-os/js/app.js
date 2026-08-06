@@ -180,23 +180,23 @@ function getSessionToken() {
 }
 
 // Aguarda a validação da sessão (caso ainda esteja em andamento)
-function waitForSession() {
-    return new Promise((resolve) => {
+function waitForSession(timeoutMs = 10000) {
+    return new Promise((resolve, reject) => {
         if (window.PLURI_SESSION_VALIDATED) {
             resolve();
             return;
         }
+        const start = Date.now();
         const checkInterval = setInterval(() => {
             if (window.PLURI_SESSION_VALIDATED) {
                 clearInterval(checkInterval);
                 resolve();
+            } else if (Date.now() - start > timeoutMs) {
+                clearInterval(checkInterval);
+                console.warn('⏰ Timeout aguardando sessão.');
+                resolve(); // não rejeita, apenas prossegue com o que tiver
             }
         }, 100);
-        // Timeout de segurança (5s)
-        setTimeout(() => {
-            clearInterval(checkInterval);
-            resolve();
-        }, 5000);
     });
 }
 
@@ -207,19 +207,22 @@ async function init() {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
 
-    // Aguarda a sessão estar validada (importante para o token)
-    await waitForSession();
+    // Aguarda a sessão ser validada (máximo 10 segundos)
+    console.log('⏳ Aguardando validação da sessão...');
+    await waitForSession(10000); // timeout de 10s
+    console.log('✅ Sessão validada:', window.PLURI_SESSION_VALIDATED);
 
     const token = getSessionToken();
     if (!token) {
-        // getSessionToken já redireciona se não encontrar nada
+        console.error('❌ Nenhum token disponível após validação.');
         return;
     }
     window.pluriAPI.setSessionToken(token);
-    console.log('🔑 Token de sessão configurado.');
+    console.log('🔑 Token de sessão configurado:', token.substring(0, 10) + '...');
 
     // ⭐ Registrar listener ANTES das chamadas (apenas define flag)
     window.addEventListener('calendar:not_connected', () => {
+        console.log('📢 Evento calendar:not_connected recebido.');
         window._calendarNotConnected = true;
     });
 
@@ -230,7 +233,9 @@ async function init() {
             console.log('✅ Pacientes carregados:', patients.length);
         }
 
+        console.log('🔄 Chamando getCalendarAppointments...');
         const appointments = await window.pluriAPI.getCalendarAppointments();
+        console.log('📋 Resposta de getCalendarAppointments:', appointments);
         state.appointments = appointments || [];
         console.log('✅ Agenda carregada do Google Calendar:', state.appointments.length);
         console.table(state.appointments);
