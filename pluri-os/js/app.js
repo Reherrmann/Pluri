@@ -162,42 +162,34 @@ async function init() {
     }
 
     const token = getSessionToken();
-    if (!token) {
-        console.error('❌ Nenhum token disponível após validação.');
-        return;
-    }
+    if (!token) return;
     window.pluriAPI.setSessionToken(token);
-    console.log('🔑 Token de sessão configurado:', token.substring(0, 10) + '...');
+    console.log('🔑 Token configurado:', token.substring(0, 10) + '...');
 
     window.addEventListener('calendar:not_connected', () => {
-        console.log('📢 Evento calendar:not_connected recebido.');
         window._calendarNotConnected = true;
     });
 
     try {
-        // Pequena pausa para garantir que o ambiente esteja completamente carregado
-        await new Promise(resolve => setTimeout(resolve, 500));
-
         console.log('🔄 Carregando pacientes...');
         const patients = await window.pluriAPI.getPatients();
         state.patients = Array.isArray(patients) ? patients : [];
-        console.log('✅ Pacientes carregados:', state.patients.length);
+        console.log('✅ Pacientes:', state.patients.length);
 
         console.log('🔄 Carregando agenda...');
         const appointments = await window.pluriAPI.getCalendarAppointments();
         state.appointments = Array.isArray(appointments) ? appointments : [];
-        console.log('✅ Agenda carregada do Google Calendar:', state.appointments.length);
+        console.log('✅ Agenda:', state.appointments.length);
 
         console.log('🔄 Carregando equipe...');
         const staff = await window.pluriAPI.getStaff();
         state.staff = Array.isArray(staff) ? staff : [];
-        console.log('✅ Equipe carregada:', state.staff.length);
+        console.log('✅ Equipe:', state.staff.length);
     } catch (e) {
         console.error('❌ Erro ao carregar dados:', e.message);
         state.patients = [];
         state.appointments = [];
         state.staff = [];
-        alert('Não foi possível carregar os dados da plataforma. Verifique sua conexão ou entre em contato com o suporte.');
     }
 
     loadTheme();
