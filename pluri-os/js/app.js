@@ -70,6 +70,28 @@ function attachPageEvents() {
         }
     });
 
+    // Navegação de data na agenda
+    getEl('agendaPrevDay')?.addEventListener('click', () => {
+        const current = new Date(state.agendaDate || new Date());
+        current.setDate(current.getDate() - 1);
+        state.agendaDate = current.toISOString().split('T')[0];
+        renderPage();
+    });
+    getEl('agendaNextDay')?.addEventListener('click', () => {
+        const current = new Date(state.agendaDate || new Date());
+        current.setDate(current.getDate() + 1);
+        state.agendaDate = current.toISOString().split('T')[0];
+        renderPage();
+    });
+
+    // Clique em evento da agenda para editar (delegação no container principal)
+    document.getElementById('pageContainer')?.addEventListener('click', (e) => {
+        const agendaItem = e.target.closest('.agenda-item');
+        if (agendaItem && agendaItem.dataset.id) {
+            openEditAppointment(agendaItem.dataset.id);
+        }
+    });
+
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
