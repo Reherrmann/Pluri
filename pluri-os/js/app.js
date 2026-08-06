@@ -154,40 +154,50 @@ function attachPageEvents() {
     }
 }
 
-// 🔑 Obtém o token de sessão (do login.html ou localStorage)
+// 🔑 Obtém o token de sessão válido (já verificado pelo index.html)
 function getSessionToken() {
-    // 1. Tenta obter da URL (parâmetro ?token=...)
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = urlParams.get('token');
-    if (tokenFromUrl) return tokenFromUrl;
+    // 1. Sessão validada pelo index.html
+    if (window.PLURI_SESSION_VALIDATED && window.PLURI_SESSION && window.PLURI_SESSION.token) {
+        return window.PLURI_SESSION.token;
+    }
 
-    // 2. Tenta obter da sessão salva pelo login.html
+    // 2. Fallback: tenta ler diretamente do localStorage (caso a validação ainda não tenha terminado)
     const sessionData = localStorage.getItem('pluri_session');
     if (sessionData) {
         try {
             const session = JSON.parse(sessionData);
             if (session.token) {
-                // Opcional: verificar expiração (se existir o campo expiraEm)
-                if (session.expiraEm) {
-                    const expira = new Date(session.expiraEm);
-                    if (expira.getTime() <= Date.now()) {
-                        // Sessão expirada – limpa e redireciona
-                        localStorage.removeItem('pluri_session');
-                        window.location.href = 'login.html';
-                        return null;
-                    }
-                }
                 return session.token;
             }
         } catch (e) {
-            console.error('Erro ao ler sessão:', e);
             localStorage.removeItem('pluri_session');
         }
     }
 
-    // 3. Nenhum token encontrado → redireciona para login
+    // 3. Se nada for encontrado, redireciona para login
     window.location.href = 'login.html';
     return null;
+}
+
+// Aguarda a validação da sessão (caso ainda esteja em andamento)
+function waitForSession() {
+    return new Promise((resolve) => {
+        if (window.PLURI_SESSION_VALIDATED) {
+            resolve();
+            return;
+        }
+        const checkInterval = setInterval(() => {
+            if (window.PLURI_SESSION_VALIDATED) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+        // Timeout de segurança (5s)
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve();
+        }, 5000);
+    });
 }
 
 async function init() {
@@ -197,15 +207,16 @@ async function init() {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
 
-    // 🔑 Configura o token de sessão na API
+    // Aguarda a sessão estar validada (importante para o token)
+    await waitForSession();
+
     const token = getSessionToken();
-    if (token) {
-        window.pluriAPI.setSessionToken(token);
-        console.log('🔑 Token de sessão configurado.');
-    } else {
-        // getSessionToken já redireciona, mas por segurança
+    if (!token) {
+        // getSessionToken já redireciona se não encontrar nada
         return;
     }
+    window.pluriAPI.setSessionToken(token);
+    console.log('🔑 Token de sessão configurado.');
 
     // ⭐ Registrar listener ANTES das chamadas (apenas define flag)
     window.addEventListener('calendar:not_connected', () => {
