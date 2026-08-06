@@ -57,15 +57,16 @@ async function saveAppointment() {
 
     try {
         const result = await window.pluriAPI.createAppointment({
-            patient,
-            phone,
-            professional,
-            service,
-            date,
-            time,
-            notes,
-            status: 'Confirmado'
-        });
+    patient,
+    phone,
+    professional,
+    service,
+    date,
+    time,
+    notes,
+    status: 'Confirmado',
+    token: window.pluriAPI.token   // ← adicione esta linha
+});
 
         console.log('Resultado do Google Calendar:', result);
 
