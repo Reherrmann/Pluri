@@ -146,8 +146,8 @@ function getSessionToken() {
     const storedToken = localStorage.getItem('pluri_token');
     if (storedToken) return storedToken;
 
-    // Fallback de teste – REMOVA APÓS IMPLEMENTAR LOGIN REAL
-    return 'd0a79467-fc23-4a77-ab33-345f6ea81d5b2e43f24d3f66473183cf219de7347f66';
+    // Fallback com token ATIVO da planilha
+    return '761590ce-1a41-481b-b575-5b185db0787e69f6f2d17c734fa185814c5ea9326012';
 }
 
 async function init() {
