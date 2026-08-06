@@ -10,9 +10,7 @@ class PluriAPI {
         this.token = token;
     }
 
-    // =====================================================
     // Helper para chamar funções do servidor via google.script.run
-    // =====================================================
     _callServer(methodName, ...args) {
         return new Promise((resolve, reject) => {
             if (typeof google === 'undefined' || !google.script) {
@@ -26,9 +24,7 @@ class PluriAPI {
         });
     }
 
-    // =====================================================
     // PACIENTES
-    // =====================================================
     async getPatients() {
         const data = await this._callServer('getPatientsData');
         return Array.isArray(data) ? data.map(p => this.mapPatient(p)) : [];
@@ -44,19 +40,11 @@ class PluriAPI {
             notes: p['Observações'] || ''
         };
     }
-    async createPatient(patient) {
-        return this._callServer('createPatientServer', patient);
-    }
-    async updatePatient(row, patient) {
-        return this._callServer('updatePatientServer', row, patient);
-    }
-    async deletePatient(row) {
-        return this._callServer('deletePatientServer', row);
-    }
+    async createPatient(patient) { return this._callServer('createPatientServer', patient); }
+    async updatePatient(row, patient) { return this._callServer('updatePatientServer', row, patient); }
+    async deletePatient(row) { return this._callServer('deletePatientServer', row); }
 
-    // =====================================================
     // EQUIPE
-    // =====================================================
     async getStaff() {
         const data = await this._callServer('getStaffData');
         return Array.isArray(data) ? data.map(s => this.mapStaff(s)) : [];
@@ -68,19 +56,11 @@ class PluriAPI {
             phone: staff['Telefone'] || '', status: this.normalizeStatus(staff['Status'])
         };
     }
-    async createStaff(member) {
-        return this._callServer('createStaffServer', member);
-    }
-    async updateStaff(row, member) {
-        return this._callServer('updateStaffServer', row, member);
-    }
-    async deleteStaff(row) {
-        return this._callServer('deleteStaffServer', row);
-    }
+    async createStaff(member) { return this._callServer('createStaffServer', member); }
+    async updateStaff(row, member) { return this._callServer('updateStaffServer', row, member); }
+    async deleteStaff(row) { return this._callServer('deleteStaffServer', row); }
 
-    // =====================================================
     // CALENDAR
-    // =====================================================
     async getCalendarAppointments(date = null) {
         if (!this.token) return [];
         const data = await this._callServer('getCalendarAppointmentsServer', this.token, date);
@@ -120,37 +100,25 @@ class PluriAPI {
         };
     }
 
-    async createAppointment(appointment) {
-        return this._callServer('createAppointmentServer', appointment);
-    }
-    async updateAppointment(appointment) {
-        return this._callServer('updateAppointmentServer', appointment);
-    }
-    async deleteAppointment(id) {
-        return this._callServer('deleteAppointmentServer', id);
-    }
+    async createAppointment(appointment) { return this._callServer('createAppointmentServer', appointment); }
+    async updateAppointment(appointment) { return this._callServer('updateAppointmentServer', appointment); }
+    async deleteAppointment(id) { return this._callServer('deleteAppointmentServer', id); }
 
-    // =====================================================
     // CONVERSAS
-    // =====================================================
     async getConversations() {
         const data = await this._callServer('getConversationsData');
         return Array.isArray(data) ? data.map(c => this.mapConversation(c)) : [];
     }
     mapConversation(c) { /* ... mesma implementação ... */ }
 
-    // =====================================================
     // CLÍNICA
-    // =====================================================
     async getClinic() {
         const data = await this._callServer('getClinicData');
         return this.mapClinic(data);
     }
     mapClinic(clinic) { /* ... */ }
 
-    // =====================================================
     // FORMATADORES (mantidos)
-    // =====================================================
     formatDate(value) { /* ... */ }
     formatTime(value) { /* ... */ }
     normalizeStatus(status, def = 'Ativo') { return status || def; }
