@@ -28,15 +28,11 @@ function renderPage() {
     refreshIcons();
     updateTitleAndSubtitle(title, subtitle);
 
-    // Exibe o botão de conectar na Agenda, se necessário
     if (window._calendarNotConnected) {
         const connectBtn = document.getElementById('btnConnectCalendar');
-        if (connectBtn) {
-            connectBtn.style.display = 'inline-block';
-        }
+        if (connectBtn) connectBtn.style.display = 'inline-block';
     }
 
-    // Se estiver na página de Configurações, atualiza status do Google Calendar
     if (state.currentPage === 'configuracoes') {
         updateGoogleCalendarStatus();
     }
@@ -65,15 +61,15 @@ function attachPageEvents() {
     getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
     getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
 
-    // Evento do botão "Conectar Google Calendar" na Agenda
     getEl('btnConnectCalendar')?.addEventListener('click', async () => {
-    try {
-        const url = await window.pluriAPI.getCalendarAuthUrl();
-        window.location.href = url;
-    } catch (e) {
-        alert('Erro ao conectar: ' + e.message);
-    }
-});
+        try {
+            const url = await window.pluriAPI.getCalendarAuthUrl();
+            window.location.href = url;
+        } catch (e) {
+            alert('Erro ao conectar: ' + e.message);
+        }
+    });
+
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
@@ -143,63 +139,47 @@ function attachPageEvents() {
     }
 }
 
-// 🔑 Obtém o token de sessão válido (já verificado pelo index.html)
 function getSessionToken() {
-    // 1. Sessão validada pelo index.html
     if (window.PLURI_SESSION_VALIDATED && window.PLURI_SESSION && window.PLURI_SESSION.token) {
         return window.PLURI_SESSION.token;
     }
-
-    // 2. Fallback: tenta ler diretamente do localStorage (caso a validação ainda não tenha terminado)
     const sessionData = localStorage.getItem('pluri_session');
     if (sessionData) {
         try {
             const session = JSON.parse(sessionData);
-            if (session.token) {
-                return session.token;
-            }
+            if (session.token) return session.token;
         } catch (e) {
             localStorage.removeItem('pluri_session');
         }
     }
-
-    // 3. Se nada for encontrado, redireciona para login
     window.location.href = 'login.html';
     return null;
 }
 
-// Aguarda a validação da sessão (caso ainda esteja em andamento)
-function waitForSession(timeoutMs = 10000) {
+function waitForGoogleScript(timeoutMs = 10000) {
     return new Promise((resolve, reject) => {
-        if (window.PLURI_SESSION_VALIDATED) {
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
             resolve();
             return;
         }
-        const start = Date.now();
-        const checkInterval = setInterval(() => {
-            if (window.PLURI_SESSION_VALIDATED) {
-                clearInterval(checkInterval);
+        let elapsed = 0;
+        const interval = setInterval(() => {
+            elapsed += 100;
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                clearInterval(interval);
                 resolve();
-            } else if (Date.now() - start > timeoutMs) {
-                clearInterval(checkInterval);
-                console.warn('⏰ Timeout aguardando sessão.');
-                resolve(); // não rejeita, apenas prossegue com o que tiver
+            } else if (elapsed >= timeoutMs) {
+                clearInterval(interval);
+                reject(new Error('google.script.run não está disponível após ' + timeoutMs + 'ms'));
             }
         }, 100);
     });
 }
 
 async function init() {
-    initMockData();
-
     if (!window.pluriAPI) {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
-
-    // Aguarda a sessão ser validada (máximo 10 segundos)
-    console.log('⏳ Aguardando validação da sessão...');
-    await waitForSession(10000); // timeout de 10s
-    console.log('✅ Sessão validada:', window.PLURI_SESSION_VALIDATED);
 
     const token = getSessionToken();
     if (!token) {
@@ -209,33 +189,37 @@ async function init() {
     window.pluriAPI.setSessionToken(token);
     console.log('🔑 Token de sessão configurado:', token.substring(0, 10) + '...');
 
-    // ⭐ Registrar listener ANTES das chamadas (apenas define flag)
     window.addEventListener('calendar:not_connected', () => {
         console.log('📢 Evento calendar:not_connected recebido.');
         window._calendarNotConnected = true;
     });
 
     try {
+        console.log('⏳ Aguardando google.script.run...');
+        await waitForGoogleScript(15000);
+        console.log('✅ google.script.run disponível.');
+
+        console.log('🔄 Carregando pacientes...');
         const patients = await window.pluriAPI.getPatients();
-        if (patients && patients.length > 0) {
-            state.patients = patients;
-            console.log('✅ Pacientes carregados:', patients.length);
-        }
+        state.patients = Array.isArray(patients) ? patients : [];
+        console.log('✅ Pacientes carregados:', state.patients.length);
 
-        console.log('🔄 Chamando getCalendarAppointments...');
+        console.log('🔄 Carregando agenda...');
         const appointments = await window.pluriAPI.getCalendarAppointments();
-        console.log('📋 Resposta de getCalendarAppointments:', appointments);
-        state.appointments = appointments || [];
+        state.appointments = Array.isArray(appointments) ? appointments : [];
         console.log('✅ Agenda carregada do Google Calendar:', state.appointments.length);
-        console.table(state.appointments);
 
+        console.log('🔄 Carregando equipe...');
         const staff = await window.pluriAPI.getStaff();
-        if (staff && staff.length > 0) {
-            state.staff = staff;
-            console.log('✅ Equipe carregada:', staff.length);
-        }
+        state.staff = Array.isArray(staff) ? staff : [];
+        console.log('✅ Equipe carregada:', state.staff.length);
     } catch (e) {
-        console.warn('Usando dados mock:', e.message);
+        console.error('❌ Erro ao carregar dados:', e.message);
+        // Em caso de erro, a interface mostrará mensagens vazias, não dados mock
+        state.patients = [];
+        state.appointments = [];
+        state.staff = [];
+        alert('Não foi possível carregar os dados da plataforma. Verifique sua conexão ou entre em contato com o suporte.');
     }
 
     loadTheme();
