@@ -160,11 +160,12 @@ class PluriAPI {
     }
 
     async isCalendarConnected() {
-        if (!this.token) return false;
-        const url = `${this.config.appsScript.baseUrl}?action=oauth_start&token=${encodeURIComponent(this.token)}`;
-        const data = await this.get(url);
-        return data && data.success && data.url === null;
-    }
+    if (!this.token) return false;
+    const url = `${this.config.appsScript.baseUrl}?action=calendar_user&token=${encodeURIComponent(this.token)}`;
+    const data = await this.get(url);
+    // Se a chamada retornar sucesso (mesmo sem eventos), está conectado
+    return data && data.success;
+}
 
     mapCalendarEvent(event) {
         return {
