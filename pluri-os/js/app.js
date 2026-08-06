@@ -156,26 +156,6 @@ function getSessionToken() {
     return null;
 }
 
-function waitForGoogleScript(timeoutMs = 10000) {
-    return new Promise((resolve, reject) => {
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-            resolve();
-            return;
-        }
-        let elapsed = 0;
-        const interval = setInterval(() => {
-            elapsed += 100;
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                clearInterval(interval);
-                resolve();
-            } else if (elapsed >= timeoutMs) {
-                clearInterval(interval);
-                reject(new Error('google.script.run não está disponível após ' + timeoutMs + 'ms'));
-            }
-        }, 100);
-    });
-}
-
 async function init() {
     if (!window.pluriAPI) {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
@@ -195,9 +175,8 @@ async function init() {
     });
 
     try {
-        console.log('⏳ Aguardando google.script.run...');
-        await waitForGoogleScript(15000);
-        console.log('✅ google.script.run disponível.');
+        // Pequena pausa para garantir que o ambiente esteja completamente carregado
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         console.log('🔄 Carregando pacientes...');
         const patients = await window.pluriAPI.getPatients();
@@ -215,7 +194,6 @@ async function init() {
         console.log('✅ Equipe carregada:', state.staff.length);
     } catch (e) {
         console.error('❌ Erro ao carregar dados:', e.message);
-        // Em caso de erro, a interface mostrará mensagens vazias, não dados mock
         state.patients = [];
         state.appointments = [];
         state.staff = [];
