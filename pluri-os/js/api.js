@@ -14,18 +14,18 @@ class PluriAPI {
     // HTTP com fetch (agora sem CORS, pois a origem é o próprio script)
     // -------------------------------------------------
     async get(url) {
-    try {
-        console.log('🌐 [GET]', url);
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const json = await response.json();
-        if (json && json.error) throw new Error(json.error);
-        return json;
-    } catch (e) {
-        console.error('[GET]', e.message);
-        return null;
+        try {
+            console.log('🌐 [GET]', url);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const json = await response.json();
+            if (json && json.error) throw new Error(json.error);
+            return json;
+        } catch (e) {
+            console.error('[GET]', e.message);
+            return null;
+        }
     }
-}
 
     async post(body) {
         try {
@@ -160,12 +160,11 @@ class PluriAPI {
     }
 
     async isCalendarConnected() {
-    if (!this.token) return false;
-    const url = `${this.config.appsScript.baseUrl}?action=calendar_user&token=${encodeURIComponent(this.token)}`;
-    const data = await this.get(url);
-    // Se a chamada retornar sucesso (mesmo sem eventos), está conectado
-    return data && data.success;
-}
+        if (!this.token) return false;
+        const url = `${this.config.appsScript.baseUrl}?action=calendar_user&token=${encodeURIComponent(this.token)}`;
+        const data = await this.get(url);
+        return data && data.success;
+    }
 
     mapCalendarEvent(event) {
         return {
@@ -181,24 +180,44 @@ class PluriAPI {
         };
     }
 
+    // 🔥 CORRIGIDO: adicionado clinicaID em todas as operações de calendário
     async createAppointment(appointment) {
         return this.post({
             action: 'createCalendarEvent',
-            patient: appointment.patient, professional: appointment.professional, service: appointment.service,
-            phone: appointment.phone, notes: appointment.notes, status: appointment.status,
-            date: appointment.date, time: appointment.time
+            patient: appointment.patient,
+            professional: appointment.professional,
+            service: appointment.service,
+            phone: appointment.phone,
+            notes: appointment.notes,
+            status: appointment.status,
+            date: appointment.date,
+            time: appointment.time,
+            clinicaID: appointment.clinicaID          // ← ESSENCIAL
         });
     }
+
     async updateAppointment(appointment) {
         return this.post({
             action: 'updateCalendarEvent',
-            id: appointment.id, patient: appointment.patient, professional: appointment.professional,
-            service: appointment.service, phone: appointment.phone, notes: appointment.notes,
-            status: appointment.status, date: appointment.date, time: appointment.time
+            id: appointment.id,
+            patient: appointment.patient,
+            professional: appointment.professional,
+            service: appointment.service,
+            phone: appointment.phone,
+            notes: appointment.notes,
+            status: appointment.status,
+            date: appointment.date,
+            time: appointment.time,
+            clinicaID: appointment.clinicaID          // ← ESSENCIAL
         });
     }
-    async deleteAppointment(id) {
-        return this.post({ action: 'deleteCalendarEvent', id });
+
+    async deleteAppointment(id, clinicaID) {
+        return this.post({
+            action: 'deleteCalendarEvent',
+            id: id,
+            clinicaID: clinicaID                     // ← ESSENCIAL
+        });
     }
 
     // -------------------------------------------------
