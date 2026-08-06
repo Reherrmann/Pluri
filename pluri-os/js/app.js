@@ -27,6 +27,20 @@ function renderPage() {
     attachPageEvents();
     refreshIcons();
     updateTitleAndSubtitle(title, subtitle);
+
+    // ⬇️ Após renderizar o DOM, trata o status do Google Calendar
+    // Exibe o botão na Agenda se o calendário não estiver conectado
+    if (window._calendarNotConnected) {
+        const connectBtn = document.getElementById('btnConnectCalendar');
+        if (connectBtn) {
+            connectBtn.style.display = 'inline-block';
+        }
+    }
+
+    // Se estiver na página de Configurações, atualiza o status da integração
+    if (state.currentPage === 'configuracoes') {
+        updateGoogleCalendarStatus();
+    }
 }
 
 function updateTitleAndSubtitle(title, subtitle) {
@@ -68,22 +82,8 @@ function attachPageEvents() {
         }
     });
 
-    // O botão "Conectar" na Configuração é adicionado dinamicamente pelo config.js
-    // mas também podemos adicioná-lo aqui, caso já exista.
-    getEl('btnConnectCalendarConfig')?.addEventListener('click', async () => {
-        try {
-            const url = await window.pluriAPI.getCalendarAuthUrl();
-            const popup = window.open(url, 'googleAuth', 'width=600,height=600');
-            const timer = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(timer);
-                    location.reload();
-                }
-            }, 500);
-        } catch (e) {
-            alert('Erro ao conectar: ' + e.message);
-        }
-    });
+    // O botão "Conectar" na Configuração será adicionado dinamicamente pelo updateGoogleCalendarStatus
+    // Não precisa de listener fixo aqui.
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -183,31 +183,9 @@ async function init() {
     }
 
     // ⭐ IMPORTANTE: Registrar o listener ANTES de qualquer chamada que dispare o evento
+    // Apenas define uma flag global para não tentar manipular o DOM antes de existir
     window.addEventListener('calendar:not_connected', () => {
-        // Exibe botão na Agenda, se existir
-        const connectBtn = document.getElementById('btnConnectCalendar');
-        if (connectBtn) {
-            connectBtn.style.display = 'inline-block';
-        }
-        // Atualiza a seção de integrações na Configuração, se visível
-        const statusDiv = document.getElementById('googleCalendarIntegrationStatus');
-        if (statusDiv) {
-            statusDiv.innerHTML = '<span style="color: #f59e0b;">Não conectado</span> <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>';
-            document.getElementById('btnConnectCalendarConfig')?.addEventListener('click', async () => {
-                try {
-                    const url = await window.pluriAPI.getCalendarAuthUrl();
-                    const popup = window.open(url, 'googleAuth', 'width=600,height=600');
-                    const timer = setInterval(() => {
-                        if (popup.closed) {
-                            clearInterval(timer);
-                            location.reload();
-                        }
-                    }, 500);
-                } catch (e) {
-                    alert('Erro ao conectar: ' + e.message);
-                }
-            });
-        }
+        window._calendarNotConnected = true;
     });
 
     try {
@@ -252,12 +230,13 @@ async function init() {
 
     renderPage();
 
+    // Corrige o erro openStaff is not defined (verifica se a função existe)
     window.pluri = {
         navigateTo,
         openConversation,
         openPatient,
         openModal,
-        openStaff,
+        openStaff: typeof openStaff === 'function' ? openStaff : () => {},
         showToast
     };
 }
