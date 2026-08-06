@@ -4,22 +4,38 @@ function buildAgenda() {
         return '<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>';
     }
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    // Data selecionada (padrão hoje)
+    const currentDate = state.agendaDate || new Date().toISOString().split('T')[0];
     const allSlots = [];
     for (let h = 8; h < 18; h++) {
         for (let m = 0; m < 60; m += 30) {
-            const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            allSlots.push(time);
+            allSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
         }
     }
-    const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-    appointmentsToday.sort((a, b) => a.time.localeCompare(b.time));
+
+    const appointmentsToday = state.appointments.filter(a => a.date === currentDate);
+    // Agrupar múltiplos eventos no mesmo horário
+    const grouped = {};
+    appointmentsToday.forEach(a => {
+        const time = String(a.time).trim();
+        if (!grouped[time]) grouped[time] = [];
+        grouped[time].push(a);
+    });
+
+    // Formatar data para exibição
+    const dataFormatada = new Date(currentDate + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+
     return `
         <div class="agenda-toolbar">
             <div class="agenda-toolbar-left">
                 <div class="tabs" id="agendaTabs">
                     <button class="tab active" data-tab="today">Hoje</button>
                     <button class="tab" data-tab="week">Semana</button>
+                </div>
+                <div class="agenda-date-navigator" style="display:flex;align-items:center;gap:8px;margin-left:20px;">
+                    <button class="btn-icon btn-sm" id="agendaPrevDay" title="Dia anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
+                    <span style="font-size:13px;font-weight:500;">${dataFormatada}</span>
+                    <button class="btn-icon btn-sm" id="agendaNextDay" title="Próximo dia"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
                 <div class="agenda-google-calendar" id="googleCalendarIndicator">
                     <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
@@ -28,22 +44,13 @@ function buildAgenda() {
             </div>
             <div class="agenda-toolbar-right">
                 <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
-            <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button> </div>
+                <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button>
+            </div>
         </div>
         <div id="agendaDayView" class="card"><div class="card-body no-padding">
             <ul class="agenda-list">${allSlots.map(time => {
-                const appt = appointmentsToday.find(
-    a => String(a.time).trim() === time
-);
-                if (appt) {
-                    return `
-                        <li class="agenda-item">
-                            <span class="agenda-time">${time}</span>
-                            <div class="agenda-avatar">${getInitials(appt.patient)}</div>
-                            <div class="agenda-info"><div class="agenda-name">${appt.patient}</div><div class="agenda-detail">${appt.service} · ${appt.professional}</div></div>
-                            ${statusBadge(appt.status)}
-                        </li>`;
-                } else {
+                const events = grouped[time] || [];
+                if (events.length === 0) {
                     return `
                         <li class="agenda-item free-slot">
                             <span class="agenda-time">${time}</span>
@@ -51,6 +58,14 @@ function buildAgenda() {
                             <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
                             <button class="btn btn-sm btn-outline" onclick="window.pluri.openModal('${time}')">Agendar</button>
                         </li>`;
+                } else {
+                    return events.map((appt, index) => `
+                        <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer; ${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
+                            <span class="agenda-time">${time}</span>
+                            <div class="agenda-avatar">${getInitials(appt.patient)}</div>
+                            <div class="agenda-info"><div class="agenda-name">${appt.patient}</div><div class="agenda-detail">${appt.service} · ${appt.professional}</div></div>
+                            ${statusBadge(appt.status)}
+                        </li>`).join('');
                 }
             }).join('')}</ul>
         </div></div>
