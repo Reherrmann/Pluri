@@ -1,233 +1,274 @@
-// js/app.js
+// js/api.js
 
-function renderPage() {
-    const container = getEl('pageContainer');
-    if (!container) return;
-    const title = getEl('pageTitle');
-    const subtitle = getEl('pageSubtitle');
-
-    let html = '';
-    try {
-        switch (state.currentPage) {
-            case 'dashboard': html = buildDashboard(); break;
-            case 'agenda': html = buildAgenda(); break;
-            case 'atendimentos': html = buildAtendimentos(); break;
-            case 'pacientes': html = buildPacientes(); break;
-            case 'automacoes': html = buildAutomacoes(); break;
-            case 'indicadores': html = buildIndicadores(); break;
-            case 'configuracoes': html = buildConfiguracoes(); break;
-            default: html = buildDashboard();
-        }
-    } catch (e) {
-        console.error('Erro ao renderizar página:', e);
-        html = '<div style="padding:40px;text-align:center;color:#B91C1C;">Erro ao carregar a página.</div>';
+class PluriAPI {
+    constructor(config) {
+        this.config = config;
+        this.timeout = 25000; // 25 segundos
+        this.token = null;    // token de sessão
     }
 
-    container.innerHTML = html;
-    attachPageEvents();
-    refreshIcons();
-    updateTitleAndSubtitle(title, subtitle);
-}
+    // Define o token de sessão atual
+    setSessionToken(token) {
+        this.token = token;
+    }
 
-function updateTitleAndSubtitle(title, subtitle) {
-    const titles = {
-        dashboard: [
-            state.clinic.name ? `Bom dia, ${state.clinic.name}.` : 'Bem-vindo à PLURI.',
-            'Veja o que está acontecendo na clínica hoje.'
-        ],
-        agenda: ['Agenda', 'Gerencie os horários da clínica.'],
-        atendimentos: ['Atendimentos', 'Central de conversas com pacientes.'],
-        pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
-        automacoes: ['Automações', 'Camada operacional inteligente.'],
-        indicadores: ['Indicadores', 'Visão operacional da clínica.'],
-        configuracoes: ['Configurações', 'Gerencie sua clínica.'],
-    };
-    const [t, s] = titles[state.currentPage] || titles.dashboard;
-    if (title) title.textContent = t;
-    if (subtitle) subtitle.textContent = s;
-}
-
-function attachPageEvents() {
-    getEl('openModalBtn')?.addEventListener('click', () => openModal());
-    getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
-    getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
-
-    // Evento do botão "Conectar Google Calendar"
-    getEl('btnConnectCalendar')?.addEventListener('click', async () => {
+    // =====================================================
+    // HTTP (sem AbortController, sem CORS – usando fetch)
+    // =====================================================
+    async get(url) {
         try {
-            const url = await window.pluriAPI.getCalendarAuthUrl();
-            const popup = window.open(url, 'googleAuth', 'width=600,height=600');
-            const timer = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(timer);
-                    location.reload();
-                }
-            }, 500);
-        } catch (e) {
-            alert('Erro ao conectar: ' + e.message);
-        }
-    });
-
-    document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const tabName = tab.dataset.tab;
-            const dayView = getEl('agendaDayView');
-            const weekView = getEl('agendaWeekView');
-            if (tabName === 'today') {
-                if (dayView) dayView.style.display = 'block';
-                if (weekView) weekView.style.display = 'none';
-            } else {
-                if (dayView) dayView.style.display = 'none';
-                if (weekView) {
-                    weekView.style.display = 'block';
-                    weekView.innerHTML = '';
-                    weekView.appendChild(buildAgendaWeekElement());
-                }
+            console.log('🌐 [GET]', url);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
-            refreshIcons();
-        });
-    });
-
-    document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
-        card.addEventListener('click', () => {
-            const page = card.dataset.link;
-            if (page) navigateTo(page);
-        });
-    });
-
-    document.querySelectorAll('.js-nav').forEach(el => {
-        const page = el.dataset.page;
-        if (page) el.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo(page);
-        });
-    });
-
-    document.querySelectorAll('[data-conversation-id]').forEach(el => {
-        el.addEventListener('click', () => {
-            const id = parseInt(el.dataset.conversationId, 10);
-            if (!isNaN(id)) openConversation(id);
-        });
-    });
-
-    document.querySelectorAll('[data-patient-row]').forEach(el => {
-        el.addEventListener('click', () => {
-            const row = parseInt(el.dataset.patientRow, 10);
-            if (!isNaN(row)) openPatient(row);
-        });
-    });
-
-    document.querySelectorAll('[data-staff-row]').forEach(el => {
-        el.addEventListener('click', () => {
-            const row = parseInt(el.dataset.staffRow, 10);
-            if (!isNaN(row)) openStaff(row);
-        });
-    });
-
-    const searchInput = getEl('patientSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase();
-            document.querySelectorAll('#patientTableBody tr').forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-            });
-        });
-    }
-}
-
-// 🔑 NOVA FUNÇÃO - obtém o token de sessão da URL ou do localStorage
-function getSessionToken() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (token) return token;
-
-    const storedToken = localStorage.getItem('pluri_token');
-    if (storedToken) return storedToken;
-
-    // Fallback com token ATIVO da planilha
-    return '761590ce-1a41-481b-b575-5b185db0787e69f6f2d17c734fa185814c5ea9326012';
-}
-
-async function init() {
-    initMockData();
-
-    if (!window.pluriAPI) {
-        window.pluriAPI = new PluriAPI(PLURI_CONFIG);
-    }
-
-    // 🔑 Configura o token de sessão na API
-    const token = getSessionToken();
-    if (token) {
-        window.pluriAPI.setSessionToken(token);
-        console.log('🔑 Token de sessão configurado.');
-    } else {
-        console.warn('⚠️ Token de sessão não encontrado. A agenda do Google Calendar pode não carregar.');
-    }
-
-    try {
-        const patients = await window.pluriAPI.getPatients();
-        if (patients && patients.length > 0) {
-            state.patients = patients;
-            console.log('✅ Pacientes carregados:', patients.length);
+            const json = await response.json();
+            if (json && json.error) {
+                throw new Error(json.error);
+            }
+            return json;
+        } catch (e) {
+            console.error('[GET]', e.message);
+            return null;
         }
-
-        const appointments = await window.pluriAPI.getCalendarAppointments();
-        state.appointments = appointments || [];
-        console.log('✅ Agenda carregada do Google Calendar:', state.appointments.length);
-        console.table(state.appointments);
-
-        const staff = await window.pluriAPI.getStaff();
-        if (staff && staff.length > 0) {
-            state.staff = staff;
-            console.log('✅ Equipe carregada:', staff.length);
-        }
-    } catch (e) {
-        console.warn('Usando dados mock:', e.message);
     }
 
-    loadTheme();
-    getEl('themeToggle')?.addEventListener('click', toggleTheme);
-
-    document.querySelectorAll('.sidebar-nav a').forEach(a => {
-        a.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo(a.dataset.page);
-        });
-    });
-
-    getEl('modalClose')?.addEventListener('click', closeModal);
-    getEl('modalCancel')?.addEventListener('click', closeModal);
-    getEl('modalSave')?.addEventListener('click', saveAppointment);
-    getEl('modalOverlay')?.addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) closeModal();
-    });
-    getEl('slideOverlay')?.addEventListener('click', closeSlidePanel);
-    getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
-
-    renderPage();
-
-    // Exibe o botão de conectar se o calendário não estiver vinculado
-    window.addEventListener('calendar:not_connected', () => {
-        const connectBtn = document.getElementById('btnConnectCalendar');
-        if (connectBtn) {
-            connectBtn.style.display = 'inline-block';
+    async post(body) {
+        try {
+            const response = await fetch(
+                this.config.appsScript.baseUrl,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(body)
+                }
+            );
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const json = await response.json();
+            if (json && json.error) {
+                throw new Error(json.error);
+            }
+            return json;
+        } catch (e) {
+            console.error('[POST]', e.message);
+            return { success: false, error: e.message };
         }
-    });
+    }
 
-    window.pluri = {
-        navigateTo,
-        openConversation,
-        openPatient,
-        openModal,
-        openStaff,
-        showToast
-    };
+    // =====================================================
+    // FORMATADORES
+    // =====================================================
+    formatDate(value) {
+        if (!value) return '';
+        const d = new Date(value);
+        if (isNaN(d)) return '';
+        return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+    }
+    formatTime(value) {
+        if (!value) return '';
+        if (typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)) return value;
+        const d = new Date(value);
+        if (isNaN(d)) return '';
+        return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+    normalizeStatus(status, def = 'Ativo') { return status || def; }
+    toId(value) { return Number(value) || value; }
+
+    // =====================================================
+    // PACIENTES
+    // =====================================================
+    async getPatients() {
+        const data = await this.get(this.config.appsScript.pacientes);
+        if (!Array.isArray(data)) return [];
+        return data.map(p => this.mapPatient(p));
+    }
+    mapPatient(p) {
+        return {
+            _row: p._row, id: p._row,
+            name: p['Nome'] || '', phone: p['Telefone'] || '', email: p['E-mail'] || '',
+            created: this.formatDate(p['Data de cadastro']),
+            lastVisit: this.formatDate(p['Último atendimento']),
+            nextAppt: this.formatDate(p['Próxima consulta']),
+            status: this.normalizeStatus(p['Status']),
+            notes: p['Observações'] || ''
+        };
+    }
+    async createPatient(patient) {
+        return this.post({
+            action: 'create', sheet: 'Pacientes', values: {
+                Nome: patient.name, Telefone: patient.phone, 'E-mail': patient.email,
+                'Data de cadastro': patient.created, 'Último atendimento': patient.lastVisit,
+                'Próxima consulta': patient.nextAppt, Status: patient.status, Observações: patient.notes
+            }
+        });
+    }
+    async updatePatient(row, patient) {
+        return this.post({
+            action: 'update', sheet: 'Pacientes', row,
+            values: { Nome: patient.name, Telefone: patient.phone, 'E-mail': patient.email, Observações: patient.notes, Status: patient.status }
+        });
+    }
+    async deletePatient(row) {
+        return this.post({ action: 'delete', sheet: 'Pacientes', row });
+    }
+
+    // =====================================================
+    // EQUIPE
+    // =====================================================
+    async getStaff() {
+        const data = await this.get(this.config.appsScript.equipe);
+        if (!Array.isArray(data)) return [];
+        return data.map(s => this.mapStaff(s));
+    }
+    mapStaff(staff) {
+        return {
+            _row: staff._row, id: staff._row,
+            name: staff['Nome'] || '', role: staff['Função'] || '', email: staff['E-mail'] || '',
+            phone: staff['Telefone'] || '', status: this.normalizeStatus(staff['Status'])
+        };
+    }
+    async createStaff(member) {
+        return this.post({
+            action: 'create', sheet: 'Equipe', values: {
+                Nome: member.name, Função: member.role, 'E-mail': member.email, Telefone: member.phone, Status: member.status
+            }
+        });
+    }
+    async updateStaff(row, member) {
+        return this.post({
+            action: 'update', sheet: 'Equipe', row,
+            values: { Nome: member.name, Função: member.role, 'E-mail': member.email, Telefone: member.phone, Status: member.status }
+        });
+    }
+    async deleteStaff(row) {
+        return this.post({ action: 'delete', sheet: 'Equipe', row });
+    }
+
+    // =====================================================
+    // CALENDAR (com OAuth e disparo de evento)
+    // =====================================================
+    async getCalendarAppointments(date = null) {
+        if (!this.token) {
+            console.warn('Token de sessão não definido. Impossível carregar agenda.');
+            return [];
+        }
+        let url = `${this.config.appsScript.baseUrl}?action=calendar_user&token=${encodeURIComponent(this.token)}`;
+        if (date) {
+            url += `&date=${encodeURIComponent(date)}`;
+        }
+        const data = await this.get(url);
+        if (!data || !data.success) {
+            if (data && data.error === 'NOT_CONNECTED') {
+                console.warn('Google Calendar não conectado. Exiba botão de conectar.');
+                // Dispara evento para mostrar o botão
+                window.dispatchEvent(new CustomEvent('calendar:not_connected'));
+            }
+            return [];
+        }
+        if (!Array.isArray(data.events)) return [];
+        return data.events.map(e => this.mapCalendarEvent(e));
+    }
+
+    async getCalendarAuthUrl() {
+        if (!this.token) {
+            throw new Error('Token de sessão ausente.');
+        }
+        const url = `${this.config.appsScript.baseUrl}?action=oauth_start&token=${encodeURIComponent(this.token)}`;
+        const data = await this.get(url);
+        if (data && data.success && data.url) {
+            return data.url;
+        }
+        throw new Error(data?.error || 'Falha ao obter URL de autorização.');
+    }
+
+    mapCalendarEvent(event) {
+        return {
+            id: event.id,
+            time: this.formatTime(event.time),
+            patient: event.patient || '',
+            professional: event.professional || '',
+            service: event.service || '',
+            phone: event.phone || '',
+            notes: event.notes || '',
+            status: event.status || 'Confirmado',
+            date: this.formatDate(event.date)
+        };
+    }
+
+    async createAppointment(appointment) {
+        return this.post({
+            action: 'createCalendarEvent',
+            patient: appointment.patient, professional: appointment.professional, service: appointment.service,
+            phone: appointment.phone, notes: appointment.notes, status: appointment.status,
+            date: appointment.date, time: appointment.time
+        });
+    }
+    async updateAppointment(appointment) {
+        return this.post({
+            action: 'updateCalendarEvent',
+            id: appointment.id, patient: appointment.patient, professional: appointment.professional,
+            service: appointment.service, phone: appointment.phone, notes: appointment.notes,
+            status: appointment.status, date: appointment.date, time: appointment.time
+        });
+    }
+    async deleteAppointment(id) {
+        return this.post({ action: 'deleteCalendarEvent', id });
+    }
+
+    // =====================================================
+    // CONVERSAS
+    // =====================================================
+    async getConversations() {
+        const data = await this.get(this.config.appsScript.conversas);
+        if (!Array.isArray(data)) return [];
+        return data.map(c => this.mapConversation(c));
+    }
+    mapConversation(c) {
+        return {
+            _row: c._row, id: c.id || c._row,
+            patient: c.patient || c.nome || '', phone: c.phone || c.telefone || '',
+            email: c.email || c['e-mail'] || '', procedure: c.procedure || c.procedimento || '',
+            summary: c.summary || '', lastMsg: c.lastMsg || c.summary || '',
+            conversationDate: this.formatDate(c.conversationDate || c['data da conversa']),
+            status: this.normalizeStatus(c.status, 'Aguardando')
+        };
+    }
+    async getConversation(id) {
+        const list = await this.getConversations();
+        return list.find(c => String(c.id) === String(id));
+    }
+    async findConversationByPhone(phone) {
+        const list = await this.getConversations();
+        return list.find(c => c.phone === phone);
+    }
+    async findConversationByPatient(name) {
+        const list = await this.getConversations();
+        return list.find(c => c.patient.toLowerCase() === name.toLowerCase());
+    }
+
+    // =====================================================
+    // CLÍNICA
+    // =====================================================
+    async getClinic() {
+        const data = await this.get(`${this.config.appsScript.baseUrl}?action=clinic`);
+        if (!data) return null;
+        return this.mapClinic(data.clinic || data);
+    }
+    mapClinic(clinic) {
+        return {
+            name: clinic.name || '', phone: clinic.phone || '', email: clinic.email || '',
+            address: clinic.address || '', hours: clinic.hours || ''
+        };
+    }
+    async updateClinic(clinic) {
+        return this.post({
+            action: 'updateClinic',
+            values: { Nome: clinic.name, Telefone: clinic.phone, 'E-mail': clinic.email, Endereço: clinic.address, Horário: clinic.hours }
+        });
+    }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
+// Instância global (será inicializada pelo app.js)
+window.pluriAPI = null;
