@@ -154,17 +154,40 @@ function attachPageEvents() {
     }
 }
 
-// 🔑 Obtém o token de sessão
+// 🔑 Obtém o token de sessão (do login.html ou localStorage)
 function getSessionToken() {
+    // 1. Tenta obter da URL (parâmetro ?token=...)
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (token) return token;
+    const tokenFromUrl = urlParams.get('token');
+    if (tokenFromUrl) return tokenFromUrl;
 
-    const storedToken = localStorage.getItem('pluri_token');
-    if (storedToken) return storedToken;
+    // 2. Tenta obter da sessão salva pelo login.html
+    const sessionData = localStorage.getItem('pluri_session');
+    if (sessionData) {
+        try {
+            const session = JSON.parse(sessionData);
+            if (session.token) {
+                // Opcional: verificar expiração (se existir o campo expiraEm)
+                if (session.expiraEm) {
+                    const expira = new Date(session.expiraEm);
+                    if (expira.getTime() <= Date.now()) {
+                        // Sessão expirada – limpa e redireciona
+                        localStorage.removeItem('pluri_session');
+                        window.location.href = 'login.html';
+                        return null;
+                    }
+                }
+                return session.token;
+            }
+        } catch (e) {
+            console.error('Erro ao ler sessão:', e);
+            localStorage.removeItem('pluri_session');
+        }
+    }
 
-    // Fallback com token ATIVO da planilha
-    return '761590ce-1a41-481b-b575-5b185db0787e69f6f2d17c734fa185814c5ea9326012';
+    // 3. Nenhum token encontrado → redireciona para login
+    window.location.href = 'login.html';
+    return null;
 }
 
 async function init() {
@@ -174,15 +197,17 @@ async function init() {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
 
+    // 🔑 Configura o token de sessão na API
     const token = getSessionToken();
     if (token) {
         window.pluriAPI.setSessionToken(token);
         console.log('🔑 Token de sessão configurado.');
     } else {
-        console.warn('⚠️ Token de sessão não encontrado.');
+        // getSessionToken já redireciona, mas por segurança
+        return;
     }
 
-    // ⭐ Listener que apenas define a flag (sem manipular o DOM)
+    // ⭐ Registrar listener ANTES das chamadas (apenas define flag)
     window.addEventListener('calendar:not_connected', () => {
         window._calendarNotConnected = true;
     });
