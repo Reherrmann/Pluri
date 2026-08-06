@@ -3,55 +3,51 @@
 class PluriAPI {
     constructor(config) {
         this.config = config;
-        this.timeout = 25000; // aumentado para 25s (era 15000)
-        this.token = null;    // NOVO: armazena o token de sessão atual
+        this.timeout = 25000; // 25 segundos
+        this.token = null;    // token de sessão
     }
 
-    // NOVO: método para definir o token de sessão (chamado pelo app.js)
+    // Define o token de sessão atual
     setSessionToken(token) {
         this.token = token;
     }
 
     // =====================================================
-    // HTTP
+    // HTTP (sem AbortController, sem CORS – usando fetch)
     // =====================================================
-
-   async get(url) {
-    try {
-        console.log('🌐 [GET]', url); // <-- adicione esta linha para ver a URL
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        const json = await response.json();
-        if (json?.error) {
-            throw new Error(json.error);
-        }
-        return json;
-    } catch (e) {
-        console.error('[GET]', e.message);
-        return null;
-    }
-}
-    async post(body) {
+    async get(url) {
         try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), this.timeout);
-            const response = await fetch(
-                this.config.appsScript.baseUrl,
-                {
-                    method: 'POST',
-                    signal: controller.signal,
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(body)
-                }
-            );
-            clearTimeout(timer);
+            console.log('🌐 [GET]', url);
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
             const json = await response.json();
-            if (json?.error) {
+            if (json && json.error) {
+                throw new Error(json.error);
+            }
+            return json;
+        } catch (e) {
+            console.error('[GET]', e.message);
+            return null;
+        }
+    }
+
+    async post(body) {
+        try {
+            const response = await fetch(
+                this.config.appsScript.baseUrl,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(body)
+                }
+            );
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const json = await response.json();
+            if (json && json.error) {
                 throw new Error(json.error);
             }
             return json;
@@ -151,24 +147,22 @@ class PluriAPI {
     }
 
     // =====================================================
-    // CALENDAR (NOVO – usa calendar_user e token)
+    // CALENDAR (com OAuth e disparo de evento)
     // =====================================================
     async getCalendarAppointments(date = null) {
         if (!this.token) {
             console.warn('Token de sessão não definido. Impossível carregar agenda.');
             return [];
         }
-        // Monta a URL com action=calendar_user e token
         let url = `${this.config.appsScript.baseUrl}?action=calendar_user&token=${encodeURIComponent(this.token)}`;
         if (date) {
             url += `&date=${encodeURIComponent(date)}`;
         }
         const data = await this.get(url);
         if (!data || !data.success) {
-            // Trata erro de não conectado (NOT_CONNECTED) exibindo aviso
             if (data && data.error === 'NOT_CONNECTED') {
                 console.warn('Google Calendar não conectado. Exiba botão de conectar.');
-                // Você pode disparar um evento customizado para mostrar o botão
+                // Dispara evento para mostrar o botão
                 window.dispatchEvent(new CustomEvent('calendar:not_connected'));
             }
             return [];
@@ -178,7 +172,6 @@ class PluriAPI {
     }
 
     async getCalendarAuthUrl() {
-        // Obtém a URL para o popup de autorização OAuth
         if (!this.token) {
             throw new Error('Token de sessão ausente.');
         }
@@ -277,4 +270,5 @@ class PluriAPI {
     }
 }
 
+// Instância global (será inicializada pelo app.js)
 window.pluriAPI = null;
