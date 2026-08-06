@@ -3,33 +3,30 @@
 class PluriAPI {
     constructor(config) {
         this.config = config;
-        this.timeout = 25000; // 25 segundos
-        this.token = null;    // token de sessão
+        this.timeout = 25000;
+        this.token = null;
     }
 
-    // Define o token de sessão atual
     setSessionToken(token) {
         this.token = token;
     }
 
     // =====================================================
-    // HTTP (sem AbortController, sem CORS – usando fetch)
+    // HTTP (agora sempre retorna um objeto com success/error)
     // =====================================================
     async get(url) {
         try {
             console.log('🌐 [GET]', url);
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                return { success: false, error: `HTTP ${response.status}` };
             }
             const json = await response.json();
-            if (json && json.error) {
-                throw new Error(json.error);
-            }
+            // Se o servidor retornar { success: false, error: ... } já está no formato
             return json;
         } catch (e) {
             console.error('[GET]', e.message);
-            return null;
+            return { success: false, error: e.message };
         }
     }
 
@@ -44,12 +41,9 @@ class PluriAPI {
                 }
             );
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                return { success: false, error: `HTTP ${response.status}` };
             }
             const json = await response.json();
-            if (json && json.error) {
-                throw new Error(json.error);
-            }
             return json;
         } catch (e) {
             console.error('[POST]', e.message);
@@ -58,7 +52,7 @@ class PluriAPI {
     }
 
     // =====================================================
-    // FORMATADORES
+    // FORMATADORES (inalterados)
     // =====================================================
     formatDate(value) {
         if (!value) return '';
@@ -147,11 +141,11 @@ class PluriAPI {
     }
 
     // =====================================================
-    // CALENDAR (com OAuth e disparo de evento)
+    // CALENDAR (evento agora dispara automaticamente)
     // =====================================================
     async getCalendarAppointments(date = null) {
         if (!this.token) {
-            console.warn('Token de sessão não definido. Impossível carregar agenda.');
+            console.warn('Token de sessão não definido.');
             return [];
         }
         let url = `${this.config.appsScript.baseUrl}?action=calendar_user&token=${encodeURIComponent(this.token)}`;
@@ -159,10 +153,10 @@ class PluriAPI {
             url += `&date=${encodeURIComponent(date)}`;
         }
         const data = await this.get(url);
+        // Agora 'data' sempre é um objeto { success, error?, events? }
         if (!data || !data.success) {
             if (data && data.error === 'NOT_CONNECTED') {
-                console.warn('Google Calendar não conectado. Exiba botão de conectar.');
-                // Dispara evento para mostrar o botão
+                console.warn('Google Calendar não conectado. Exibindo botão...');
                 window.dispatchEvent(new CustomEvent('calendar:not_connected'));
             }
             return [];
@@ -270,5 +264,4 @@ class PluriAPI {
     }
 }
 
-// Instância global (será inicializada pelo app.js)
 window.pluriAPI = null;
