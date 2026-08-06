@@ -185,11 +185,18 @@ async function init() {
         const staff = await window.pluriAPI.getStaff();
         state.staff = Array.isArray(staff) ? staff : [];
         console.log('✅ Equipe:', state.staff.length);
+        
+         console.log('🔄 Carregando conversas...');
+    const conversations = await window.pluriAPI.getConversations();
+    state.conversations = Array.isArray(conversations) ? conversations : [];
+    console.log('✅ Conversas:', state.conversations.length);
+
     } catch (e) {
         console.error('❌ Erro ao carregar dados:', e.message);
         state.patients = [];
         state.appointments = [];
         state.staff = [];
+        state.conversations = [];
     }
 
     loadTheme();
