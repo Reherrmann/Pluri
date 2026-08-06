@@ -161,3 +161,16 @@ function buildAgendaWeekElement() {
 
     return fragment; // Retorna um DocumentFragment que pode ser anexado ao DOM
 }
+
+function openEditAppointment(eventId) {
+    const appt = state.appointments.find(a => a.id === eventId);
+    if (!appt) return;
+    openModal(appt.time, appt.patient, appt.phone);
+    // Preencher campos adicionais
+    getEl('apptProfessional').value = appt.professional || 'Dra. Ana';
+    getEl('apptService').value = appt.service || 'Avaliação';
+    getEl('apptNotes').value = appt.notes || '';
+    getEl('apptDate').value = appt.date;
+    // Guardar referência para edição/exclusão
+    window._editingAppointmentId = eventId;
+}
