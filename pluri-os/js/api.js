@@ -1,4 +1,4 @@
-// js/api.js (versão para Google Apps Script)
+// js/api.js (versão completa para Google Apps Script)
 
 class PluriAPI {
     constructor(config) {
@@ -24,7 +24,28 @@ class PluriAPI {
         });
     }
 
+    // =====================================================
+    // FORMATADORES
+    // =====================================================
+    formatDate(value) {
+        if (!value) return '';
+        const d = new Date(value);
+        if (isNaN(d)) return '';
+        return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+    }
+    formatTime(value) {
+        if (!value) return '';
+        if (typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)) return value;
+        const d = new Date(value);
+        if (isNaN(d)) return '';
+        return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+    normalizeStatus(status, def = 'Ativo') { return status || def; }
+    toId(value) { return Number(value) || value; }
+
+    // =====================================================
     // PACIENTES
+    // =====================================================
     async getPatients() {
         const data = await this._callServer('getPatientsData');
         return Array.isArray(data) ? data.map(p => this.mapPatient(p)) : [];
@@ -44,7 +65,9 @@ class PluriAPI {
     async updatePatient(row, patient) { return this._callServer('updatePatientServer', row, patient); }
     async deletePatient(row) { return this._callServer('deletePatientServer', row); }
 
+    // =====================================================
     // EQUIPE
+    // =====================================================
     async getStaff() {
         const data = await this._callServer('getStaffData');
         return Array.isArray(data) ? data.map(s => this.mapStaff(s)) : [];
@@ -60,7 +83,9 @@ class PluriAPI {
     async updateStaff(row, member) { return this._callServer('updateStaffServer', row, member); }
     async deleteStaff(row) { return this._callServer('deleteStaffServer', row); }
 
+    // =====================================================
     // CALENDAR
+    // =====================================================
     async getCalendarAppointments(date = null) {
         if (!this.token) return [];
         const data = await this._callServer('getCalendarAppointmentsServer', this.token, date);
@@ -104,25 +129,52 @@ class PluriAPI {
     async updateAppointment(appointment) { return this._callServer('updateAppointmentServer', appointment); }
     async deleteAppointment(id) { return this._callServer('deleteAppointmentServer', id); }
 
+    // =====================================================
     // CONVERSAS
+    // =====================================================
     async getConversations() {
         const data = await this._callServer('getConversationsData');
         return Array.isArray(data) ? data.map(c => this.mapConversation(c)) : [];
     }
-    mapConversation(c) { /* ... mesma implementação ... */ }
+    mapConversation(c) {
+        return {
+            _row: c._row, id: c.id || c._row,
+            patient: c.patient || c.nome || '', phone: c.phone || c.telefone || '',
+            email: c.email || c['e-mail'] || '', procedure: c.procedure || c.procedimento || '',
+            summary: c.summary || '', lastMsg: c.lastMsg || c.summary || '',
+            conversationDate: this.formatDate(c.conversationDate || c['data da conversa']),
+            status: this.normalizeStatus(c.status, 'Aguardando')
+        };
+    }
+    async getConversation(id) {
+        const list = await this.getConversations();
+        return list.find(c => String(c.id) === String(id));
+    }
+    async findConversationByPhone(phone) {
+        const list = await this.getConversations();
+        return list.find(c => c.phone === phone);
+    }
+    async findConversationByPatient(name) {
+        const list = await this.getConversations();
+        return list.find(c => c.patient.toLowerCase() === name.toLowerCase());
+    }
 
+    // =====================================================
     // CLÍNICA
+    // =====================================================
     async getClinic() {
         const data = await this._callServer('getClinicData');
         return this.mapClinic(data);
     }
-    mapClinic(clinic) { /* ... */ }
-
-    // FORMATADORES (mantidos)
-    formatDate(value) { /* ... */ }
-    formatTime(value) { /* ... */ }
-    normalizeStatus(status, def = 'Ativo') { return status || def; }
-    toId(value) { return Number(value) || value; }
+    mapClinic(clinic) {
+        return {
+            name: clinic.name || '', phone: clinic.phone || '', email: clinic.email || '',
+            address: clinic.address || '', hours: clinic.hours || ''
+        };
+    }
+    async updateClinic(clinic) {
+        return this._callServer('updateClinicData', clinic);
+    }
 }
 
 window.pluriAPI = null;
