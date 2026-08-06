@@ -1,4 +1,4 @@
-// js/api.js (versão completa para Google Apps Script)
+// js/api.js (versão fetch – compatível com página servida pelo Apps Script)
 
 class PluriAPI {
     constructor(config) {
@@ -10,23 +10,46 @@ class PluriAPI {
         this.token = token;
     }
 
-    // Helper para chamar funções do servidor via google.script.run
-    _callServer(methodName, ...args) {
-        return new Promise((resolve, reject) => {
-            if (typeof google === 'undefined' || !google.script) {
-                reject(new Error('google.script.run não disponível.'));
-                return;
-            }
-            google.script.run
-                .withSuccessHandler(resolve)
-                .withFailureHandler(err => reject(new Error(err.message)))
-                [methodName](...args);
-        });
+    // -------------------------------------------------
+    // HTTP com fetch (agora sem CORS, pois a origem é o próprio script)
+    // -------------------------------------------------
+    async get(url) {
+        try {
+            console.log('🌐 [GET]', url);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const json = await response.json();
+            if (json && json.error) throw new Error(json.error);
+            return json;
+        } catch (e) {
+            console.error('[GET]', e.message);
+            return null;
+        }
     }
 
-    // =====================================================
+    async post(body) {
+        try {
+            const response = await fetch(
+                this.config.appsScript.baseUrl,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(body)
+                }
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const json = await response.json();
+            if (json && json.error) throw new Error(json.error);
+            return json;
+        } catch (e) {
+            console.error('[POST]', e.message);
+            return { success: false, error: e.message };
+        }
+    }
+
+    // -------------------------------------------------
     // FORMATADORES
-    // =====================================================
+    // -------------------------------------------------
     formatDate(value) {
         if (!value) return '';
         const d = new Date(value);
@@ -43,11 +66,11 @@ class PluriAPI {
     normalizeStatus(status, def = 'Ativo') { return status || def; }
     toId(value) { return Number(value) || value; }
 
-    // =====================================================
+    // -------------------------------------------------
     // PACIENTES
-    // =====================================================
+    // -------------------------------------------------
     async getPatients() {
-        const data = await this._callServer('getPatientsData');
+        const data = await this.get(this.config.appsScript.pacientes);
         return Array.isArray(data) ? data.map(p => this.mapPatient(p)) : [];
     }
     mapPatient(p) {
@@ -61,15 +84,30 @@ class PluriAPI {
             notes: p['Observações'] || ''
         };
     }
-    async createPatient(patient) { return this._callServer('createPatientServer', patient); }
-    async updatePatient(row, patient) { return this._callServer('updatePatientServer', row, patient); }
-    async deletePatient(row) { return this._callServer('deletePatientServer', row); }
+    async createPatient(patient) {
+        return this.post({
+            action: 'create', sheet: 'Pacientes', values: {
+                Nome: patient.name, Telefone: patient.phone, 'E-mail': patient.email,
+                'Data de cadastro': patient.created, 'Último atendimento': patient.lastVisit,
+                'Próxima consulta': patient.nextAppt, Status: patient.status, Observações: patient.notes
+            }
+        });
+    }
+    async updatePatient(row, patient) {
+        return this.post({
+            action: 'update', sheet: 'Pacientes', row,
+            values: { Nome: patient.name, Telefone: patient.phone, 'E-mail': patient.email, Observações: patient.notes, Status: patient.status }
+        });
+    }
+    async deletePatient(row) {
+        return this.post({ action: 'delete', sheet: 'Pacientes', row });
+    }
 
-    // =====================================================
+    // -------------------------------------------------
     // EQUIPE
-    // =====================================================
+    // -------------------------------------------------
     async getStaff() {
-        const data = await this._callServer('getStaffData');
+        const data = await this.get(this.config.appsScript.equipe);
         return Array.isArray(data) ? data.map(s => this.mapStaff(s)) : [];
     }
     mapStaff(staff) {
@@ -79,16 +117,31 @@ class PluriAPI {
             phone: staff['Telefone'] || '', status: this.normalizeStatus(staff['Status'])
         };
     }
-    async createStaff(member) { return this._callServer('createStaffServer', member); }
-    async updateStaff(row, member) { return this._callServer('updateStaffServer', row, member); }
-    async deleteStaff(row) { return this._callServer('deleteStaffServer', row); }
+    async createStaff(member) {
+        return this.post({
+            action: 'create', sheet: 'Equipe', values: {
+                Nome: member.name, Função: member.role, 'E-mail': member.email, Telefone: member.phone, Status: member.status
+            }
+        });
+    }
+    async updateStaff(row, member) {
+        return this.post({
+            action: 'update', sheet: 'Equipe', row,
+            values: { Nome: member.name, Função: member.role, 'E-mail': member.email, Telefone: member.phone, Status: member.status }
+        });
+    }
+    async deleteStaff(row) {
+        return this.post({ action: 'delete', sheet: 'Equipe', row });
+    }
 
-    // =====================================================
+    // -------------------------------------------------
     // CALENDAR
-    // =====================================================
+    // -------------------------------------------------
     async getCalendarAppointments(date = null) {
         if (!this.token) return [];
-        const data = await this._callServer('getCalendarAppointmentsServer', this.token, date);
+        let url = `${this.config.appsScript.baseUrl}?action=calendar_user&token=${encodeURIComponent(this.token)}`;
+        if (date) url += `&date=${encodeURIComponent(date)}`;
+        const data = await this.get(url);
         if (!data || !data.success) {
             if (data && data.error === 'NOT_CONNECTED') {
                 window.dispatchEvent(new CustomEvent('calendar:not_connected'));
@@ -100,14 +153,16 @@ class PluriAPI {
 
     async getCalendarAuthUrl() {
         if (!this.token) throw new Error('Token de sessão ausente.');
-        const data = await this._callServer('getAuthUrlServer', this.token);
+        const url = `${this.config.appsScript.baseUrl}?action=oauth_start&token=${encodeURIComponent(this.token)}`;
+        const data = await this.get(url);
         if (data && data.success && data.url) return data.url;
         throw new Error(data?.error || 'Falha ao obter URL de autorização.');
     }
 
     async isCalendarConnected() {
         if (!this.token) return false;
-        const data = await this._callServer('getAuthUrlServer', this.token);
+        const url = `${this.config.appsScript.baseUrl}?action=oauth_start&token=${encodeURIComponent(this.token)}`;
+        const data = await this.get(url);
         return data && data.success && data.url === null;
     }
 
@@ -125,15 +180,31 @@ class PluriAPI {
         };
     }
 
-    async createAppointment(appointment) { return this._callServer('createAppointmentServer', appointment); }
-    async updateAppointment(appointment) { return this._callServer('updateAppointmentServer', appointment); }
-    async deleteAppointment(id) { return this._callServer('deleteAppointmentServer', id); }
+    async createAppointment(appointment) {
+        return this.post({
+            action: 'createCalendarEvent',
+            patient: appointment.patient, professional: appointment.professional, service: appointment.service,
+            phone: appointment.phone, notes: appointment.notes, status: appointment.status,
+            date: appointment.date, time: appointment.time
+        });
+    }
+    async updateAppointment(appointment) {
+        return this.post({
+            action: 'updateCalendarEvent',
+            id: appointment.id, patient: appointment.patient, professional: appointment.professional,
+            service: appointment.service, phone: appointment.phone, notes: appointment.notes,
+            status: appointment.status, date: appointment.date, time: appointment.time
+        });
+    }
+    async deleteAppointment(id) {
+        return this.post({ action: 'deleteCalendarEvent', id });
+    }
 
-    // =====================================================
+    // -------------------------------------------------
     // CONVERSAS
-    // =====================================================
+    // -------------------------------------------------
     async getConversations() {
-        const data = await this._callServer('getConversationsData');
+        const data = await this.get(this.config.appsScript.conversas);
         return Array.isArray(data) ? data.map(c => this.mapConversation(c)) : [];
     }
     mapConversation(c) {
@@ -159,12 +230,13 @@ class PluriAPI {
         return list.find(c => c.patient.toLowerCase() === name.toLowerCase());
     }
 
-    // =====================================================
+    // -------------------------------------------------
     // CLÍNICA
-    // =====================================================
+    // -------------------------------------------------
     async getClinic() {
-        const data = await this._callServer('getClinicData');
-        return this.mapClinic(data);
+        const url = `${this.config.appsScript.baseUrl}?action=clinic`;
+        const data = await this.get(url);
+        return this.mapClinic(data?.clinic || data || {});
     }
     mapClinic(clinic) {
         return {
@@ -173,7 +245,10 @@ class PluriAPI {
         };
     }
     async updateClinic(clinic) {
-        return this._callServer('updateClinicData', clinic);
+        return this.post({
+            action: 'updateClinic',
+            values: { Nome: clinic.name, Telefone: clinic.phone, 'E-mail': clinic.email, Endereço: clinic.address, Horário: clinic.hours }
+        });
     }
 }
 
