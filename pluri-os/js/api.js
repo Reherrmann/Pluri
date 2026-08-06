@@ -14,18 +14,21 @@ class PluriAPI {
     // HTTP com fetch (agora sem CORS, pois a origem é o próprio script)
     // -------------------------------------------------
     async get(url) {
-        try {
-            console.log('🌐 [GET]', url);
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const json = await response.json();
-            if (json && json.error) throw new Error(json.error);
-            return json;
-        } catch (e) {
-            console.error('[GET]', e.message);
-            return null;
-        }
+    try {
+        console.log('🌐 [GET]', url);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10s de timeout
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        if (json && json.error) throw new Error(json.error);
+        return json;
+    } catch (e) {
+        console.error('[GET]', e.message);
+        return null;
     }
+}
 
     async post(body) {
         try {
