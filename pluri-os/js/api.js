@@ -17,7 +17,7 @@ class PluriAPI {
     try {
         console.log('🌐 [GET]', url);
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000); // 10s de timeout
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10 segundos
         const response = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -26,7 +26,7 @@ class PluriAPI {
         return json;
     } catch (e) {
         console.error('[GET]', e.message);
-        return null;
+        return null; // retorna null para ser tratado sem quebrar
     }
 }
 
