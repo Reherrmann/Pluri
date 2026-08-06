@@ -65,7 +65,7 @@ async function saveAppointment() {
     time,
     notes,
     status: 'Confirmado',
-    token: window.pluriAPI.token   // ← adicione esta linha
+    clinicaID: window.PLURI_USER?.clinicaId   // envia o clinicaID da sessão
 });
 
         console.log('Resultado do Google Calendar:', result);
