@@ -52,8 +52,25 @@ function attachPageEvents() {
     getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
     getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
 
-    // Evento do botão "Conectar Google Calendar"
+    // Evento do botão "Conectar Google Calendar" na Agenda
     getEl('btnConnectCalendar')?.addEventListener('click', async () => {
+        try {
+            const url = await window.pluriAPI.getCalendarAuthUrl();
+            const popup = window.open(url, 'googleAuth', 'width=600,height=600');
+            const timer = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(timer);
+                    location.reload();
+                }
+            }, 500);
+        } catch (e) {
+            alert('Erro ao conectar: ' + e.message);
+        }
+    });
+
+    // O botão "Conectar" na Configuração é adicionado dinamicamente pelo config.js
+    // mas também podemos adicioná-lo aqui, caso já exista.
+    getEl('btnConnectCalendarConfig')?.addEventListener('click', async () => {
         try {
             const url = await window.pluriAPI.getCalendarAuthUrl();
             const popup = window.open(url, 'googleAuth', 'width=600,height=600');
@@ -137,7 +154,7 @@ function attachPageEvents() {
     }
 }
 
-// 🔑 NOVA FUNÇÃO - obtém o token de sessão da URL ou do localStorage
+// 🔑 Obtém o token de sessão
 function getSessionToken() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
@@ -157,14 +174,41 @@ async function init() {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
 
-    // 🔑 Configura o token de sessão na API
     const token = getSessionToken();
     if (token) {
         window.pluriAPI.setSessionToken(token);
         console.log('🔑 Token de sessão configurado.');
     } else {
-        console.warn('⚠️ Token de sessão não encontrado. A agenda do Google Calendar pode não carregar.');
+        console.warn('⚠️ Token de sessão não encontrado.');
     }
+
+    // ⭐ IMPORTANTE: Registrar o listener ANTES de qualquer chamada que dispare o evento
+    window.addEventListener('calendar:not_connected', () => {
+        // Exibe botão na Agenda, se existir
+        const connectBtn = document.getElementById('btnConnectCalendar');
+        if (connectBtn) {
+            connectBtn.style.display = 'inline-block';
+        }
+        // Atualiza a seção de integrações na Configuração, se visível
+        const statusDiv = document.getElementById('googleCalendarIntegrationStatus');
+        if (statusDiv) {
+            statusDiv.innerHTML = '<span style="color: #f59e0b;">Não conectado</span> <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>';
+            document.getElementById('btnConnectCalendarConfig')?.addEventListener('click', async () => {
+                try {
+                    const url = await window.pluriAPI.getCalendarAuthUrl();
+                    const popup = window.open(url, 'googleAuth', 'width=600,height=600');
+                    const timer = setInterval(() => {
+                        if (popup.closed) {
+                            clearInterval(timer);
+                            location.reload();
+                        }
+                    }, 500);
+                } catch (e) {
+                    alert('Erro ao conectar: ' + e.message);
+                }
+            });
+        }
+    });
 
     try {
         const patients = await window.pluriAPI.getPatients();
@@ -207,14 +251,6 @@ async function init() {
     getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
 
     renderPage();
-
-    // Exibe o botão de conectar se o calendário não estiver vinculado
-    window.addEventListener('calendar:not_connected', () => {
-        const connectBtn = document.getElementById('btnConnectCalendar');
-        if (connectBtn) {
-            connectBtn.style.display = 'inline-block';
-        }
-    });
 
     window.pluri = {
         navigateTo,
