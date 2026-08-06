@@ -22,6 +22,7 @@ function openModal(time = null, patientName = null, patientPhone = null) {
     }
     refreshIcons();
 }
+
 function closeModal() {
     const overlay = getEl('modalOverlay');
     if (overlay) {
@@ -30,94 +31,72 @@ function closeModal() {
 }
 
 async function saveAppointment() {
-    const patient =
-        getEl('apptPatient')?.value?.trim() || '';
-    const phone =
-        getEl('apptPhone')?.value?.trim() || '';
-
-    const professional =
-        getEl('apptProfessional')?.value || 'Dra. Ana';
-
-    const service =
-        getEl('apptService')?.value || 'Avaliação';
-
-    const date =
-        getEl('apptDate')?.value || '';
-
-    const time =
-        getEl('apptTime')?.value || '';
-
-    const notes =
-        getEl('apptNotes')?.value?.trim() || '';
+    const patient = getEl('apptPatient')?.value?.trim() || '';
+    const phone = getEl('apptPhone')?.value?.trim() || '';
+    const professional = getEl('apptProfessional')?.value || 'Dra. Ana';
+    const service = getEl('apptService')?.value || 'Avaliação';
+    const date = getEl('apptDate')?.value || '';
+    const time = getEl('apptTime')?.value || '';
+    const notes = getEl('apptNotes')?.value?.trim() || '';
 
     if (!patient || !date || !time) {
-
-        showToast(
-            'Preencha paciente, data e horário.'
-        );
+        showToast('Preencha paciente, data e horário.');
         return;
     }
     if (!window.pluriAPI) {
-        showToast(
-            'API não inicializada.'
-        );
+        showToast('API não inicializada.');
         return;
     }
+
+    // Desabilita o botão de salvar para evitar duplo clique
+    const saveBtn = getEl('modalSave');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Salvando...';
+    }
+
     try {
-        const result =
-            await window.pluriAPI.createAppointment({
+        const result = await window.pluriAPI.createAppointment({
+            patient,
+            phone,
+            professional,
+            service,
+            date,
+            time,
+            notes,
+            status: 'Confirmado'
+        });
 
-                patient,
-                phone,
-                professional,
-                service,
-                date,
-                time,
-                notes,
-                status: 'Confirmado'
+        console.log('Resultado do Google Calendar:', result);
 
-            });
-
-        console.log(
-            'Resultado do Google Calendar:',
-            result
-        );
-
-        if (!result.success) {
-
-            showToast(
-
-                result.error ||
-
-                'Erro ao criar evento.'
-
-            );
-
+        if (!result || !result.success) {
+            showToast(result?.error || 'Erro ao criar evento.');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Salvar agendamento';
+            }
             return;
-
         }
 
-        state.appointments =
-            await window.pluriAPI.getCalendarAppointments();
-
+        // Recarrega os agendamentos da API
+        state.appointments = await window.pluriAPI.getCalendarAppointments();
         closeModal();
+        renderPage(); // Atualiza a página atual
+        showToast('Agendamento criado com sucesso.');
 
-        renderPage();
+        // Fallback: recarrega a página inteira após 1s se a lista não tiver sido atualizada
+        setTimeout(() => {
+            if (state.appointments.length === 0) {
+                location.reload();
+            }
+        }, 1000);
 
-        showToast(
-            'Agendamento criado com sucesso.'
-        );
-
-    }
-
-    catch (e) {
-
+    } catch (e) {
         console.error(e);
-
-        showToast(
-            'Erro ao sincronizar com o Google Calendar.'
-        );
-
+        showToast('Erro ao sincronizar com o Google Calendar.');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Salvar agendamento';
+        }
     }
-
 }
