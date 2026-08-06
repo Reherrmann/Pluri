@@ -185,11 +185,13 @@ async function init() {
         const staff = await window.pluriAPI.getStaff();
         state.staff = Array.isArray(staff) ? staff : [];
         console.log('✅ Equipe:', state.staff.length);
-        
-         console.log('🔄 Carregando conversas...');
-    const conversations = await window.pluriAPI.getConversations();
-    state.conversations = Array.isArray(conversations) ? conversations : [];
-    console.log('✅ Conversas:', state.conversations.length);
+
+        // 🔥 ADICIONE ESTE BLOCO
+        console.log('🔄 Carregando conversas...');
+        const conversations = await window.pluriAPI.getConversations();
+        state.conversations = Array.isArray(conversations) ? conversations : [];
+        console.log('✅ Conversas:', state.conversations.length);
+        // FIM DO BLOCO
 
     } catch (e) {
         console.error('❌ Erro ao carregar dados:', e.message);
@@ -201,6 +203,9 @@ async function init() {
 
     loadTheme();
     getEl('themeToggle')?.addEventListener('click', toggleTheme);
+
+    // ... resto do código ...
+}
 
     document.querySelectorAll('.sidebar-nav a').forEach(a => {
         a.addEventListener('click', (e) => {
