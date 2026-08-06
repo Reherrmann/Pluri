@@ -67,24 +67,13 @@ function attachPageEvents() {
 
     // Evento do botão "Conectar Google Calendar" na Agenda
     getEl('btnConnectCalendar')?.addEventListener('click', async () => {
-        try {
-            const url = await window.pluriAPI.getCalendarAuthUrl();
-            const popup = window.open(url, 'googleAuth', 'width=600,height=600');
-            if (!popup) {
-                alert('Popup bloqueado! Permita popups para este site e tente novamente.');
-                return;
-            }
-            const timer = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(timer);
-                    location.reload();
-                }
-            }, 500);
-        } catch (e) {
-            alert('Erro ao conectar: ' + e.message);
-        }
-    });
-
+    try {
+        const url = await window.pluriAPI.getCalendarAuthUrl();
+        window.location.href = url;
+    } catch (e) {
+        alert('Erro ao conectar: ' + e.message);
+    }
+});
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
