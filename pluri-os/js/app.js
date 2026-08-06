@@ -28,8 +28,7 @@ function renderPage() {
     refreshIcons();
     updateTitleAndSubtitle(title, subtitle);
 
-    // ⬇️ Após renderizar o DOM, trata o status do Google Calendar
-    // Exibe o botão na Agenda se o calendário não estiver conectado
+    // Exibe o botão de conectar na Agenda, se necessário
     if (window._calendarNotConnected) {
         const connectBtn = document.getElementById('btnConnectCalendar');
         if (connectBtn) {
@@ -37,7 +36,7 @@ function renderPage() {
         }
     }
 
-    // Se estiver na página de Configurações, atualiza o status da integração
+    // Se estiver na página de Configurações, atualiza status do Google Calendar
     if (state.currentPage === 'configuracoes') {
         updateGoogleCalendarStatus();
     }
@@ -71,6 +70,10 @@ function attachPageEvents() {
         try {
             const url = await window.pluriAPI.getCalendarAuthUrl();
             const popup = window.open(url, 'googleAuth', 'width=600,height=600');
+            if (!popup) {
+                alert('Popup bloqueado! Permita popups para este site e tente novamente.');
+                return;
+            }
             const timer = setInterval(() => {
                 if (popup.closed) {
                     clearInterval(timer);
@@ -81,9 +84,6 @@ function attachPageEvents() {
             alert('Erro ao conectar: ' + e.message);
         }
     });
-
-    // O botão "Conectar" na Configuração será adicionado dinamicamente pelo updateGoogleCalendarStatus
-    // Não precisa de listener fixo aqui.
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -182,8 +182,7 @@ async function init() {
         console.warn('⚠️ Token de sessão não encontrado.');
     }
 
-    // ⭐ IMPORTANTE: Registrar o listener ANTES de qualquer chamada que dispare o evento
-    // Apenas define uma flag global para não tentar manipular o DOM antes de existir
+    // ⭐ Listener que apenas define a flag (sem manipular o DOM)
     window.addEventListener('calendar:not_connected', () => {
         window._calendarNotConnected = true;
     });
@@ -230,7 +229,6 @@ async function init() {
 
     renderPage();
 
-    // Corrige o erro openStaff is not defined (verifica se a função existe)
     window.pluri = {
         navigateTo,
         openConversation,
