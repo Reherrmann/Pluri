@@ -12,7 +12,7 @@ class PluriAPI {
     }
 
     // =====================================================
-    // HTTP (agora sempre retorna um objeto com success/error)
+    // HTTP
     // =====================================================
     async get(url) {
         try {
@@ -22,7 +22,6 @@ class PluriAPI {
                 return { success: false, error: `HTTP ${response.status}` };
             }
             const json = await response.json();
-            // Se o servidor retornar { success: false, error: ... } já está no formato
             return json;
         } catch (e) {
             console.error('[GET]', e.message);
@@ -52,7 +51,7 @@ class PluriAPI {
     }
 
     // =====================================================
-    // FORMATADORES (inalterados)
+    // FORMATADORES
     // =====================================================
     formatDate(value) {
         if (!value) return '';
@@ -141,7 +140,7 @@ class PluriAPI {
     }
 
     // =====================================================
-    // CALENDAR (evento agora dispara automaticamente)
+    // CALENDAR
     // =====================================================
     async getCalendarAppointments(date = null) {
         if (!this.token) {
@@ -153,7 +152,6 @@ class PluriAPI {
             url += `&date=${encodeURIComponent(date)}`;
         }
         const data = await this.get(url);
-        // Agora 'data' sempre é um objeto { success, error?, events? }
         if (!data || !data.success) {
             if (data && data.error === 'NOT_CONNECTED') {
                 console.warn('Google Calendar não conectado. Exibindo botão...');
@@ -175,6 +173,18 @@ class PluriAPI {
             return data.url;
         }
         throw new Error(data?.error || 'Falha ao obter URL de autorização.');
+    }
+
+    // NOVO: Verifica se o Google Calendar já está conectado
+    async isCalendarConnected() {
+        if (!this.token) return false;
+        const url = `${this.config.appsScript.baseUrl}?action=oauth_start&token=${encodeURIComponent(this.token)}`;
+        const data = await this.get(url);
+        // Se retornar { success: true, url: null } significa que já está autorizado
+        if (data && data.success && data.url === null) {
+            return true;
+        }
+        return false;
     }
 
     mapCalendarEvent(event) {
