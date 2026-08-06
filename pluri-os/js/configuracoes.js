@@ -1,22 +1,10 @@
 // js/configuracoes.js
 
-async function buildConfiguracoes() {
-    // Verifica status real do Google Calendar
-    let googleCalendarStatus = 'Preparado para integração';
-    let googleCalendarConnected = false;
-    if (window.pluriAPI && window.pluriAPI.token) {
-        try {
-            googleCalendarConnected = await window.pluriAPI.isCalendarConnected();
-        } catch (e) {
-            console.warn('Não foi possível verificar a integração do Google Calendar.', e);
-        }
-    }
-    if (googleCalendarConnected) {
-        googleCalendarStatus = 'Conectado';
-    } else {
-        googleCalendarStatus = 'Não conectado';
-    }
-
+/**
+ * Retorna o HTML da página de Configurações.
+ * (função síncrona – sem await – para não retornar Promise)
+ */
+function buildConfiguracoes() {
     return `
         <div class="card">
             <div class="card-header">
@@ -77,11 +65,8 @@ async function buildConfiguracoes() {
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;" id="googleCalendarIntegrationStatus">
                         <span>Google Calendar</span>
-                        ${googleCalendarConnected 
-                            ? '<span style="color:#10b981;font-weight:500;">Conectado</span>' 
-                            : `<span style="color:#f59e0b;">${googleCalendarStatus}</span>
-                               <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>`
-                        }
+                        <!-- Placeholder inicial, será substituído pelo status real -->
+                        <span style="color: #f59e0b;">Verificando…</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;">
                         <span>E-mail</span>
@@ -92,20 +77,50 @@ async function buildConfiguracoes() {
         </div>`;
 }
 
-// ⚠️ Todas as funções existentes (openNewStaff, openStaff, etc.) permanecem INALTERADAS.
-// Apenas adicione esta nova função de apoio:
+/**
+ * Atualiza o status da integração com Google Calendar no DOM.
+ * Deve ser chamada após a renderização da página de Configurações.
+ */
+async function updateGoogleCalendarStatus() {
+    const statusDiv = document.getElementById('googleCalendarIntegrationStatus');
+    if (!statusDiv) return;
 
-async function connectGoogleCalendar() {
+    // Se não houver token, mostra como não configurado
+    if (!window.pluriAPI || !window.pluriAPI.token) {
+        statusDiv.innerHTML = '<span style="color: #f59e0b;">Não configurado</span>';
+        return;
+    }
+
     try {
-        const url = await window.pluriAPI.getCalendarAuthUrl();
-        const popup = window.open(url, 'googleAuth', 'width=600,height=600');
-        const timer = setInterval(() => {
-            if (popup.closed) {
-                clearInterval(timer);
-                location.reload();
-            }
-        }, 500);
+        const connected = await window.pluriAPI.isCalendarConnected();
+        if (connected) {
+            statusDiv.innerHTML = '<span style="color:#10b981;font-weight:500;">Conectado</span>';
+        } else {
+            statusDiv.innerHTML = `<span style="color:#f59e0b;">Não conectado</span>
+                <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>`;
+            // Adiciona o evento de clique ao botão recém-criado
+            document.getElementById('btnConnectCalendarConfig')?.addEventListener('click', async () => {
+                try {
+                    const url = await window.pluriAPI.getCalendarAuthUrl();
+                    const popup = window.open(url, 'googleAuth', 'width=600,height=600');
+                    const timer = setInterval(() => {
+                        if (popup.closed) {
+                            clearInterval(timer);
+                            location.reload();
+                        }
+                    }, 500);
+                } catch (e) {
+                    alert('Erro ao conectar: ' + e.message);
+                }
+            });
+        }
     } catch (e) {
-        alert('Erro ao conectar: ' + e.message);
+        statusDiv.innerHTML = '<span style="color:#f59e0b;">Erro ao verificar</span>';
     }
 }
+
+// =========================================================
+// Funções originais (mantenha-as exatamente como já estavam)
+// =========================================================
+function openNewStaff() { /* ... seu código original ... */ }
+function openStaff(row) { /* ... seu código original ... */ }
