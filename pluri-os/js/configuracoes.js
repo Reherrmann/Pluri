@@ -98,17 +98,12 @@ async function updateGoogleCalendarStatus() {
         } else {
             statusDiv.innerHTML = `<span style="color:#f59e0b;">Não conectado</span>
                 <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>`;
-            // Adiciona o evento de clique ao botão recém-criado
+            // Adiciona o evento de clique ao botão recém-criado (agora com redirecionamento)
             document.getElementById('btnConnectCalendarConfig')?.addEventListener('click', async () => {
                 try {
                     const url = await window.pluriAPI.getCalendarAuthUrl();
-                    const popup = window.open(url, 'googleAuth', 'width=600,height=600');
-                    const timer = setInterval(() => {
-                        if (popup.closed) {
-                            clearInterval(timer);
-                            location.reload();
-                        }
-                    }, 500);
+                    // Redireciona a página principal em vez de abrir um popup
+                    window.location.href = url;
                 } catch (e) {
                     alert('Erro ao conectar: ' + e.message);
                 }
