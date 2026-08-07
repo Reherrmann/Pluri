@@ -192,12 +192,17 @@ async function init() {
         console.log('✅ Agenda:', state.appointments.length);
 
         console.log('🔄 Carregando equipe...');
-        const staff = await window.pluriAPI.getStaff();
-        state.staff = Array.isArray(staff) ? staff : [];
-        console.log('✅ Equipe:', state.staff.length);
+const staff = await window.pluriAPI.getStaff();
+state.staff = Array.isArray(staff) ? staff : [];
+console.log('✅ Equipe:', state.staff.length);
 
-        console.log('🔄 Carregando conversas...');
-        const conversations = await window.pluriAPI.getConversations();
+console.log('🔄 Carregando dados da clínica...');
+const clinic = await window.pluriAPI.getClinic();
+state.clinic = clinic || {};
+console.log('✅ Clínica:', state.clinic);
+
+console.log('🔄 Carregando conversas...');
+const conversations = await window.pluriAPI.getConversations();
         state.conversations = Array.isArray(conversations) ? conversations : [];
         console.log('✅ Conversas:', state.conversations.length);
     } catch (e) {
