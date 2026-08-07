@@ -247,13 +247,29 @@ function buildAgendaMonthHTML() {
 function openEditAppointment(eventId) {
     const appt = state.appointments.find(a => String(a.id) === String(eventId));
     if (!appt) return;
+    
     openModal(appt.time, appt.patient, appt.phone);
+    
     getEl('apptProfessional').value = appt.professional || 'Dra. Ana';
     getEl('apptService').value = appt.service || 'Avaliação';
-    getEl('apptNotes').value = appt.notes || '';
     getEl('apptDate').value = appt.date;
+    
+    // Corrige o aninhamento do campo "notes"
+    let notesValue = appt.notes || '';
+    try {
+        const parsed = JSON.parse(notesValue);
+        // Se for um objeto e tiver a propriedade "notes", pega o valor interno
+        if (parsed && typeof parsed === 'object' && parsed.notes !== undefined) {
+            notesValue = parsed.notes || '';
+        }
+    } catch (e) {
+        // Não é JSON, mantém o valor original
+    }
+    getEl('apptNotes').value = notesValue;
+    
     const statusInput = getEl('apptStatus');
     if (statusInput) statusInput.value = appt.status || 'Aguardando';
+    
     window._editingAppointmentId = eventId;
     if (typeof setModalMode === 'function') setModalMode('edit');
 }
