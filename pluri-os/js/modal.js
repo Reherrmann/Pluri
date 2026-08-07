@@ -22,16 +22,14 @@ function openModal(time = null, patientName = null, patientPhone = null) {
         phoneInput.value = patientPhone || '';
     }
 
-    // Ajusta botões de ação no footer
+    // Botões de ação (excluir e confirmar WhatsApp) aparecem apenas na edição
     const footer = document.querySelector('.modal-footer');
     if (footer) {
-        // Remove botões extras antigos (se existirem)
         const oldDeleteBtn = document.getElementById('deleteAppointmentBtn');
         if (oldDeleteBtn) oldDeleteBtn.remove();
         const oldConfirmBtn = document.getElementById('confirmWhatsAppBtn');
         if (oldConfirmBtn) oldConfirmBtn.remove();
 
-        // Se estiver editando, adiciona botão Excluir e Confirmar WhatsApp
         if (window._editingAppointmentId) {
             const deleteBtn = document.createElement('button');
             deleteBtn.id = 'deleteAppointmentBtn';
@@ -58,7 +56,6 @@ function closeModal() {
     if (overlay) {
         overlay.classList.remove('show');
     }
-    // Limpa o ID de edição ao fechar
     delete window._editingAppointmentId;
 }
 
@@ -86,8 +83,6 @@ async function saveAppointment() {
         saveBtn.textContent = 'Salvando...';
     }
 
-    const clinicaID = window.PLURI_USER?.clinicaId;
-
     try {
         let result;
         if (window._editingAppointmentId) {
@@ -102,7 +97,7 @@ async function saveAppointment() {
                 time,
                 notes,
                 status: 'Confirmado',
-                token: window.pluriAPI.token
+                token: window.pluriAPI.token          // ← envia o token de sessão
             });
             delete window._editingAppointmentId;
         } else {
@@ -116,7 +111,7 @@ async function saveAppointment() {
                 time,
                 notes,
                 status: 'Confirmado',
-                clinicaID: clinicaID
+                token: window.pluriAPI.token          // ← envia o token de sessão
             });
         }
 
@@ -153,7 +148,7 @@ async function deleteAppointment() {
     try {
         const result = await window.pluriAPI.deleteAppointment(
             window._editingAppointmentId,
-            window.PLURI_USER?.clinicaId
+            window.pluriAPI.token   // envia token de sessão para o backend validar a clínica
         );
         if (result && result.success) {
             delete window._editingAppointmentId;
@@ -200,7 +195,7 @@ async function confirmarEnviarWhatsApp() {
                 time: appt.time,
                 notes: appt.notes,
                 status: 'Confirmado',
-                clinicaID: window.PLURI_USER?.clinicaId
+                token: window.pluriAPI.token
             });
             state.appointments = await window.pluriAPI.getCalendarAppointments();
             renderPage();
