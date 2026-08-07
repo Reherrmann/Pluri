@@ -94,9 +94,13 @@ function attachPageEvents() {
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
+            const tabName = tab.dataset.tab;
+            // Guarda a aba ativa no estado
+            state.activeAgendaTab = tabName;
+
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            const tabName = tab.dataset.tab;
+
             const dayView = getEl('agendaDayView');
             const weekView = getEl('agendaWeekView');
             if (tabName === 'today') {
@@ -107,7 +111,7 @@ function attachPageEvents() {
                 if (weekView) {
                     weekView.style.display = 'block';
                     weekView.innerHTML = '';
-                    weekView.appendChild(buildAgendaMonthElement());   // 🔁 alterado para visualização mensal
+                    weekView.appendChild(buildAgendaMonthElement());
                 }
             }
             refreshIcons();
@@ -191,6 +195,9 @@ async function init() {
     window.addEventListener('calendar:not_connected', () => {
         window._calendarNotConnected = true;
     });
+
+    // Inicializa a aba ativa da agenda (se ainda não estiver definida)
+    state.activeAgendaTab = state.activeAgendaTab || 'today';
 
     try {
         console.log('🔄 Carregando pacientes...');
