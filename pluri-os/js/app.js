@@ -249,13 +249,50 @@ async function init() {
     renderPage();
 
     window.pluri = {
-        navigateTo,
-        openConversation,
-        openPatient,
-        openModal,
-        openStaff: typeof openStaff === 'function' ? openStaff : () => {},
-        showToast
-    };
+    navigateTo,
+    openConversation,
+    openPatient,
+    openModal,
+    openStaff,
+    showToast,
+
+    // ==================== NOVAS FUNÇÕES ====================
+    editAppointment: function(eventId) {
+        const appt = state.appointments.find(a => a.id === eventId);
+        if (!appt) return;
+        openModal(null, appt.patient, appt.phone);
+        getEl('apptDate').value = appt.date;
+        getEl('apptTime').value = appt.time;
+        getEl('apptProfessional').value = appt.professional;
+        getEl('apptService').value = appt.service;
+        getEl('apptNotes').value = appt.notes || '';
+        const saveBtn = getEl('modalSave');
+        if (saveBtn) {
+            saveBtn.setAttribute('data-edit-id', eventId);
+            saveBtn.textContent = 'Atualizar agendamento';
+            saveBtn.onclick = saveAppointment; // reatribui para o evento de clique atualizado
+        }
+    },
+    deleteAppointment: async function(eventId) {
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+        const result = await window.pluriAPI.deleteAppointment(eventId, window.pluriAPI.token);
+        if (result.success) {
+            state.appointments = await window.pluriAPI.getCalendarAppointments();
+            renderPage();
+            showToast('Agendamento excluído.');
+        } else {
+            showToast(result.error || 'Erro ao excluir.');
+        }
+    },
+    confirmAppointment: function(eventId, phone, patientName) {
+        if (!phone) {
+            showToast('Nenhum telefone cadastrado para este paciente.');
+            return;
+        }
+        const message = encodeURIComponent(`Olá ${patientName}, sua consulta está confirmada!`);
+        window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    }
+};
 }
 
 if (document.readyState === 'loading') {
