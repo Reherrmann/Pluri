@@ -196,7 +196,7 @@ const staff = await window.pluriAPI.getStaff();
 state.staff = Array.isArray(staff) ? staff : [];
 console.log('✅ Equipe:', state.staff.length);
 
-cconsole.log('🔄 Carregando dados da clínica...');
+console.log('🔄 Carregando dados da clínica...');
 const clinic = await window.pluriAPI.getClinic();
 state.clinic = clinic || {};
 console.log('✅ Clínica carregada:', state.clinic);
