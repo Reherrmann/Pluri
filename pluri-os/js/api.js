@@ -105,7 +105,7 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
-    // EQUIPE (métodos originais usando o CRUD genérico)
+    // EQUIPE (métodos originais usando CRUD genérico)
     // -------------------------------------------------
     async getStaff() {
         const data = await this.get(this.config.appsScript.equipe);
@@ -286,7 +286,6 @@ class PluriAPI {
         };
     }
     async updateClinic(clinic) {
-        // Usa o CRUD genérico com sheet 'Clinica' (aba real)
         return this.post({
             action: 'update',
             sheet: 'Clinica',
