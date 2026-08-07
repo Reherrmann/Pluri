@@ -2,7 +2,6 @@
 
 // =====================================================
 // FORÇA A REDEFINIÇÃO GLOBAL DAS FUNÇÕES DE STATUS
-// (sobrescreve qualquer definição anterior em utils.js)
 // =====================================================
 window.getStatusClass = function(status) {
     switch (status) {
@@ -15,9 +14,9 @@ window.getStatusClass = function(status) {
 
 window.statusColor = function(status) {
     switch (status) {
-        case 'Aguardando': return '#ffc107'; // amarelo
-        case 'Confirmado': return '#28a745'; // verde
-        case 'Cancelado':  return '#dc3545'; // vermelho
+        case 'Aguardando': return '#ffc107';
+        case 'Confirmado': return '#28a745';
+        case 'Cancelado':  return '#dc3545';
         default:           return '#ffc107';
     }
 };
@@ -33,7 +32,16 @@ window.statusBadge = function(status) {
 };
 
 // =====================================================
-// AÇÕES DOS BOTÕES (integradas ao objeto global 'pluri')
+// FUNÇÕES GLOBAIS (compatibilidade com app.js)
+// =====================================================
+function openDayFromMonth(dateStr) {
+    state.agendaDate = dateStr;
+    state.agendaTab = 'today';
+    renderPage();
+}
+
+// =====================================================
+// OBJETO GLOBAL 'pluri' (para chamadas inline nos botões)
 // =====================================================
 window.pluri = window.pluri || {};
 
@@ -71,14 +79,10 @@ window.pluri.deleteAppointment = function(apptId) {
     }
 };
 
-window.pluri.openDayFromMonth = function(dateStr) {
-    state.agendaDate = dateStr;
-    state.agendaTab = 'today';
-    renderPage();
-};
+window.pluri.openDayFromMonth = openDayFromMonth;
 
 // =====================================================
-// RENDERIZAÇÃO DA AGENDA (visão dia e mês)
+// RENDERIZAÇÃO DA AGENDA
 // =====================================================
 function buildAgenda() {
     if (!state || !state.appointments) {
@@ -224,7 +228,7 @@ function buildAgendaMonthHTML() {
                             <span class="agenda-month-event-time">${a.time}</span>
                             <span class="agenda-month-event-name">${a.patient}</span>
                         </div>`).join('')}
-                    ${extra > 0 ? `<div class="agenda-month-more" onclick="window.pluri.openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
+                    ${extra > 0 ? `<div class="agenda-month-more" onclick="openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
                 </div>
             </div>`;
     }).join('');
@@ -250,7 +254,6 @@ function openEditAppointment(eventId) {
     if (typeof setModalMode === 'function') setModalMode('edit');
 }
 
-// Reaplica ícones Lucide após renderização
 function refreshAgendaIcons() {
     if (window.lucide) lucide.createIcons();
 }
