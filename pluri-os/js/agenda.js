@@ -1,7 +1,8 @@
 // js/agenda.js
 
 // =====================================================
-// FORÇA A REDEFINIÇÃO GLOBAL DAS FUNÇÕES DE STATUS
+// FORÇA REDEFINIÇÃO GLOBAL DAS FUNÇÕES DE STATUS
+// (mesmo que utils.js tenha versões antigas)
 // =====================================================
 window.getStatusClass = function(status) {
     switch (status) {
@@ -32,7 +33,7 @@ window.statusBadge = function(status) {
 };
 
 // =====================================================
-// FUNÇÕES GLOBAIS (compatibilidade com app.js)
+// FUNÇÕES GLOBAIS
 // =====================================================
 function openDayFromMonth(dateStr) {
     state.agendaDate = dateStr;
@@ -40,15 +41,17 @@ function openDayFromMonth(dateStr) {
     renderPage();
 }
 
-// =====================================================
-// OBJETO GLOBAL 'pluri' (para chamadas inline nos botões)
-// =====================================================
+// Objeto pluri (usado nos botões inline)
 window.pluri = window.pluri || {};
+window.pluri.openDayFromMonth = openDayFromMonth;
 
+// Botão Confirmar via WhatsApp (desabilitado por enquanto)
 window.pluri.confirmAppointment = function(apptId, phone, patientName) {
+    // Funcionalidade pausada – será retomada depois
+    /*
     phone = (phone || '').replace(/\D/g, '');
     if (!phone) {
-        if (typeof showToast === 'function') showToast('Telefone não informado.');
+        showToast('Telefone não informado.');
         return;
     }
     const appt = state.appointments.find(a => String(a.id) === String(apptId));
@@ -56,6 +59,7 @@ window.pluri.confirmAppointment = function(apptId, phone, patientName) {
     const time = appt ? appt.time : '';
     const msg = `Olá ${patientName}, sua consulta está agendada para ${date} às ${time}. Poderia confirmar sua presença?`;
     window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    */
 };
 
 window.pluri.editAppointment = function(apptId) {
@@ -78,8 +82,6 @@ window.pluri.deleteAppointment = function(apptId) {
         showToast('API não disponível.');
     }
 };
-
-window.pluri.openDayFromMonth = openDayFromMonth;
 
 // =====================================================
 // RENDERIZAÇÃO DA AGENDA
@@ -171,9 +173,11 @@ function buildAgenda() {
                                 <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
                             </div>
                             ${window.statusBadge(appt.status)}
+                            <!-- Botão Confirmar via WhatsApp (comentado por enquanto)
                             <button class="btn-icon-sm" title="Confirmar via WhatsApp" onclick="event.stopPropagation(); window.pluri.confirmAppointment('${appt.id}', '${appt.phone}', '${appt.patient}')">
                                 <i data-lucide="message-circle" style="width:14px;height:14px;"></i>
                             </button>
+                            -->
                             <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
                                 <i data-lucide="edit-2" style="width:14px;height:14px;"></i>
                             </button>
