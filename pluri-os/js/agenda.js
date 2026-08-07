@@ -1,14 +1,13 @@
 // js/agenda.js
 
+// js/agenda.js
+
 function buildAgenda() {
     if (!state || !state.appointments) {
         return '<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>';
     }
 
-    // Qual aba está ativa (hoje ou semana)? Padrão 'today'
     const activeTab = state.activeAgendaTab || 'today';
-
-    // Data selecionada (padrão hoje)
     const currentDate = state.agendaDate || new Date().toISOString().split('T')[0];
     const allSlots = [];
     for (let h = 8; h < 18; h++) {
@@ -25,7 +24,6 @@ function buildAgenda() {
         grouped[time].push(a);
     });
 
-    // Formatar data para exibição
     const dataFormatada = new Date(currentDate + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
 
     return `
@@ -35,7 +33,7 @@ function buildAgenda() {
                     <button class="tab ${activeTab === 'today' ? 'active' : ''}" data-tab="today">Hoje</button>
                     <button class="tab ${activeTab === 'week' ? 'active' : ''}" data-tab="week">Semana</button>
                 </div>
-                <div class="agenda-date-navigator" style="display:flex;align-items:center;gap:8px;margin-left:20px;min-width:220px;justify-content:center;">
+                <div class="agenda-date-navigator" style="display:flex;align-items:center;gap:8px;margin-left:20px;width:240px;justify-content:center;">
                     <button class="btn-icon btn-sm" id="agendaPrevDay" title="Dia anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
                     <span style="font-size:13px;font-weight:500;white-space:nowrap;">${dataFormatada}</span>
                     <button class="btn-icon btn-sm" id="agendaNextDay" title="Próximo dia"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
@@ -75,6 +73,132 @@ function buildAgenda() {
             </div>
         </div>
         <div id="agendaWeekView" style="display:${activeTab === 'week' ? 'block' : 'none'};"></div>`;
+}
+
+function buildAgendaWeekElement() {
+    if (!state || !state.appointments) {
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = 'Erro ao carregar dados da semana.';
+        return errorDiv;
+    }
+
+    const today = new Date();
+    const currentWeekStart = state.currentWeekStart || getStartOfWeek(today);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(currentWeekStart);
+        d.setDate(currentWeekStart.getDate() + i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        const dayName = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d.getDay()];
+        const appts = state.appointments.filter(a => a.date === dateStr);
+        const isToday = dateStr === today.toISOString().split('T')[0];
+        days.push({ dateStr, dayName, dd, appts, isToday });
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    // Navegação da semana
+    const weekNav = document.createElement('div');
+    weekNav.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;';
+    weekNav.innerHTML = `
+        <button class="btn-icon btn-sm" id="weekPrevBtn"><i data-lucide="chevron-left" style="width:16px;height:16px;"></i></button>
+        <span style="font-weight:600;font-size:14px;">${formatWeekRange(days[0].dateStr, days[6].dateStr)}</span>
+        <button class="btn-icon btn-sm" id="weekNextBtn"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></button>
+    `;
+    fragment.appendChild(weekNav);
+
+    // Colunas dos dias
+    const weekGrid = document.createElement('div');
+    weekGrid.style.cssText = 'display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;';
+    days.forEach(day => {
+        const dayCol = document.createElement('div');
+        dayCol.style.cssText = `flex:1;background:${day.isToday ? 'var(--accent-light)' : 'var(--card-bg)'};padding:8px 4px;min-height:100px;`;
+        const dayHeader = document.createElement('div');
+        dayHeader.style.cssText = `text-align:center;font-size:12px;font-weight:${day.isToday ? '700' : '500'};color:var(--text);margin-bottom:8px;`;
+        dayHeader.innerHTML = `${day.dayName}<br><span style="font-size:16px;">${day.dd}</span>`;
+        dayCol.appendChild(dayHeader);
+
+        if (day.appts.length > 0) {
+            day.appts.forEach(appt => {
+                const apptCard = document.createElement('div');
+                apptCard.className = 'agenda-item';
+                apptCard.setAttribute('data-id', appt.id);
+                apptCard.style.cssText = `
+                    font-size:10px;padding:2px 4px;margin-bottom:2px;
+                    background:var(--hover-bg);border-radius:4px;cursor:pointer;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+                    border-left:3px solid ${appt.status === 'Confirmado' ? '#10b981' : appt.status === 'Pendente' ? '#f59e0b' : '#6b7280'};
+                `;
+                apptCard.innerHTML = `<span style="font-weight:500;">${appt.time}</span> ${appt.patient}`;
+                dayCol.appendChild(apptCard);
+            });
+        }
+
+        weekGrid.appendChild(dayCol);
+    });
+    fragment.appendChild(weekGrid);
+
+    // Handlers de navegação semanal
+    setTimeout(() => {
+        document.getElementById('weekPrevBtn')?.addEventListener('click', () => {
+            if (!state.currentWeekStart) state.currentWeekStart = getStartOfWeek(today);
+            state.currentWeekStart.setDate(state.currentWeekStart.getDate() - 7);
+            const weekView = getEl('agendaWeekView');
+            if (weekView) {
+                weekView.innerHTML = '';
+                weekView.appendChild(buildAgendaWeekElement());
+            }
+            if (window.lucide) lucide.createIcons();
+        });
+        document.getElementById('weekNextBtn')?.addEventListener('click', () => {
+            if (!state.currentWeekStart) state.currentWeekStart = getStartOfWeek(today);
+            state.currentWeekStart.setDate(state.currentWeekStart.getDate() + 7);
+            const weekView = getEl('agendaWeekView');
+            if (weekView) {
+                weekView.innerHTML = '';
+                weekView.appendChild(buildAgendaWeekElement());
+            }
+            if (window.lucide) lucide.createIcons();
+        });
+        if (window.lucide) lucide.createIcons();
+    }, 0);
+
+    return fragment;
+}
+
+// Funções auxiliares
+function getStartOfWeek(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    d.setDate(d.getDate() - day);
+    return d;
+}
+
+function formatWeekRange(startStr, endStr) {
+    const opts = { day: '2-digit', month: '2-digit' };
+    const start = new Date(startStr + 'T00:00:00');
+    const end = new Date(endStr + 'T00:00:00');
+    return start.toLocaleDateString('pt-BR', opts) + ' - ' + end.toLocaleDateString('pt-BR', opts);
+}
+
+function openEditAppointment(eventId) {
+    const appt = state.appointments.find(a => a.id === eventId);
+    if (!appt) return;
+    openModal(appt.time, appt.patient, appt.phone);
+    setTimeout(() => {
+        const profEl = getEl('apptProfessional');
+        const servEl = getEl('apptService');
+        const notesEl = getEl('apptNotes');
+        const dateEl = getEl('apptDate');
+        if (profEl) profEl.value = appt.professional || 'Dra. Ana';
+        if (servEl) servEl.value = appt.service || 'Avaliação';
+        if (notesEl) notesEl.value = appt.notes || '';
+        if (dateEl) dateEl.value = appt.date;
+    }, 100);
+    window._editingAppointmentId = eventId;
 }
 
 function buildAgendaMonthElement() {
