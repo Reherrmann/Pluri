@@ -1,6 +1,6 @@
 // js/app.js
 
-function renderPage() {
+async function renderPage() {
     const container = getEl('pageContainer');
     if (!container) return;
     const title = getEl('pageTitle');
@@ -15,7 +15,7 @@ function renderPage() {
             case 'pacientes': html = buildPacientes(); break;
             case 'automacoes': html = buildAutomacoes(); break;
             case 'indicadores': html = buildIndicadores(); break;
-            case 'configuracoes': html = renderConfig(); break; 
+            case 'configuracoes': html = await renderConfig(); break;   // ✅ await resolve a Promise
             default: html = buildDashboard();
         }
     } catch (e) {
@@ -37,6 +37,7 @@ function renderPage() {
         updateGoogleCalendarStatus();
     }
 }
+
 function updateGoogleCalendarStatus() {
     // Mantida para compatibilidade – será implementada depois.
 }
