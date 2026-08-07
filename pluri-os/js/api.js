@@ -183,41 +183,41 @@ class PluriAPI {
     // 🔥 CORRIGIDO: adicionado clinicaID em todas as operações de calendário
     async createAppointment(appointment) {
         return this.post({
-            action: 'createCalendarEvent',
-            patient: appointment.patient,
-            professional: appointment.professional,
-            service: appointment.service,
-            phone: appointment.phone,
-            notes: appointment.notes,
-            status: appointment.status,
-            date: appointment.date,
-            time: appointment.time,
-            clinicaID: appointment.clinicaID          // ← ESSENCIAL
-        });
+        action: 'createCalendarEvent',
+        patient: appointment.patient,
+        professional: appointment.professional,
+        service: appointment.service,
+        phone: appointment.phone,
+        notes: appointment.notes,
+        status: appointment.status,
+        date: appointment.date,
+        time: appointment.time,
+        token: this.token   // ESSENCIAL
+    });
     }
 
     async updateAppointment(appointment) {
         return this.post({
-            action: 'updateCalendarEvent',
-            id: appointment.id,
-            patient: appointment.patient,
-            professional: appointment.professional,
-            service: appointment.service,
-            phone: appointment.phone,
-            notes: appointment.notes,
-            status: appointment.status,
-            date: appointment.date,
-            time: appointment.time,
-            clinicaID: appointment.clinicaID          // ← ESSENCIAL
-        });
+        action: 'updateCalendarEvent',
+        patient: appointment.patient,
+        professional: appointment.professional,
+        service: appointment.service,
+        phone: appointment.phone,
+        notes: appointment.notes,
+        status: appointment.status,
+        date: appointment.date,
+        time: appointment.time,
+        token: this.token   // ESSENCIAL
+    });
     }
 
     async deleteAppointment(id, clinicaID) {
         return this.post({
             action: 'deleteCalendarEvent',
-            id: id,
-            clinicaID: clinicaID                     // ← ESSENCIAL
-        });
+            token: this.token   // ESSENCIAL
+    });
+}
+// O mesmo para updateAppointment (com id) e deleteAppointment (com id e token).
     }
 
     // -------------------------------------------------
