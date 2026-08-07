@@ -1,66 +1,61 @@
 // js/agenda.js
 
 // =====================================================
-// FUNÇÕES AUXILIARES DE STATUS (cores corrigidas)
+// FORÇA A REDEFINIÇÃO GLOBAL DAS FUNÇÕES DE STATUS
+// (sobrescreve qualquer definição anterior em utils.js)
 // =====================================================
-function getStatusClass(status) {
+window.getStatusClass = function(status) {
     switch (status) {
         case 'Aguardando': return 'status-aguardando';
         case 'Confirmado': return 'status-confirmado';
         case 'Cancelado':  return 'status-cancelado';
         default:           return 'status-aguardando';
     }
-}
+};
 
-function statusColor(status) {
-    // Retorna cor sólida (usada nos dots da visão mensal)
+window.statusColor = function(status) {
     switch (status) {
-        case 'Aguardando': return '#ffc107';
-        case 'Confirmado': return '#28a745';
-        case 'Cancelado':  return '#dc3545';
+        case 'Aguardando': return '#ffc107'; // amarelo
+        case 'Confirmado': return '#28a745'; // verde
+        case 'Cancelado':  return '#dc3545'; // vermelho
         default:           return '#ffc107';
     }
-}
+};
 
-function statusDotCorner(status) {
-    // Bolinha colorida no canto superior esquerdo dos itens da agenda
-    const color = statusColor(status);
+window.statusDotCorner = function(status) {
+    const color = window.statusColor(status);
     return `<span class="status-dot-corner" style="background:${color};"></span>`;
-}
+};
 
-function statusBadge(status) {
-    // Pequena etiqueta com texto (usada ao lado do nome na lista do dia)
-    const cls = getStatusClass(status);
+window.statusBadge = function(status) {
+    const cls = window.getStatusClass(status);
     return `<span class="appointment-status ${cls}">${status || 'Aguardando'}</span>`;
-}
+};
 
 // =====================================================
-// FUNÇÕES DE INTERAÇÃO (WhatsApp, edição, exclusão)
+// AÇÕES DOS BOTÕES (integradas ao objeto global 'pluri')
 // =====================================================
-function confirmAppointment(apptId, phone, patientName) {
-    // Abre WhatsApp com mensagem de confirmação
-    phone = phone.replace(/\D/g, '');
+window.pluri = window.pluri || {};
+
+window.pluri.confirmAppointment = function(apptId, phone, patientName) {
+    phone = (phone || '').replace(/\D/g, '');
     if (!phone) {
-        showToast('Telefone não informado.');
+        if (typeof showToast === 'function') showToast('Telefone não informado.');
         return;
     }
     const appt = state.appointments.find(a => String(a.id) === String(apptId));
     const date = appt ? appt.date : '';
     const time = appt ? appt.time : '';
     const msg = `Olá ${patientName}, sua consulta está agendada para ${date} às ${time}. Poderia confirmar sua presença?`;
-    const url = `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
-}
+    window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+};
 
-function editAppointment(apptId) {
-    // Redireciona para a função de edição do modal
+window.pluri.editAppointment = function(apptId) {
     openEditAppointment(apptId);
-}
+};
 
-function deleteAppointment(apptId) {
-    // Confirmação e exclusão via API
+window.pluri.deleteAppointment = function(apptId) {
     if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
-    // A função de exclusão deve estar definida em outro lugar (ex.: api.js)
     if (window.pluriAPI && window.pluriAPI.deleteAppointment) {
         window.pluriAPI.deleteAppointment(apptId).then(result => {
             if (result.success) {
@@ -74,7 +69,13 @@ function deleteAppointment(apptId) {
     } else {
         showToast('API não disponível.');
     }
-}
+};
+
+window.pluri.openDayFromMonth = function(dateStr) {
+    state.agendaDate = dateStr;
+    state.agendaTab = 'today';
+    renderPage();
+};
 
 // =====================================================
 // RENDERIZAÇÃO DA AGENDA (visão dia e mês)
@@ -84,7 +85,6 @@ function buildAgenda() {
         return '<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>';
     }
 
-    // Estado de navegação
     if (!state.agendaDate) state.agendaDate = new Date().toISOString().split('T')[0];
     if (!state.agendaTab) state.agendaTab = 'today';
     if (!state.agendaMonth) {
@@ -125,15 +125,15 @@ function buildAgenda() {
                     <button class="tab ${isToday ? 'active' : ''}" data-tab="today">Hoje</button>
                     <button class="tab ${!isToday ? 'active' : ''}" data-tab="month">Mês</button>
                 </div>
-                <div class="agenda-date-navigator" id="agendaDayNav" style="display:${isToday ? 'flex' : 'none'};">
-                    <button class="btn-icon btn-sm" id="agendaPrevDay"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
-                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;">${dataFormatada}</span>
-                    <button class="btn-icon btn-sm" id="agendaNextDay"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+                <div class="agenda-date-navigator" id="agendaDayNav" style="display:${isToday ? 'flex' : 'none'};align-items:center;gap:8px;margin-left:20px;">
+                    <button class="btn-icon btn-sm" id="agendaPrevDay" title="Dia anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
+                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${dataFormatada}</span>
+                    <button class="btn-icon btn-sm" id="agendaNextDay" title="Próximo dia"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
-                <div class="agenda-date-navigator" id="agendaMonthNav" style="display:${isToday ? 'none' : 'flex'};">
-                    <button class="btn-icon btn-sm" id="agendaPrevMonth"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
-                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;">${monthLabel}</span>
-                    <button class="btn-icon btn-sm" id="agendaNextMonth"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+                <div class="agenda-date-navigator" id="agendaMonthNav" style="display:${isToday ? 'none' : 'flex'};align-items:center;gap:8px;margin-left:20px;">
+                    <button class="btn-icon btn-sm" id="agendaPrevMonth" title="Mês anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
+                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${monthLabel}</span>
+                    <button class="btn-icon btn-sm" id="agendaNextMonth" title="Próximo mês"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
                 <div class="agenda-google-calendar" id="googleCalendarIndicator">
                     <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
@@ -159,21 +159,21 @@ function buildAgenda() {
                 } else {
                     return events.map((appt, index) => `
                         <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer;position:relative; ${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
-                            ${statusDotCorner(appt.status)}
+                            ${window.statusDotCorner(appt.status)}
                             <span class="agenda-time">${time}</span>
                             <div class="agenda-avatar">${getInitials(appt.patient)}</div>
-                            <div class="agenda-info" onclick="editAppointment('${appt.id}')">
+                            <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
                                 <div class="agenda-name">${appt.patient}</div>
                                 <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
                             </div>
-                            ${statusBadge(appt.status)}
-                            <button class="btn-icon-sm" title="Confirmar via WhatsApp" onclick="event.stopPropagation(); confirmAppointment('${appt.id}', '${appt.phone}', '${appt.patient}')">
+                            ${window.statusBadge(appt.status)}
+                            <button class="btn-icon-sm" title="Confirmar via WhatsApp" onclick="event.stopPropagation(); window.pluri.confirmAppointment('${appt.id}', '${appt.phone}', '${appt.patient}')">
                                 <i data-lucide="message-circle" style="width:14px;height:14px;"></i>
                             </button>
-                            <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation(); editAppointment('${appt.id}')">
+                            <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
                                 <i data-lucide="edit-2" style="width:14px;height:14px;"></i>
                             </button>
-                            <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation(); deleteAppointment('${appt.id}')">
+                            <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation(); window.pluri.deleteAppointment('${appt.id}')">
                                 <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                             </button>
                         </li>`).join('');
@@ -183,9 +183,6 @@ function buildAgenda() {
         <div id="agendaMonthView" style="display:${isToday ? 'none' : 'block'};">${buildAgendaMonthHTML()}</div>`;
 }
 
-// =====================================================
-// VISÃO MENSAL
-// =====================================================
 function buildAgendaMonthHTML() {
     if (!state || !state.appointments || !state.agendaMonth) {
         return '<div class="card"><div class="card-body">Erro ao carregar o mês.</div></div>';
@@ -193,7 +190,7 @@ function buildAgendaMonthHTML() {
 
     const { year, month } = state.agendaMonth;
     const firstDay = new Date(year, month, 1);
-    const startWeekday = firstDay.getDay(); // 0 = Domingo
+    const startWeekday = firstDay.getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -222,12 +219,12 @@ function buildAgendaMonthHTML() {
                 <div class="agenda-month-daynum">${day}</div>
                 <div class="agenda-month-events">
                     ${shown.map(a => `
-                        <div class="agenda-month-event" title="${a.patient} · ${a.status}" onclick="editAppointment('${a.id}')">
-                            <span class="agenda-month-dot" style="background:${statusColor(a.status)};"></span>
+                        <div class="agenda-month-event" title="${a.patient} · ${a.status}" onclick="window.pluri.editAppointment('${a.id}')">
+                            <span class="agenda-month-dot" style="background:${window.statusColor(a.status)};"></span>
                             <span class="agenda-month-event-time">${a.time}</span>
                             <span class="agenda-month-event-name">${a.patient}</span>
                         </div>`).join('')}
-                    ${extra > 0 ? `<div class="agenda-month-more" onclick="openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
+                    ${extra > 0 ? `<div class="agenda-month-more" onclick="window.pluri.openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
                 </div>
             </div>`;
     }).join('');
@@ -239,33 +236,21 @@ function buildAgendaMonthHTML() {
         </div></div>`;
 }
 
-// =====================================================
-// EDIÇÃO DE AGENDAMENTO (abre modal preenchido)
-// =====================================================
 function openEditAppointment(eventId) {
     const appt = state.appointments.find(a => String(a.id) === String(eventId));
     if (!appt) return;
     openModal(appt.time, appt.patient, appt.phone);
-    // Preenche os campos adicionais
     getEl('apptProfessional').value = appt.professional || 'Dra. Ana';
     getEl('apptService').value = appt.service || 'Avaliação';
     getEl('apptNotes').value = appt.notes || '';
     getEl('apptDate').value = appt.date;
     const statusInput = getEl('apptStatus');
     if (statusInput) statusInput.value = appt.status || 'Aguardando';
-    // Guarda referência e muda o modal para modo edição
     window._editingAppointmentId = eventId;
     if (typeof setModalMode === 'function') setModalMode('edit');
 }
 
-// Abre a visão "Hoje" num dia específico (usado pelo "+N mais")
-function openDayFromMonth(dateStr) {
-    state.agendaDate = dateStr;
-    state.agendaTab = 'today';
-    renderPage();
-}
-
-// Atualiza os ícones Lucide (chamado após renderização)
+// Reaplica ícones Lucide após renderização
 function refreshAgendaIcons() {
     if (window.lucide) lucide.createIcons();
 }
