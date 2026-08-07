@@ -501,39 +501,32 @@ body{
  }
 }
 
+/* ⚠️ CORES DOS STATUS (força a aplicação) ⚠️ */
+.appointment-status {
+    display: inline-block !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    font-size: 0.85em !important;
+    font-weight: 500 !important;
+}
+
 .status-aguardando {
-    background-color: #ffc107;
-    color: #333;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.85em;
+    background-color: #ffc107 !important;
+    color: #333 !important;
 }
 
 .status-confirmado {
-    background-color: #28a745;
-    color: #fff;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.85em;
+    background-color: #28a745 !important;
+    color: #fff !important;
 }
 
 .status-cancelado {
-    background-color: #dc3545;
-    color: #fff;
-    text-decoration: line-through;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.85em;
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    text-decoration: line-through !important;
 }
 
-.appointment-status {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.85em;
-    font-weight: 500;
-}
-
+/* Bolinha de canto (visão diária) */
 .status-dot-corner {
     position: absolute;
     top: 6px;
@@ -542,3 +535,4 @@ body{
     height: 8px;
     border-radius: 50%;
     display: inline-block;
+}
