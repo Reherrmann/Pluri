@@ -501,32 +501,43 @@ body{
  }
 }
 
-/* ⚠️ CORES DOS STATUS (força a aplicação) ⚠️ */
+/* =============================================
+   CORES DE STATUS – FORÇA ABSOLUTA
+   ============================================= */
+.agenda-item .appointment-status,
+.agenda-month-event .appointment-status,
 .appointment-status {
     display: inline-block !important;
     padding: 2px 8px !important;
     border-radius: 4px !important;
     font-size: 0.85em !important;
     font-weight: 500 !important;
+    color: #333 !important; /* fallback */
 }
 
-.status-aguardando {
+.agenda-item .appointment-status.status-aguardando,
+.agenda-month-event .appointment-status.status-aguardando,
+.appointment-status.status-aguardando {
     background-color: #ffc107 !important;
     color: #333 !important;
 }
 
-.status-confirmado {
+.agenda-item .appointment-status.status-confirmado,
+.agenda-month-event .appointment-status.status-confirmado,
+.appointment-status.status-confirmado {
     background-color: #28a745 !important;
     color: #fff !important;
 }
 
-.status-cancelado {
+.agenda-item .appointment-status.status-cancelado,
+.agenda-month-event .appointment-status.status-cancelado,
+.appointment-status.status-cancelado {
     background-color: #dc3545 !important;
     color: #fff !important;
     text-decoration: line-through !important;
 }
 
-/* Bolinha de canto (visão diária) */
+/* Bolinha de canto */
 .status-dot-corner {
     position: absolute;
     top: 6px;
