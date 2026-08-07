@@ -1,121 +1,248 @@
 // js/configuracoes.js
 
-/**
- * Retorna o HTML da página de Configurações.
- * (função síncrona – sem await – para não retornar Promise)
- */
-function buildConfiguracoes() {
-    return `
-        <div class="card">
-            <div class="card-header">
-                <h3>Clínica</h3>
-            </div>
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Nome</label>
-                        <input id="clinicName" type="text" value="${state.clinic?.name || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>Telefone</label>
-                        <input id="clinicPhone" type="text" value="${state.clinic?.phone || ''}">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>E-mail</label>
-                        <input id="clinicEmail" type="email" value="${state.clinic?.email || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>Horário de funcionamento</label>
-                        <input id="clinicSchedule" type="text" value="${state.clinic?.schedule || ''}">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Endereço</label>
-                    <input id="clinicAddress" type="text" value="${state.clinic?.address || ''}">
-                </div>
-            </div>
-        </div>
+let clinicData = null;
+let teamMembers = [];
 
-        <div class="card">
-            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
-                <h3>Equipe</h3>
-                <button class="btn btn-primary btn-sm" id="newStaffBtn"><i data-lucide="plus" style="width:14px;height:14px;"></i> Novo membro</button>
+async function renderConfig() {
+    const container = getEl('pageContainer');
+    container.innerHTML = `
+        <div class="config-grid">
+            <!-- BLOCO: DADOS DA CLÍNICA -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Clínica</h2>
+                    <button class="btn btn-outline btn-sm" id="btnEditClinic">
+                        <i data-lucide="edit-2"></i> Editar
+                    </button>
+                </div>
+                <div class="card-body" id="clinicInfo">
+                    <p class="text-muted">Carregando…</p>
+                </div>
             </div>
-            <div class="card-body no-padding">
-                <table class="data-table">
-                    <thead><tr><th>Nome</th><th>Função</th><th>Status</th></tr></thead>
-                    <tbody>${state.staff.map(s => `
-                        <tr style="cursor:pointer;" data-staff-row="${s._row}">
-                            <td style="font-weight:500;">${s.name}</td><td>${s.role}</td>
-                            <td>${statusBadge(s.status)}</td>
-                        </tr>`).join('')}</tbody>
-                </table>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header"><h3>Integrações</h3></div>
-            <div class="card-body">
-                <div style="display:flex;flex-direction:column;gap:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span>WhatsApp</span>
-                        ${statusBadge('Conectado')}
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;" id="googleCalendarIntegrationStatus">
-                        <span>Google Calendar</span>
-                        <!-- Placeholder inicial, será substituído pelo status real -->
-                        <span style="color: #f59e0b;">Verificando…</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span>E-mail</span>
-                        ${statusBadge('Não conectado')}
-                    </div>
+            <!-- BLOCO: EQUIPE -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Equipe</h2>
+                    <button class="btn btn-primary btn-sm" id="btnAddMember">
+                        <i data-lucide="plus"></i> Novo membro
+                    </button>
+                </div>
+                <div class="card-body" id="teamListContainer">
+                    <p class="text-muted">Carregando…</p>
                 </div>
             </div>
         </div>`;
+
+    await Promise.all([loadClinicData(), loadTeamData()]);
+    bindConfigEvents();
+    refreshIcons();
 }
 
-/**
- * Atualiza o status da integração com Google Calendar no DOM.
- * Deve ser chamada após a renderização da página de Configurações.
- */
-async function updateGoogleCalendarStatus() {
-    const statusDiv = document.getElementById('googleCalendarIntegrationStatus');
-    if (!statusDiv) return;
+// ==================================================
+// CLÍNICA
+// ==================================================
+async function loadClinicData() {
+    try {
+        const data = await window.pluriAPI.getClinic();
+        clinicData = data || {};
+        renderClinicInfo();
+    } catch (e) {
+        showToast('Erro ao carregar dados da clínica.');
+        clinicData = {};
+        renderClinicInfo();
+    }
+}
 
-    // Se não houver token, mostra como não configurado
-    if (!window.pluriAPI || !window.pluriAPI.token) {
-        statusDiv.innerHTML = '<span style="color: #f59e0b;">Não configurado</span>';
+function renderClinicInfo() {
+    const container = getEl('clinicInfo');
+    if (!container) return;
+    container.innerHTML = `
+        <div class="info-line"><strong>Nome:</strong> ${clinicData.name || '—'}</div>
+        <div class="info-line"><strong>Telefone:</strong> ${clinicData.phone || '—'}</div>
+        <div class="info-line"><strong>E-mail:</strong> ${clinicData.email || '—'}</div>
+        <div class="info-line"><strong>Endereço:</strong> ${clinicData.address || '—'}</div>
+        <div class="info-line"><strong>Horário de funcionamento:</strong> ${clinicData.hours || '—'}</div>
+    `;
+}
+
+function openClinicEditor() {
+    const content = `
+        <div class="form-group">
+            <label>Nome da clínica</label>
+            <input type="text" id="clinicName" value="${clinicData.name || ''}">
+        </div>
+        <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" id="clinicPhone" value="${clinicData.phone || ''}">
+        </div>
+        <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="clinicEmail" value="${clinicData.email || ''}">
+        </div>
+        <div class="form-group">
+            <label>Endereço</label>
+            <input type="text" id="clinicAddress" value="${clinicData.address || ''}">
+        </div>
+        <div class="form-group">
+            <label>Horário de funcionamento</label>
+            <input type="text" id="clinicHours" value="${clinicData.hours || ''}" placeholder="Ex: Seg a Sex 08h-18h">
+        </div>`;
+
+    window.slidePanel.open({
+        title: 'Editar clínica',
+        content,
+        width: '450px',
+        onSave: async () => {
+            const updated = {
+                name: getEl('clinicName')?.value.trim(),
+                phone: getEl('clinicPhone')?.value.trim(),
+                email: getEl('clinicEmail')?.value.trim(),
+                address: getEl('clinicAddress')?.value.trim(),
+                hours: getEl('clinicHours')?.value.trim()
+            };
+            const result = await window.pluriAPI.updateClinic(updated);
+            if (result.success) {
+                showToast('Dados da clínica atualizados.');
+                window.slidePanel.close();
+                await loadClinicData();
+            } else {
+                showToast(result.error || 'Erro ao salvar.');
+            }
+        }
+    });
+}
+
+// ==================================================
+// EQUIPE
+// ==================================================
+async function loadTeamData() {
+    try {
+        const members = await window.pluriAPI.getStaff();
+        teamMembers = members || [];
+        renderTeamList();
+    } catch (e) {
+        showToast('Erro ao carregar equipe.');
+        teamMembers = [];
+        renderTeamList();
+    }
+}
+
+function renderTeamList() {
+    const container = getEl('teamListContainer');
+    if (!container) return;
+    if (!teamMembers.length) {
+        container.innerHTML = '<p class="text-muted text-center">Nenhum membro cadastrado.</p>';
         return;
     }
+    container.innerHTML = teamMembers.map(m => `
+        <div class="team-card">
+            <div class="team-card-info">
+                <div class="team-card-name">${m.name}</div>
+                <div class="team-card-specialty">${m.specialty || '—'}</div>
+                <span class="status-badge ${m.status === 'Ativo' ? 'confirmed' : 'cancelled'}">${m.status}</span>
+            </div>
+            <div class="team-card-actions">
+                <button class="btn-icon-sm" title="Editar" onclick="editTeamMember('${m.id}')">
+                    <i data-lucide="edit-2"></i>
+                </button>
+                <button class="btn-icon-sm" title="Excluir" onclick="deleteTeamMember('${m.id}')">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>`).join('');
+    refreshIcons();
+}
 
-    try {
-        const connected = await window.pluriAPI.isCalendarConnected();
-        if (connected) {
-            statusDiv.innerHTML = '<span style="color:#10b981;font-weight:500;">Conectado</span>';
-        } else {
-            statusDiv.innerHTML = `<span style="color:#f59e0b;">Não conectado</span>
-                <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>`;
-            // Adiciona o evento de clique ao botão recém-criado (agora com redirecionamento)
-            document.getElementById('btnConnectCalendarConfig')?.addEventListener('click', async () => {
-                try {
-                    const url = await window.pluriAPI.getCalendarAuthUrl();
-                    // Redireciona a página principal em vez de abrir um popup
-                    window.location.href = url;
-                } catch (e) {
-                    alert('Erro ao conectar: ' + e.message);
-                }
-            });
+function openTeamMemberForm(member = null) {
+    const isEdit = !!member;
+    const title = isEdit ? 'Editar membro' : 'Novo membro';
+    const content = `
+        <div class="form-group">
+            <label>Nome</label>
+            <input type="text" id="memberName" value="${member?.name || ''}" placeholder="Nome completo">
+        </div>
+        <div class="form-group">
+            <label>Função</label>
+            <input type="text" id="memberSpecialty" value="${member?.specialty || ''}" placeholder="Ex.: Dentista">
+        </div>
+        <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" id="memberPhone" value="${member?.phone || ''}" placeholder="(11) 9....">
+        </div>
+        <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="memberEmail" value="${member?.email || ''}">
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <select id="memberStatus">
+                <option value="Ativo" ${member?.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
+                <option value="Inativo" ${member?.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+            </select>
+        </div>`;
+
+    window.slidePanel.open({
+        title,
+        content,
+        width: '400px',
+        onSave: async () => {
+            const name = getEl('memberName')?.value.trim();
+            if (!name) {
+                showToast('Nome é obrigatório.');
+                return;
+            }
+            const data = {
+                name,
+                specialty: getEl('memberSpecialty')?.value.trim(),
+                phone: getEl('memberPhone')?.value.trim(),
+                email: getEl('memberEmail')?.value.trim(),
+                status: getEl('memberStatus')?.value
+            };
+            let result;
+            if (isEdit) {
+                data.id = member.id;
+                result = await window.pluriAPI.updateStaff(data);
+            } else {
+                result = await window.pluriAPI.createStaff(data);
+            }
+            if (result.success) {
+                showToast(isEdit ? 'Membro atualizado.' : 'Membro adicionado.');
+                window.slidePanel.close();
+                await loadTeamData();
+                // Se a função loadProfessionals existir (modal.js), atualiza o select
+                if (typeof loadProfessionals === 'function') loadProfessionals();
+            } else {
+                showToast(result.error || 'Erro ao salvar.');
+            }
         }
-    } catch (e) {
-        statusDiv.innerHTML = '<span style="color:#f59e0b;">Erro ao verificar</span>';
+    });
+}
+
+function editTeamMember(id) {
+    const member = teamMembers.find(m => m.id === id);
+    if (member) openTeamMemberForm(member);
+}
+
+async function deleteTeamMember(id) {
+    if (!confirm('Excluir este membro?')) return;
+    const result = await window.pluriAPI.deleteStaff(id);
+    if (result.success) {
+        showToast('Membro excluído.');
+        await loadTeamData();
+        if (typeof loadProfessionals === 'function') loadProfessionals();
+    } else {
+        showToast('Erro ao excluir.');
     }
 }
 
-// =========================================================
-// Funções originais (mantenha-as exatamente como já estavam)
-// =========================================================
-function openNewStaff() { /* ... seu código original ... */ }
-function openStaff(row) { /* ... seu código original ... */ }
+// ==================================================
+// EVENTOS
+// ==================================================
+function bindConfigEvents() {
+    const btnEditClinic = getEl('btnEditClinic');
+    if (btnEditClinic) btnEditClinic.onclick = openClinicEditor;
+
+    const btnAddMember = getEl('btnAddMember');
+    if (btnAddMember) btnAddMember.onclick = () => openTeamMemberForm();
+}
