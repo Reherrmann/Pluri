@@ -5,9 +5,6 @@ function buildAgenda() {
         return '<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>';
     }
 
-    // Qual aba está ativa (hoje ou semana)? Padrão 'today'
-    const activeTab = state.activeAgendaTab || 'today';
-
     // Data selecionada (padrão hoje)
     const currentDate = state.agendaDate || new Date().toISOString().split('T')[0];
     const allSlots = [];
@@ -18,6 +15,7 @@ function buildAgenda() {
     }
 
     const appointmentsToday = state.appointments.filter(a => a.date === currentDate);
+    // Agrupar múltiplos eventos no mesmo horário
     const grouped = {};
     appointmentsToday.forEach(a => {
         const time = String(a.time).trim();
@@ -32,12 +30,12 @@ function buildAgenda() {
         <div class="agenda-toolbar">
             <div class="agenda-toolbar-left">
                 <div class="tabs" id="agendaTabs">
-                    <button class="tab ${activeTab === 'today' ? 'active' : ''}" data-tab="today">Hoje</button>
-                    <button class="tab ${activeTab === 'week' ? 'active' : ''}" data-tab="week">Semana</button>
+                    <button class="tab active" data-tab="today">Hoje</button>
+                    <button class="tab" data-tab="week">Semana</button>
                 </div>
-                <div class="agenda-date-navigator" style="display:flex;align-items:center;gap:8px;margin-left:20px;min-width:220px;justify-content:center;">
+                <div class="agenda-date-navigator" style="display:flex;align-items:center;gap:8px;margin-left:20px;">
                     <button class="btn-icon btn-sm" id="agendaPrevDay" title="Dia anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
-                    <span style="font-size:13px;font-weight:500;white-space:nowrap;">${dataFormatada}</span>
+                    <span style="font-size:13px;font-weight:500;">${dataFormatada}</span>
                     <button class="btn-icon btn-sm" id="agendaNextDay" title="Próximo dia"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
                 <div class="agenda-google-calendar" id="googleCalendarIndicator">
@@ -50,31 +48,29 @@ function buildAgenda() {
                 <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button>
             </div>
         </div>
-        <div id="agendaDayView" class="card" style="display:${activeTab === 'today' ? 'block' : 'none'};">
-            <div class="card-body no-padding">
-                <ul class="agenda-list">${allSlots.map(time => {
-                    const events = grouped[time] || [];
-                    if (events.length === 0) {
-                        return `
-                            <li class="agenda-item free-slot">
-                                <span class="agenda-time">${time}</span>
-                                <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
-                                <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
-                                <button class="btn btn-sm btn-outline" onclick="window.pluri.openModal('${time}')">Agendar</button>
-                            </li>`;
-                    } else {
-                        return events.map((appt, index) => `
-                            <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer; ${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
-                                <span class="agenda-time">${time}</span>
-                                <div class="agenda-avatar">${getInitials(appt.patient)}</div>
-                                <div class="agenda-info"><div class="agenda-name">${appt.patient}</div><div class="agenda-detail">${appt.service} · ${appt.professional}</div></div>
-                                ${statusBadge(appt.status)}
-                            </li>`).join('');
-                    }
-                }).join('')}</ul>
-            </div>
-        </div>
-        <div id="agendaWeekView" style="display:${activeTab === 'week' ? 'block' : 'none'};"></div>`;
+        <div id="agendaDayView" class="card"><div class="card-body no-padding">
+            <ul class="agenda-list">${allSlots.map(time => {
+                const events = grouped[time] || [];
+                if (events.length === 0) {
+                    return `
+                        <li class="agenda-item free-slot">
+                            <span class="agenda-time">${time}</span>
+                            <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
+                            <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
+                            <button class="btn btn-sm btn-outline" onclick="window.pluri.openModal('${time}')">Agendar</button>
+                        </li>`;
+                } else {
+                    return events.map((appt, index) => `
+                        <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer; ${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
+                            <span class="agenda-time">${time}</span>
+                            <div class="agenda-avatar">${getInitials(appt.patient)}</div>
+                            <div class="agenda-info"><div class="agenda-name">${appt.patient}</div><div class="agenda-detail">${appt.service} · ${appt.professional}</div></div>
+                            ${statusBadge(appt.status)}
+                        </li>`).join('');
+                }
+            }).join('')}</ul>
+        </div></div>
+        <div id="agendaWeekView" style="display:none;"></div>`;
 }
 
 function buildAgendaMonthElement() {
@@ -110,17 +106,6 @@ function buildAgendaMonthElement() {
 
     const fragment = document.createDocumentFragment();
 
-    // Legenda
-    const legendDiv = document.createElement('div');
-    legendDiv.className = 'agenda-month-legend';
-    legendDiv.style.cssText = 'display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--text-secondary);align-items:center;';
-    legendDiv.innerHTML = `
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;margin-right:4px;"></span> Confirmado</span>
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:4px;"></span> Pendente</span>
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6b7280;margin-right:4px;"></span> Cancelado</span>
-    `;
-    fragment.appendChild(legendDiv);
-
     // Cabeçalho do mês
     const headerDiv = document.createElement('div');
     headerDiv.className = 'agenda-month-header';
@@ -134,30 +119,24 @@ function buildAgendaMonthElement() {
 
     // Grade do mês
     const grid = document.createElement('div');
-    grid.className = 'agenda-month-grid';
-    // Estilos responsivos serão aplicados via CSS interno (ou você pode mover para style.css)
-    grid.style.cssText = `
-        display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
-        background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;
-        font-size:12px;
-    `;
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;';
 
     const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     dayNames.forEach(name => {
         const dayHeader = document.createElement('div');
-        dayHeader.style.cssText = 'text-align:center;font-size:10px;font-weight:500;padding:6px 2px;color:var(--text-secondary);background:var(--card-bg);';
+        dayHeader.style.cssText = 'text-align:center;font-size:11px;font-weight:500;padding:8px 2px;color:var(--text-secondary);background:var(--card-bg);';
         dayHeader.textContent = name;
         grid.appendChild(dayHeader);
     });
 
     days.forEach(day => {
         const dayDiv = document.createElement('div');
-        dayDiv.style.cssText = `background:${day.isOtherMonth ? 'var(--hover-bg)' : 'var(--card-bg)'};min-height:70px;padding:3px;opacity:${day.isOtherMonth ? 0.4 : 1};`;
+        dayDiv.style.cssText = `background:${day.isOtherMonth ? 'var(--hover-bg)' : 'var(--card-bg)'};min-height:80px;padding:3px;opacity:${day.isOtherMonth ? 0.4 : 1};`;
 
         if (!day.isOtherMonth && day.dateStr) {
             const dayNumber = document.createElement('div');
             dayNumber.textContent = day.dayNumber;
-            dayNumber.style.cssText = 'font-size:12px;font-weight:600;margin-bottom:4px;color:var(--text);';
+            dayNumber.style.cssText = 'font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text);';
             dayDiv.appendChild(dayNumber);
 
             if (day.appts && day.appts.length > 0) {
@@ -165,21 +144,17 @@ function buildAgendaMonthElement() {
                     const apptCard = document.createElement('div');
                     apptCard.className = 'agenda-item';
                     apptCard.setAttribute('data-id', appt.id);
-                    // Estilo do cartão: bolinha no canto superior direito
                     apptCard.style.cssText = `
-                        position:relative;
-                        display:flex;align-items:center;gap:3px;
+                        display:flex;align-items:center;gap:4px;
                         font-size:10px;padding:2px 4px;margin-bottom:2px;
                         background:var(--hover-bg);border-radius:4px;cursor:pointer;
                         white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+                        border-left:3px solid ${appt.status === 'Confirmado' ? '#10b981' : appt.status === 'Pendente' ? '#f59e0b' : '#6b7280'};
                     `;
-                    // Bolinha de status
-                    const statusColor = appt.status === 'Confirmado' ? '#10b981' : appt.status === 'Pendente' ? '#f59e0b' : '#6b7280';
                     apptCard.innerHTML = `
                         <span style="font-weight:500;">${appt.time}</span>
                         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;">${appt.patient}</span>
                         ${appt.phone ? `<i data-lucide="message-circle" style="width:10px;height:10px;color:#25D366;flex-shrink:0;" title="WhatsApp"></i>` : ''}
-                        <span style="position:absolute;top:2px;right:2px;width:6px;height:6px;border-radius:50%;background:${statusColor};"></span>
                     `;
                     dayDiv.appendChild(apptCard);
                 });
@@ -191,7 +166,7 @@ function buildAgendaMonthElement() {
 
     fragment.appendChild(grid);
 
-    // Navegação do mês (mantém aba "week" ativa e NÃO recarrega a página inteira)
+    // Navegação do mês (mantém aba "week" ativa)
     setTimeout(() => {
         const prevBtn = document.getElementById('monthPrevBtn');
         const nextBtn = document.getElementById('monthNextBtn');
@@ -204,13 +179,9 @@ function buildAgendaMonthElement() {
                     state.currentMonth.month = 11;
                     state.currentMonth.year--;
                 }
-                // Atualiza apenas a parte do mês
-                const weekView = getEl('agendaWeekView');
-                if (weekView) {
-                    weekView.innerHTML = '';
-                    weekView.appendChild(buildAgendaMonthElement());
-                }
-                if (window.lucide) lucide.createIcons();
+                const weekTab = document.querySelector('#agendaTabs .tab[data-tab="week"]');
+                if (weekTab) weekTab.click();
+                renderPage();
             });
         }
         if (nextBtn) {
@@ -222,12 +193,9 @@ function buildAgendaMonthElement() {
                     state.currentMonth.month = 0;
                     state.currentMonth.year++;
                 }
-                const weekView = getEl('agendaWeekView');
-                if (weekView) {
-                    weekView.innerHTML = '';
-                    weekView.appendChild(buildAgendaMonthElement());
-                }
-                if (window.lucide) lucide.createIcons();
+                const weekTab = document.querySelector('#agendaTabs .tab[data-tab="week"]');
+                if (weekTab) weekTab.click();
+                renderPage();
             });
         }
         if (window.lucide) lucide.createIcons();
