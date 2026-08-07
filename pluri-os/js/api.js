@@ -11,7 +11,7 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
-    // HTTP com fetch (agora sem CORS, pois a origem é o próprio script)
+    // HTTP com fetch
     // -------------------------------------------------
     async get(url) {
         try {
@@ -105,57 +105,52 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
-    // EQUIPE (AGORA USA AS NOVAS AÇÕES DEDICADAS)
+    // EQUIPE (métodos originais usando o CRUD genérico)
     // -------------------------------------------------
     async getStaff() {
-        if (!this.token) return [];
-        const url = `${this.config.appsScript.baseUrl}?action=getTeam&token=${encodeURIComponent(this.token)}`;
-        const data = await this.get(url);
-        if (data && data.success && Array.isArray(data.team)) {
-            return data.team.map(member => this.mapStaff(member));
-        }
-        return [];
+        const data = await this.get(this.config.appsScript.equipe);
+        return Array.isArray(data) ? data.map(s => this.mapStaff(s)) : [];
     }
     mapStaff(staff) {
         return {
-            id: staff.id,              // agora usamos o ID da planilha, não _row
-            name: staff.name || '',
-            specialty: staff.specialty || '',
-            email: staff.email || '',
-            phone: staff.phone || '',
-            status: staff.status || 'Ativo'
-            // removidos _row e role (substituído por specialty)
+            _row: staff._row,
+            id: staff._row,
+            name: staff['Nome'] || '',
+            role: staff['Função'] || '',
+            email: staff['E-mail'] || '',
+            phone: staff['Telefone'] || '',
+            status: this.normalizeStatus(staff['Status'])
         };
     }
     async createStaff(member) {
         return this.post({
-            action: 'addTeamMember',
-            token: this.token,
-            name: member.name,
-            specialty: member.specialty || member.role || '',
-            phone: member.phone || '',
-            email: member.email || '',
-            status: member.status || 'Ativo'
+            action: 'create',
+            sheet: 'Equipe',
+            values: {
+                Nome: member.name,
+                Função: member.role || member.specialty || '',
+                'E-mail': member.email || '',
+                Telefone: member.phone || '',
+                Status: member.status || 'Ativo'
+            }
         });
     }
-    async updateStaff(member) {
+    async updateStaff(row, member) {
         return this.post({
-            action: 'updateTeamMember',
-            token: this.token,
-            id: member.id,
-            name: member.name,
-            specialty: member.specialty || member.role || '',
-            phone: member.phone || '',
-            email: member.email || '',
-            status: member.status || 'Ativo'
+            action: 'update',
+            sheet: 'Equipe',
+            row,
+            values: {
+                Nome: member.name,
+                Função: member.role || member.specialty || '',
+                'E-mail': member.email || '',
+                Telefone: member.phone || '',
+                Status: member.status || 'Ativo'
+            }
         });
     }
-    async deleteStaff(id) {
-        return this.post({
-            action: 'deleteTeamMember',
-            token: this.token,
-            id: id
-        });
+    async deleteStaff(row) {
+        return this.post({ action: 'delete', sheet: 'Equipe', row });
     }
 
     // -------------------------------------------------
@@ -274,7 +269,7 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
-    // CLÍNICA (ATUALIZADO: ENVIA TOKEN E CAMPOS DIRETOS)
+    // CLÍNICA (métodos originais usando CRUD genérico)
     // -------------------------------------------------
     async getClinic() {
         const url = `${this.config.appsScript.baseUrl}?action=clinic`;
@@ -283,19 +278,26 @@ class PluriAPI {
     }
     mapClinic(clinic) {
         return {
-            name: clinic.name || '', phone: clinic.phone || '', email: clinic.email || '',
-            address: clinic.address || '', hours: clinic.hours || ''
+            name: clinic.name || '',
+            phone: clinic.phone || '',
+            email: clinic.email || '',
+            address: clinic.address || '',
+            hours: clinic.hours || ''
         };
     }
     async updateClinic(clinic) {
+        // Usa o CRUD genérico com sheet 'Clinica' (aba real)
         return this.post({
-            action: 'updateClinic',
-            token: this.token,            // ← agora o backend exige token
-            name: clinic.name,
-            phone: clinic.phone,
-            email: clinic.email,
-            address: clinic.address,
-            hours: clinic.hours
+            action: 'update',
+            sheet: 'Clinica',
+            row: 2,
+            values: {
+                Nome: clinic.name,
+                Telefone: clinic.phone,
+                'E-mail': clinic.email,
+                Endereço: clinic.address,
+                Horário: clinic.hours
+            }
         });
     }
 }
