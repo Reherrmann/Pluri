@@ -67,6 +67,7 @@ async function saveAppointment() {
     const date = getEl('apptDate')?.value || '';
     const time = getEl('apptTime')?.value || '';
     const notes = getEl('apptNotes')?.value?.trim() || '';
+    const editId = getEl('modalSave')?.getAttribute('data-edit-id');
 
     if (!patient || !date || !time) {
         showToast('Preencha paciente, data e horário.');
@@ -80,15 +81,14 @@ async function saveAppointment() {
     const saveBtn = getEl('modalSave');
     if (saveBtn) {
         saveBtn.disabled = true;
-        saveBtn.textContent = 'Salvando...';
+        saveBtn.textContent = editId ? 'Atualizando...' : 'Salvando...';
     }
 
     try {
         let result;
-        if (window._editingAppointmentId) {
-            // Editar evento existente
+        if (editId) {
             result = await window.pluriAPI.updateAppointment({
-                id: window._editingAppointmentId,
+                id: editId,
                 patient,
                 phone,
                 professional,
@@ -97,11 +97,9 @@ async function saveAppointment() {
                 time,
                 notes,
                 status: 'Confirmado',
-                token: window.pluriAPI.token          // ← envia o token de sessão
+                token: window.pluriAPI.token
             });
-            delete window._editingAppointmentId;
         } else {
-            // Criar novo evento
             result = await window.pluriAPI.createAppointment({
                 patient,
                 phone,
@@ -111,7 +109,7 @@ async function saveAppointment() {
                 time,
                 notes,
                 status: 'Confirmado',
-                token: window.pluriAPI.token          // ← envia o token de sessão
+                token: window.pluriAPI.token
             });
         }
 
@@ -121,7 +119,7 @@ async function saveAppointment() {
             showToast(result?.error || 'Erro ao salvar evento.');
             if (saveBtn) {
                 saveBtn.disabled = false;
-                saveBtn.textContent = 'Salvar agendamento';
+                saveBtn.textContent = editId ? 'Atualizar agendamento' : 'Salvar agendamento';
             }
             return;
         }
@@ -129,14 +127,14 @@ async function saveAppointment() {
         state.appointments = await window.pluriAPI.getCalendarAppointments();
         closeModal();
         renderPage();
-        showToast('Agendamento salvo com sucesso.');
+        showToast(editId ? 'Agendamento atualizado.' : 'Agendamento criado com sucesso.');
 
     } catch (e) {
         console.error(e);
         showToast('Erro ao sincronizar com o Google Calendar.');
         if (saveBtn) {
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Salvar agendamento';
+            saveBtn.textContent = editId ? 'Atualizar agendamento' : 'Salvar agendamento';
         }
     }
 }
