@@ -15,7 +15,7 @@ function renderPage() {
             case 'pacientes': html = buildPacientes(); break;
             case 'automacoes': html = buildAutomacoes(); break;
             case 'indicadores': html = buildIndicadores(); break;
-            case 'configuracoes': html = buildConfiguracoes(); break;   // ✅ síncrono, função original
+            case 'configuracoes': html = buildConfiguracoes(); break;
             default: html = buildDashboard();
         }
     } catch (e) {
@@ -38,7 +38,5 @@ function renderPage() {
     }
 }
 
-// ... (o restante do app.js permanece igual ao que você tinha antes, com updateTitleAndSubtitle, attachPageEvents, init, etc.)
-// Apenas certifique-se de que a função updateGoogleCalendarStatus está definida (ela já estava no configuracoes.js, mas pode ficar no app.js também se antes estava lá).
-// Se antes ela estava no configuracoes.js, mantenha-a lá. Se estava no app.js, coloque-a aqui.
-// Vou supor que estava no configuracoes.js, então não precisa duplicar.
+// As demais funções (updateTitleAndSubtitle, attachPageEvents, getSessionToken, init, deleteAppointmentById, confirmAppointmentById) permanecem exatamente como estavam antes das mudanças de Clínica/Equipe.
+// Utilize o conteúdo original que você tinha antes de eu sugerir alterações. Se não tiver, posso fornecer um init() genérico.
