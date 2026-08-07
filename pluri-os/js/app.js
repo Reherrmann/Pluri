@@ -1,6 +1,6 @@
 // js/app.js
 
-async function renderPage() {
+function renderPage() {
     const container = getEl('pageContainer');
     if (!container) return;
     const title = getEl('pageTitle');
@@ -15,7 +15,7 @@ async function renderPage() {
             case 'pacientes': html = buildPacientes(); break;
             case 'automacoes': html = buildAutomacoes(); break;
             case 'indicadores': html = buildIndicadores(); break;
-            case 'configuracoes': html = await renderConfig(); break;   // ✅ await resolve a Promise
+            case 'configuracoes': html = buildConfiguracoes(); break;  // ✅ síncrono, função correta
             default: html = buildDashboard();
         }
     } catch (e) {
@@ -34,12 +34,8 @@ async function renderPage() {
     }
 
     if (state.currentPage === 'configuracoes') {
-        updateGoogleCalendarStatus();
+        updateGoogleCalendarStatus();   // função definida em configuracoes.js
     }
-}
-
-function updateGoogleCalendarStatus() {
-    // Mantida para compatibilidade – será implementada depois.
 }
 
 function updateTitleAndSubtitle(title, subtitle) {
@@ -271,7 +267,6 @@ async function confirmAppointmentById(id, phone, patient) {
     const appt = state.appointments.find(a => String(a.id) === String(id));
     if (!appt) return;
 
-    // Atualiza o status para Confirmado (Google Calendar + planilha)
     const result = await window.pluriAPI.updateAppointment({
         id: appt.id,
         patient: appt.patient,
@@ -294,7 +289,6 @@ async function confirmAppointmentById(id, phone, patient) {
     renderPage();
     showToast('Agendamento confirmado.');
 
-    // Abre o WhatsApp com a mensagem de confirmação pronta
     const cleanPhone = String(phone || '').replace(/\D/g, '');
     if (cleanPhone) {
         const msg = encodeURIComponent(`Olá ${patient}, seu agendamento foi confirmado! ✅`);
