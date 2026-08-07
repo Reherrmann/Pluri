@@ -163,28 +163,23 @@ function buildAgenda() {
                             <button class="btn btn-sm btn-outline" onclick="openModal('${time}')">Agendar</button>
                         </li>`;
                 } else {
-                    return events.map((appt, index) => `
-                        <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer;position:relative; ${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
-                           // ${window.statusDotCorner(appt.status)}
-                            <span class="agenda-time">${time}</span>
-                            <div class="agenda-avatar">${getInitials(appt.patient)}</div>
-                            <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
-                                <div class="agenda-name">${appt.patient}</div>
-                                <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
-                            </div>
-                           // ${window.statusBadge(appt.status)}
-                            <!-- Botão Confirmar via WhatsApp (comentado por enquanto)
-                            <button class="btn-icon-sm" title="Confirmar via WhatsApp" onclick="event.stopPropagation(); window.pluri.confirmAppointment('${appt.id}', '${appt.phone}', '${appt.patient}')">
-                                <i data-lucide="message-circle" style="width:14px;height:14px;"></i>
-                            </button>
-                            -->
-                            <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
-                                <i data-lucide="edit-2" style="width:14px;height:14px;"></i>
-                            </button>
-                            <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation(); window.pluri.deleteAppointment('${appt.id}')">
-                                <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
-                            </button>
-                        </li>`).join('');
+                    rreturn events.map((appt, index) => `
+    <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer;position:relative; ${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
+        <span class="agenda-time">${time}</span>
+        <div class="agenda-avatar">${getInitials(appt.patient)}</div>
+        <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
+            <div class="agenda-name">${appt.patient}</div>
+            <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
+        </div>
+        <!-- Botão Confirmar via WhatsApp (comentado por enquanto)
+        <button ...></button> -->
+        <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
+            <i data-lucide="edit-2" style="width:14px;height:14px;"></i>
+        </button>
+        <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation(); window.pluri.deleteAppointment('${appt.id}')">
+            <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+        </button>
+    </li>`).join('');
                 }
             }).join('')}</ul>
         </div></div>
