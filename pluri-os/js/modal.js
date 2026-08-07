@@ -31,6 +31,12 @@ function openModal(time = null, patientName = null, patientPhone = null) {
     const statusInput = getEl('apptStatus');
     if (statusInput) statusInput.value = 'Aguardando';
 
+    // ✅ CORREÇÃO: reabilita o botão de salvar ao abrir o modal
+    const saveBtn = getEl('modalSave');
+    if (saveBtn) {
+        saveBtn.disabled = false;
+    }
+
     refreshIcons();
 }
 
