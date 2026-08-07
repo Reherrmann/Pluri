@@ -72,94 +72,112 @@ function buildAgenda() {
         <div id="agendaWeekView" style="display:none;"></div>`;
 }
 
-function buildAgendaWeekElement() {
-    // Garantir que state existe
+function buildAgendaMonthElement() {
     if (!state || !state.appointments) {
         const errorDiv = document.createElement('div');
-        errorDiv.textContent = 'Erro ao carregar dados da semana.';
+        errorDiv.textContent = 'Erro ao carregar dados do mês.';
         return errorDiv;
     }
 
     const today = new Date();
+    const currentMonth = state.currentMonth || { year: today.getFullYear(), month: today.getMonth() };
+    const year = currentMonth.year;
+    const month = currentMonth.month;
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+
     const days = [];
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() + i);
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        const dateStr = `${yyyy}-${mm}-${dd}`;
-        const dayName = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d.getDay()];
-        const appts = state.appointments.filter(a => a.date === dateStr);
-        days.push({ dateStr, dayName, dd, appts });
+    for (let i = 0; i < startDayOfWeek; i++) {
+        days.push({ dateStr: '', dayNumber: '', isOtherMonth: true });
     }
+    for (let d = 1; d <= daysInMonth; d++) {
+        const mm = String(month + 1).padStart(2, '0');
+        const dd = String(d).padStart(2, '0');
+        const dateStr = `${year}-${mm}-${dd}`;
+        const appts = state.appointments.filter(a => a.date === dateStr);
+        days.push({ dateStr, dayNumber: d, appts, isOtherMonth: false });
+    }
+
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
     const fragment = document.createDocumentFragment();
 
-    // Legenda das cores
-    const legend = document.createElement('div');
-    legend.className = 'agenda-week-legend';
-    legend.innerHTML = `
-        <div class="agenda-week-legend-item"><span class="status-dot green"></span> Confirmado</div>
-        <div class="agenda-week-legend-item"><span class="status-dot amber"></span> Pendente</div>
-        <div class="agenda-week-legend-item"><span class="status-dot red"></span> Cancelado</div>
+    // Cabeçalho do mês
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'agenda-month-header';
+    headerDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;';
+    headerDiv.innerHTML = `
+        <button class="btn-icon btn-sm" id="monthPrevBtn"><i data-lucide="chevron-left" style="width:16px;height:16px;"></i></button>
+        <span style="font-weight:600;font-size:16px;">${monthNames[month]} ${year}</span>
+        <button class="btn-icon btn-sm" id="monthNextBtn"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></button>
     `;
-    fragment.appendChild(legend);
+    fragment.appendChild(headerDiv);
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'agenda-week-wrapper';
-
+    // Grade do mês
     const grid = document.createElement('div');
-    grid.className = 'agenda-week-grid';
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:2px;';
 
-    days.forEach(d => {
+    const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    dayNames.forEach(name => {
+        const dayHeader = document.createElement('div');
+        dayHeader.style.cssText = 'text-align:center;font-size:12px;font-weight:500;padding:4px;color:var(--text-secondary);';
+        dayHeader.textContent = name;
+        grid.appendChild(dayHeader);
+    });
+
+    days.forEach(day => {
         const dayDiv = document.createElement('div');
-        dayDiv.className = 'agenda-week-day';
+        dayDiv.style.cssText = `min-height:60px;border:1px solid var(--border);padding:4px;background:${day.isOtherMonth ? 'var(--hover-bg)' : 'var(--white)'};opacity:${day.isOtherMonth ? 0.5 : 1};`;
 
-        const header = document.createElement('div');
-        header.className = 'agenda-week-header';
-        header.textContent = `${d.dayName} ${d.dd}`;
+        if (!day.isOtherMonth && day.dateStr) {
+            const dayNumber = document.createElement('div');
+            dayNumber.textContent = day.dayNumber;
+            dayNumber.style.cssText = 'font-size:12px;font-weight:600;margin-bottom:4px;';
+            dayDiv.appendChild(dayNumber);
 
-        const appointmentsDiv = document.createElement('div');
-        appointmentsDiv.className = 'agenda-week-appointments';
-
-        if (d.appts.length === 0) {
-            const empty = document.createElement('div');
-            empty.className = 'agenda-week-empty';
-            empty.textContent = 'Nenhum agendamento';
-            appointmentsDiv.appendChild(empty);
-        } else {
-            d.appts.forEach(a => {
-                const apptDiv = document.createElement('div');
-                apptDiv.className = 'agenda-week-appointment';
-
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'agenda-week-appointment-time';
-                timeSpan.textContent = a.time;
-
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'agenda-week-appointment-name';
-                nameSpan.textContent = a.patient;
-
-                const dotSpan = document.createElement('span');
-                dotSpan.innerHTML = statusDotOnly(a.status);
-
-                apptDiv.appendChild(timeSpan);
-                apptDiv.appendChild(nameSpan);
-                apptDiv.appendChild(dotSpan);
-                appointmentsDiv.appendChild(apptDiv);
-            });
+            if (day.appts && day.appts.length > 0) {
+                day.appts.forEach(appt => {
+                    const apptDiv = document.createElement('div');
+                    apptDiv.className = 'agenda-item';
+                    apptDiv.setAttribute('data-id', appt.id);
+                    apptDiv.style.cssText = 'font-size:10px;padding:2px 4px;margin-bottom:2px;background:var(--accent-light);border-radius:4px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+                    apptDiv.innerHTML = `${appt.time} ${appt.patient}`;
+                    dayDiv.appendChild(apptDiv);
+                });
+            }
         }
 
-        dayDiv.appendChild(header);
-        dayDiv.appendChild(appointmentsDiv);
         grid.appendChild(dayDiv);
     });
 
-    wrapper.appendChild(grid);
-    fragment.appendChild(wrapper);
+    fragment.appendChild(grid);
 
-    return fragment; // Retorna um DocumentFragment que pode ser anexado ao DOM
+    // Navegação do mês
+    setTimeout(() => {
+        document.getElementById('monthPrevBtn')?.addEventListener('click', () => {
+            if (!state.currentMonth) state.currentMonth = { year: today.getFullYear(), month: today.getMonth() };
+            state.currentMonth.month--;
+            if (state.currentMonth.month < 0) {
+                state.currentMonth.month = 11;
+                state.currentMonth.year--;
+            }
+            renderPage();
+        });
+        document.getElementById('monthNextBtn')?.addEventListener('click', () => {
+            if (!state.currentMonth) state.currentMonth = { year: today.getFullYear(), month: today.getMonth() };
+            state.currentMonth.month++;
+            if (state.currentMonth.month > 11) {
+                state.currentMonth.month = 0;
+                state.currentMonth.year++;
+            }
+            renderPage();
+        });
+    }, 0);
+
+    return fragment;
 }
 
 function openEditAppointment(eventId) {
