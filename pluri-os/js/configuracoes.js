@@ -1,43 +1,21 @@
 // js/configuracoes.js
 
-/**
- * Retorna o HTML da página de Configurações.
- * (função síncrona – sem await – para não retornar Promise)
- */
 function buildConfiguracoes() {
     return `
         <div class="card">
-            <div class="card-header">
-                <h3>Clínica</h3>
-            </div>
+            <div class="card-header"><h3>Clínica</h3></div>
             <div class="card-body">
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>Nome</label>
-                        <input id="clinicName" type="text" value="${state.clinic?.name || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>Telefone</label>
-                        <input id="clinicPhone" type="text" value="${state.clinic?.phone || ''}">
-                    </div>
+                    <div class="form-group"><label>Nome</label><input id="clinicName" type="text" value="${state.clinic?.name || ''}"></div>
+                    <div class="form-group"><label>Telefone</label><input id="clinicPhone" type="text" value="${state.clinic?.phone || ''}"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>E-mail</label>
-                        <input id="clinicEmail" type="email" value="${state.clinic?.email || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>Horário de funcionamento</label>
-                        <input id="clinicSchedule" type="text" value="${state.clinic?.schedule || ''}">
-                    </div>
+                    <div class="form-group"><label>E-mail</label><input id="clinicEmail" type="email" value="${state.clinic?.email || ''}"></div>
+                    <div class="form-group"><label>Horário</label><input id="clinicSchedule" type="text" value="${state.clinic?.schedule || ''}"></div>
                 </div>
-                <div class="form-group">
-                    <label>Endereço</label>
-                    <input id="clinicAddress" type="text" value="${state.clinic?.address || ''}">
-                </div>
+                <div class="form-group"><label>Endereço</label><input id="clinicAddress" type="text" value="${state.clinic?.address || ''}"></div>
             </div>
         </div>
-
         <div class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
                 <h3>Equipe</h3>
@@ -54,43 +32,32 @@ function buildConfiguracoes() {
                 </table>
             </div>
         </div>
-
         <div class="card">
             <div class="card-header"><h3>Integrações</h3></div>
             <div class="card-body">
                 <div style="display:flex;flex-direction:column;gap:12px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span>WhatsApp</span>
-                        ${statusBadge('Conectado')}
+                        <span>WhatsApp</span> ${statusBadge('Conectado')}
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;" id="googleCalendarIntegrationStatus">
                         <span>Google Calendar</span>
-                        <!-- Placeholder inicial, será substituído pelo status real -->
                         <span style="color: #f59e0b;">Verificando…</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span>E-mail</span>
-                        ${statusBadge('Não conectado')}
+                        <span>E-mail</span> ${statusBadge('Não conectado')}
                     </div>
                 </div>
             </div>
         </div>`;
 }
 
-/**
- * Atualiza o status da integração com Google Calendar no DOM.
- * Deve ser chamada após a renderização da página de Configurações.
- */
 async function updateGoogleCalendarStatus() {
     const statusDiv = document.getElementById('googleCalendarIntegrationStatus');
     if (!statusDiv) return;
-
-    // Se não houver token, mostra como não configurado
     if (!window.pluriAPI || !window.pluriAPI.token) {
         statusDiv.innerHTML = '<span style="color: #f59e0b;">Não configurado</span>';
         return;
     }
-
     try {
         const connected = await window.pluriAPI.isCalendarConnected();
         if (connected) {
@@ -98,11 +65,9 @@ async function updateGoogleCalendarStatus() {
         } else {
             statusDiv.innerHTML = `<span style="color:#f59e0b;">Não conectado</span>
                 <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>`;
-            // Adiciona o evento de clique ao botão recém-criado (agora com redirecionamento)
             document.getElementById('btnConnectCalendarConfig')?.addEventListener('click', async () => {
                 try {
                     const url = await window.pluriAPI.getCalendarAuthUrl();
-                    // Redireciona a página principal em vez de abrir um popup
                     window.location.href = url;
                 } catch (e) {
                     alert('Erro ao conectar: ' + e.message);
@@ -114,8 +79,10 @@ async function updateGoogleCalendarStatus() {
     }
 }
 
-// =========================================================
-// Funções originais (mantenha-as como estavam antes)
-// =========================================================
-function openNewStaff() { /* ... seu código original ... */ }
-function openStaff(row) { /* ... seu código original ... */ }
+// Funções originais de staff (exemplo – mantenha as suas)
+function openNewStaff() {
+    // Código original para abrir formulário de novo membro
+}
+function openStaff(row) {
+    // Código original para abrir edição de membro
+}
