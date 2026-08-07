@@ -102,7 +102,7 @@ async function saveAppointment() {
                 time,
                 notes,
                 status: 'Confirmado',
-                clinicaID: clinicaID
+                token: window.pluriAPI.token
             });
             delete window._editingAppointmentId;
         } else {
