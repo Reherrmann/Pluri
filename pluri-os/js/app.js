@@ -70,37 +70,11 @@ function attachPageEvents() {
         }
     });
 
-    // Navegação de data na agenda
-    getEl('agendaPrevDay')?.addEventListener('click', () => {
-        const current = new Date(state.agendaDate || new Date());
-        current.setDate(current.getDate() - 1);
-        state.agendaDate = current.toISOString().split('T')[0];
-        renderPage();
-    });
-    getEl('agendaNextDay')?.addEventListener('click', () => {
-        const current = new Date(state.agendaDate || new Date());
-        current.setDate(current.getDate() + 1);
-        state.agendaDate = current.toISOString().split('T')[0];
-        renderPage();
-    });
-
-    // Clique em evento da agenda para editar (delegação no container principal)
-    document.getElementById('pageContainer')?.addEventListener('click', (e) => {
-        const agendaItem = e.target.closest('.agenda-item');
-        if (agendaItem && agendaItem.dataset.id) {
-            openEditAppointment(agendaItem.dataset.id);
-        }
-    });
-
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            const tabName = tab.dataset.tab;
-            // Guarda a aba ativa no estado
-            state.activeAgendaTab = tabName;
-
             document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-
+            const tabName = tab.dataset.tab;
             const dayView = getEl('agendaDayView');
             const weekView = getEl('agendaWeekView');
             if (tabName === 'today') {
@@ -111,7 +85,7 @@ function attachPageEvents() {
                 if (weekView) {
                     weekView.style.display = 'block';
                     weekView.innerHTML = '';
-                    weekView.appendChild(buildAgendaMonthElement());
+                    weekView.appendChild(buildAgendaWeekElement());
                 }
             }
             refreshIcons();
@@ -196,9 +170,6 @@ async function init() {
         window._calendarNotConnected = true;
     });
 
-    // Inicializa a aba ativa da agenda (se ainda não estiver definida)
-    state.activeAgendaTab = state.activeAgendaTab || 'today';
-
     try {
         console.log('🔄 Carregando pacientes...');
         const patients = await window.pluriAPI.getPatients();
@@ -249,50 +220,13 @@ async function init() {
     renderPage();
 
     window.pluri = {
-    navigateTo,
-    openConversation,
-    openPatient,
-    openModal,
-    openStaff,
-    showToast,
-
-    // ==================== NOVAS FUNÇÕES ====================
-    editAppointment: function(eventId) {
-        const appt = state.appointments.find(a => a.id === eventId);
-        if (!appt) return;
-        openModal(null, appt.patient, appt.phone);
-        getEl('apptDate').value = appt.date;
-        getEl('apptTime').value = appt.time;
-        getEl('apptProfessional').value = appt.professional;
-        getEl('apptService').value = appt.service;
-        getEl('apptNotes').value = appt.notes || '';
-        const saveBtn = getEl('modalSave');
-        if (saveBtn) {
-            saveBtn.setAttribute('data-edit-id', eventId);
-            saveBtn.textContent = 'Atualizar agendamento';
-            saveBtn.onclick = saveAppointment; // reatribui para o evento de clique atualizado
-        }
-    },
-    deleteAppointment: async function(eventId) {
-        if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
-        const result = await window.pluriAPI.deleteAppointment(eventId, window.pluriAPI.token);
-        if (result.success) {
-            state.appointments = await window.pluriAPI.getCalendarAppointments();
-            renderPage();
-            showToast('Agendamento excluído.');
-        } else {
-            showToast(result.error || 'Erro ao excluir.');
-        }
-    },
-    confirmAppointment: function(eventId, phone, patientName) {
-        if (!phone) {
-            showToast('Nenhum telefone cadastrado para este paciente.');
-            return;
-        }
-        const message = encodeURIComponent(`Olá ${patientName}, sua consulta está confirmada!`);
-        window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-    }
-};
+        navigateTo,
+        openConversation,
+        openPatient,
+        openModal,
+        openStaff: typeof openStaff === 'function' ? openStaff : () => {},
+        showToast
+    };
 }
 
 if (document.readyState === 'loading') {

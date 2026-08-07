@@ -1,4 +1,4 @@
-// js/api.js
+// js/api.js (versão fetch – compatível com página servida pelo Apps Script)
 
 class PluriAPI {
     constructor(config) {
@@ -11,7 +11,7 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
-    // HTTP
+    // HTTP com fetch (agora sem CORS, pois a origem é o próprio script)
     // -------------------------------------------------
     async get(url) {
         try {
@@ -180,44 +180,45 @@ class PluriAPI {
         };
     }
 
+    // 🔥 CORRIGIDO: adicionado clinicaID em todas as operações de calendário
     async createAppointment(appointment) {
-    return this.post({
-        action: 'createCalendarEvent',
-        patient: appointment.patient,
-        professional: appointment.professional,
-        service: appointment.service,
-        phone: appointment.phone,
-        notes: appointment.notes,
-        status: appointment.status,
-        date: appointment.date,
-        time: appointment.time,
-        token: this.token
-    });
-}
+        return this.post({
+            action: 'createCalendarEvent',
+            patient: appointment.patient,
+            professional: appointment.professional,
+            service: appointment.service,
+            phone: appointment.phone,
+            notes: appointment.notes,
+            status: appointment.status,
+            date: appointment.date,
+            time: appointment.time,
+            clinicaID: appointment.clinicaID          // ← ESSENCIAL
+        });
+    }
 
-async updateAppointment(appointment) {
-    return this.post({
-        action: 'updateCalendarEvent',
-        id: appointment.id,
-        patient: appointment.patient,
-        professional: appointment.professional,
-        service: appointment.service,
-        phone: appointment.phone,
-        notes: appointment.notes,
-        status: appointment.status,
-        date: appointment.date,
-        time: appointment.time,
-        token: this.token
-    });
-}
+    async updateAppointment(appointment) {
+        return this.post({
+            action: 'updateCalendarEvent',
+            id: appointment.id,
+            patient: appointment.patient,
+            professional: appointment.professional,
+            service: appointment.service,
+            phone: appointment.phone,
+            notes: appointment.notes,
+            status: appointment.status,
+            date: appointment.date,
+            time: appointment.time,
+            clinicaID: appointment.clinicaID          // ← ESSENCIAL
+        });
+    }
 
-async deleteAppointment(id) {
-    return this.post({
-        action: 'deleteCalendarEvent',
-        id: id,
-        token: this.token
-    });
-}
+    async deleteAppointment(id, clinicaID) {
+        return this.post({
+            action: 'deleteCalendarEvent',
+            id: id,
+            clinicaID: clinicaID                     // ← ESSENCIAL
+        });
+    }
 
     // -------------------------------------------------
     // CONVERSAS
