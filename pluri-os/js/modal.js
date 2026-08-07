@@ -31,26 +31,60 @@ function openModal(time = null, patientName = null, patientPhone = null) {
     const statusInput = getEl('apptStatus');
     if (statusInput) statusInput.value = 'Aguardando';
 
-    // ✅ CORREÇÃO: reabilita o botão de salvar ao abrir o modal
+    // ✅ Reabilita o botão sempre que o modal é aberto
     const saveBtn = getEl('modalSave');
     if (saveBtn) {
         saveBtn.disabled = false;
     }
 
+    // Configura os botões de WhatsApp (só serão exibidos no modo edição)
+    const btnConfirmar = getEl('btnConfirmarPresenca');
+    const btnCancelar = getEl('btnCancelarAgendamento');
+    if (btnConfirmar) btnConfirmar.onclick = pedirConfirmacao;
+    if (btnCancelar) btnCancelar.onclick = comunicarCancelamento;
+
     refreshIcons();
 }
 
 // Alterna os textos do modal entre "Novo agendamento" e "Editar agendamento"
+// e mostra/esconde os botões de ação extras
 function setModalMode(mode) {
     const title = document.querySelector('#modalOverlay .modal-header h3');
     const saveBtn = getEl('modalSave');
+    const editDiv = getEl('editActions');   // div com os botões de WhatsApp
+
     if (mode === 'edit') {
         if (title) title.textContent = 'Editar agendamento';
         if (saveBtn) saveBtn.textContent = 'Salvar alterações';
+        if (editDiv) editDiv.style.display = 'flex';
     } else {
         if (title) title.textContent = 'Novo agendamento';
         if (saveBtn) saveBtn.textContent = 'Salvar agendamento';
+        if (editDiv) editDiv.style.display = 'none';
     }
+}
+
+// Abre o modal já preenchido para edição (chamada de fora, ex.: ao clicar no card)
+function openEditAppointment(appointment) {
+    // Aproveita os parâmetros básicos
+    openModal(
+        appointment.time,
+        appointment.patient,
+        appointment.phone
+    );
+
+    // Preenche os campos restantes
+    const professional = getEl('apptProfessional');
+    if (professional) professional.value = appointment.professional || 'Dra. Ana';
+    const service = getEl('apptService');
+    if (service) service.value = appointment.service || 'Avaliação';
+    const notes = getEl('apptNotes');
+    if (notes) notes.value = appointment.notes || '';
+    const status = getEl('apptStatus');
+    if (status) status.value = appointment.status || 'Aguardando';
+
+    window._editingAppointmentId = appointment.id;
+    setModalMode('edit');
 }
 
 function closeModal() {
@@ -59,6 +93,45 @@ function closeModal() {
         overlay.classList.remove('show');
     }
     window._editingAppointmentId = null;
+}
+
+// --- Funções de WhatsApp ---
+function getPatientPhoneForWhatsApp() {
+    const phone = getEl('apptPhone')?.value?.trim() || '';
+    return phone.replace(/\D/g, '');
+}
+
+function openWhatsApp(phone, message) {
+    const url = `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+}
+
+function pedirConfirmacao() {
+    const phone = getPatientPhoneForWhatsApp();
+    const patient = getEl('apptPatient')?.value?.trim() || 'Paciente';
+    const date = getEl('apptDate')?.value || '';
+    const time = getEl('apptTime')?.value || '';
+
+    if (!phone) {
+        showToast('Telefone do paciente não informado.');
+        return;
+    }
+    const msg = `Olá ${patient}, sua consulta está agendada para ${date} às ${time}. Poderia confirmar sua presença?`;
+    openWhatsApp(phone, msg);
+}
+
+function comunicarCancelamento() {
+    const phone = getPatientPhoneForWhatsApp();
+    const patient = getEl('apptPatient')?.value?.trim() || 'Paciente';
+    const date = getEl('apptDate')?.value || '';
+    const time = getEl('apptTime')?.value || '';
+
+    if (!phone) {
+        showToast('Telefone do paciente não informado.');
+        return;
+    }
+    const msg = `Olá ${patient}, infelizmente precisamos cancelar sua consulta do dia ${date} às ${time}. Por favor, entre em contato para reagendar.`;
+    openWhatsApp(phone, msg);
 }
 
 async function saveAppointment() {
@@ -82,7 +155,7 @@ async function saveAppointment() {
 
     const isEditing = !!window._editingAppointmentId;
 
-    // Desabilita o botão de salvar para evitar duplo clique
+    // Desabilita o botão para evitar duplo clique
     const saveBtn = getEl('modalSave');
     if (saveBtn) {
         saveBtn.disabled = true;
@@ -99,7 +172,7 @@ async function saveAppointment() {
             time,
             notes,
             status,
-            clinicaID: window.PLURI_USER?.clinicaId   // envia o clinicaID da sessão
+            clinicaID: window.PLURI_USER?.clinicaId
         };
 
         const result = isEditing
@@ -119,15 +192,14 @@ async function saveAppointment() {
 
         // Recarrega os agendamentos da API
         state.appointments = await window.pluriAPI.getCalendarAppointments();
-        // 🔥 Pula a agenda direto pro dia do agendamento salvo, em vez de
-        // ficar parado em "hoje" (era essa a causa de parecer "sempre hoje").
+        // 🔥 Atualiza a data da agenda para o dia do agendamento, mas NÃO força a aba
         state.agendaDate = date;
-        state.agendaTab = 'today';
+
         closeModal();
-        renderPage(); // Atualiza a página atual
+        renderPage();
         showToast(isEditing ? 'Agendamento atualizado com sucesso.' : 'Agendamento criado com sucesso.');
 
-        // Fallback: recarrega a página inteira após 1s se a lista não tiver sido atualizada
+        // Fallback
         setTimeout(() => {
             if (state.appointments.length === 0) {
                 location.reload();
