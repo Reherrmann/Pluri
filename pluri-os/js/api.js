@@ -52,6 +52,11 @@ class PluriAPI {
     // -------------------------------------------------
     formatDate(value) {
         if (!value) return '';
+        // 🔥 CORRIGIDO: se já vier como yyyy-MM-dd (é o caso dos eventos de
+        // calendário, que o backend já formata), devolve direto. Sem isso,
+        // "new Date('2026-08-20')" era lido como meia-noite UTC e, no fuso
+        // do Brasil, virava um dia ANTES na tela — a causa do bug da data.
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
         const d = new Date(value);
         if (isNaN(d)) return '';
         return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
@@ -175,7 +180,7 @@ class PluriAPI {
             service: event.service || '',
             phone: event.phone || '',
             notes: event.notes || '',
-            status: event.status || 'Confirmado',
+            status: event.status || 'Aguardando',
             date: this.formatDate(event.date)
         };
     }
