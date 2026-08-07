@@ -181,43 +181,43 @@ class PluriAPI {
     }
 
     async createAppointment(appointment) {
-        return this.post({
-            action: 'createCalendarEvent',
-            patient: appointment.patient,
-            professional: appointment.professional,
-            service: appointment.service,
-            phone: appointment.phone,
-            notes: appointment.notes,
-            status: appointment.status,
-            date: appointment.date,
-            time: appointment.time,
-            token: this.token
-        });
-    }
+    return this.post({
+        action: 'createCalendarEvent',
+        patient: appointment.patient,
+        professional: appointment.professional,
+        service: appointment.service,
+        phone: appointment.phone,
+        notes: appointment.notes,
+        status: appointment.status,
+        date: appointment.date,
+        time: appointment.time,
+        token: this.token
+    });
+}
 
-    async updateAppointment(appointment) {
-        return this.post({
-            action: 'updateCalendarEvent',
-            id: appointment.id,                 // ← ESSENCIAL para editar
-            patient: appointment.patient,
-            professional: appointment.professional,
-            service: appointment.service,
-            phone: appointment.phone,
-            notes: appointment.notes,
-            status: appointment.status,
-            date: appointment.date,
-            time: appointment.time,
-            token: this.token
-        });
-    }
+async updateAppointment(appointment) {
+    return this.post({
+        action: 'updateCalendarEvent',
+        id: appointment.id,
+        patient: appointment.patient,
+        professional: appointment.professional,
+        service: appointment.service,
+        phone: appointment.phone,
+        notes: appointment.notes,
+        status: appointment.status,
+        date: appointment.date,
+        time: appointment.time,
+        token: this.token
+    });
+}
 
-    async deleteAppointment(id) {
-        return this.post({
-            action: 'deleteCalendarEvent',
-            id: id,
-            token: this.token
-        });
-    }
+async deleteAppointment(id) {
+    return this.post({
+        action: 'deleteCalendarEvent',
+        id: id,
+        token: this.token
+    });
+}
 
     // -------------------------------------------------
     // CONVERSAS
