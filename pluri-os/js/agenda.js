@@ -1,4 +1,5 @@
 // js/agenda.js
+
 function buildAgenda() {
     if (!state || !state.appointments) {
         return '<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>';
@@ -34,7 +35,7 @@ function buildAgenda() {
                 </div>
                 <div class="agenda-date-navigator" style="display:flex;align-items:center;gap:8px;margin-left:20px;">
                     <button class="btn-icon btn-sm" id="agendaPrevDay" title="Dia anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
-                    <span style="font-size:13px;font-weight:500;">${dataFormatada}</span>
+                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${dataFormatada}</span>
                     <button class="btn-icon btn-sm" id="agendaNextDay" title="Próximo dia"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
                 <div class="agenda-google-calendar" id="googleCalendarIndicator">
@@ -63,8 +64,20 @@ function buildAgenda() {
                         <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer; ${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
                             <span class="agenda-time">${time}</span>
                             <div class="agenda-avatar">${getInitials(appt.patient)}</div>
-                            <div class="agenda-info"><div class="agenda-name">${appt.patient}</div><div class="agenda-detail">${appt.service} · ${appt.professional}</div></div>
+                            <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
+                                <div class="agenda-name">${appt.patient}</div>
+                                <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
+                            </div>
                             ${statusBadge(appt.status)}
+                            <button class="btn-icon-sm" title="Confirmar via WhatsApp" onclick="event.stopPropagation(); window.pluri.confirmAppointment('${appt.id}', '${appt.phone}', '${appt.patient}')">
+                                <i data-lucide="message-circle" style="width:14px;height:14px;"></i>
+                            </button>
+                            <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
+                                <i data-lucide="edit-2" style="width:14px;height:14px;"></i>
+                            </button>
+                            <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation(); window.pluri.deleteAppointment('${appt.id}')">
+                                <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                            </button>
                         </li>`).join('');
                 }
             }).join('')}</ul>
