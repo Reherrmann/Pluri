@@ -152,7 +152,48 @@ body{
     display:flex;align-items:center;gap:12px;padding:14px 20px;
     border-bottom:1px solid var(--border-light);transition:background var(--transition);
     background:var(--card-bg);
+    position:relative;
 }
+/* Bolinha de status no canto superior direito do card do evento */
+.agenda-status-corner{
+    position:absolute;top:8px;right:10px;
+    width:9px;height:9px;border-radius:50%;
+    box-shadow:0 0 0 2px var(--card-bg);
+}
+
+/* ===== AGENDA — VISÃO MENSAL ===== */
+.agenda-month-grid-header{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    border-bottom:1px solid var(--border-light);
+}
+.agenda-month-weekday{
+    padding:10px 6px;text-align:center;font-size:12px;font-weight:700;
+    color:var(--text-secondary);text-transform:uppercase;letter-spacing:.03em;
+}
+.agenda-month-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);
+}
+.agenda-month-cell{
+    min-height:104px;padding:6px;border-right:1px solid var(--border-light);
+    border-bottom:1px solid var(--border-light);
+}
+.agenda-month-cell.empty{background:var(--hover-bg);}
+.agenda-month-cell.is-today{background:var(--yellow-bg,rgba(245,158,11,.08));}
+.agenda-month-daynum{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.agenda-month-events{display:flex;flex-direction:column;gap:3px;}
+.agenda-month-event{
+    display:flex;align-items:center;gap:4px;font-size:11px;
+    padding:2px 5px;border-radius:5px;background:var(--hover-bg);
+    cursor:pointer;overflow:hidden;white-space:nowrap;
+}
+.agenda-month-event:hover{background:var(--border-light);}
+.agenda-month-dot{width:6px;height:6px;min-width:6px;border-radius:50%;}
+.agenda-month-event-time{font-weight:700;color:var(--primary);}
+.agenda-month-event-name{overflow:hidden;text-overflow:ellipsis;}
+.agenda-month-more{
+    font-size:10.5px;color:var(--text-secondary);cursor:pointer;padding:1px 5px;
+}
+.agenda-month-more:hover{text-decoration:underline;}
 .agenda-item:nth-child(even){background:var(--hover-bg);}
 .agenda-item:hover{background:var(--hover-bg);}
 .agenda-time{font-size:13px;font-weight:700;color:var(--primary);min-width:52px;}
