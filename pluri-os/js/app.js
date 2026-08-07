@@ -107,7 +107,7 @@ function attachPageEvents() {
                 if (weekView) {
                     weekView.style.display = 'block';
                     weekView.innerHTML = '';
-                    weekView.appendChild(buildAgendaWeekElement());
+                    weekView.appendChild(buildAgendaMonthElement());   // 🔁 alterado para visualização mensal
                 }
             }
             refreshIcons();
