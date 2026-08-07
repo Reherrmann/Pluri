@@ -15,7 +15,7 @@ function renderPage() {
             case 'pacientes': html = buildPacientes(); break;
             case 'automacoes': html = buildAutomacoes(); break;
             case 'indicadores': html = buildIndicadores(); break;
-            case 'configuracoes': html = buildConfiguracoes(); break;
+            case 'configuracoes': html = renderConfig(); break; 
             default: html = buildDashboard();
         }
     } catch (e) {
@@ -36,6 +36,9 @@ function renderPage() {
     if (state.currentPage === 'configuracoes') {
         updateGoogleCalendarStatus();
     }
+}
+function updateGoogleCalendarStatus() {
+    // Mantida para compatibilidade – será implementada depois.
 }
 
 function updateTitleAndSubtitle(title, subtitle) {
