@@ -52,10 +52,6 @@ class PluriAPI {
     // -------------------------------------------------
     formatDate(value) {
         if (!value) return '';
-        // 🔥 CORRIGIDO: se já vier como yyyy-MM-dd (é o caso dos eventos de
-        // calendário, que o backend já formata), devolve direto. Sem isso,
-        // "new Date('2026-08-20')" era lido como meia-noite UTC e, no fuso
-        // do Brasil, virava um dia ANTES na tela — a causa do bug da data.
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
         const d = new Date(value);
         if (isNaN(d)) return '';
@@ -109,34 +105,57 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
-    // EQUIPE
+    // EQUIPE (AGORA USA AS NOVAS AÇÕES DEDICADAS)
     // -------------------------------------------------
     async getStaff() {
-        const data = await this.get(this.config.appsScript.equipe);
-        return Array.isArray(data) ? data.map(s => this.mapStaff(s)) : [];
+        if (!this.token) return [];
+        const url = `${this.config.appsScript.baseUrl}?action=getTeam&token=${encodeURIComponent(this.token)}`;
+        const data = await this.get(url);
+        if (data && data.success && Array.isArray(data.team)) {
+            return data.team.map(member => this.mapStaff(member));
+        }
+        return [];
     }
     mapStaff(staff) {
         return {
-            _row: staff._row, id: staff._row,
-            name: staff['Nome'] || '', role: staff['Função'] || '', email: staff['E-mail'] || '',
-            phone: staff['Telefone'] || '', status: this.normalizeStatus(staff['Status'])
+            id: staff.id,              // agora usamos o ID da planilha, não _row
+            name: staff.name || '',
+            specialty: staff.specialty || '',
+            email: staff.email || '',
+            phone: staff.phone || '',
+            status: staff.status || 'Ativo'
+            // removidos _row e role (substituído por specialty)
         };
     }
     async createStaff(member) {
         return this.post({
-            action: 'create', sheet: 'Equipe', values: {
-                Nome: member.name, Função: member.role, 'E-mail': member.email, Telefone: member.phone, Status: member.status
-            }
+            action: 'addTeamMember',
+            token: this.token,
+            name: member.name,
+            specialty: member.specialty || member.role || '',
+            phone: member.phone || '',
+            email: member.email || '',
+            status: member.status || 'Ativo'
         });
     }
-    async updateStaff(row, member) {
+    async updateStaff(member) {
         return this.post({
-            action: 'update', sheet: 'Equipe', row,
-            values: { Nome: member.name, Função: member.role, 'E-mail': member.email, Telefone: member.phone, Status: member.status }
+            action: 'updateTeamMember',
+            token: this.token,
+            id: member.id,
+            name: member.name,
+            specialty: member.specialty || member.role || '',
+            phone: member.phone || '',
+            email: member.email || '',
+            status: member.status || 'Ativo'
         });
     }
-    async deleteStaff(row) {
-        return this.post({ action: 'delete', sheet: 'Equipe', row });
+    async deleteStaff(id) {
+        return this.post({
+            action: 'deleteTeamMember',
+            token: this.token,
+            id: id
+        });
     }
 
     // -------------------------------------------------
@@ -185,7 +204,6 @@ class PluriAPI {
         };
     }
 
-    // 🔥 CORRIGIDO: adicionado clinicaID em todas as operações de calendário
     async createAppointment(appointment) {
         return this.post({
             action: 'createCalendarEvent',
@@ -197,7 +215,7 @@ class PluriAPI {
             status: appointment.status,
             date: appointment.date,
             time: appointment.time,
-            clinicaID: appointment.clinicaID          // ← ESSENCIAL
+            clinicaID: appointment.clinicaID
         });
     }
 
@@ -213,7 +231,7 @@ class PluriAPI {
             status: appointment.status,
             date: appointment.date,
             time: appointment.time,
-            clinicaID: appointment.clinicaID          // ← ESSENCIAL
+            clinicaID: appointment.clinicaID
         });
     }
 
@@ -221,7 +239,7 @@ class PluriAPI {
         return this.post({
             action: 'deleteCalendarEvent',
             id: id,
-            clinicaID: clinicaID                     // ← ESSENCIAL
+            clinicaID: clinicaID
         });
     }
 
@@ -256,7 +274,7 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
-    // CLÍNICA
+    // CLÍNICA (ATUALIZADO: ENVIA TOKEN E CAMPOS DIRETOS)
     // -------------------------------------------------
     async getClinic() {
         const url = `${this.config.appsScript.baseUrl}?action=clinic`;
@@ -272,9 +290,14 @@ class PluriAPI {
     async updateClinic(clinic) {
         return this.post({
             action: 'updateClinic',
-            values: { Nome: clinic.name, Telefone: clinic.phone, 'E-mail': clinic.email, Endereço: clinic.address, Horário: clinic.hours }
+            token: this.token,            // ← agora o backend exige token
+            name: clinic.name,
+            phone: clinic.phone,
+            email: clinic.email,
+            address: clinic.address,
+            hours: clinic.hours
         });
     }
 }
 
-window.pluriAPI = null;
+window.pluriAPI = null;   // será instanciado no app.js
