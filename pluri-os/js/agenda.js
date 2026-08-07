@@ -91,7 +91,7 @@ function buildAgendaMonthElement() {
 
     const days = [];
     for (let i = 0; i < startDayOfWeek; i++) {
-        days.push({ dateStr: '', dayNumber: '', isOtherMonth: true });
+        days.push({ dateStr: '', dayNumber: '', isOtherMonth: true, appts: [] });
     }
     for (let d = 1; d <= daysInMonth; d++) {
         const mm = String(month + 1).padStart(2, '0');
@@ -105,48 +105,66 @@ function buildAgendaMonthElement() {
 
     const fragment = document.createDocumentFragment();
 
-    // Cabeçalho do mês
+    // Cabeçalho do mês com navegação
     const headerDiv = document.createElement('div');
     headerDiv.className = 'agenda-month-header';
-    headerDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;';
+    headerDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 4px;';
     headerDiv.innerHTML = `
-        <button class="btn-icon btn-sm" id="monthPrevBtn"><i data-lucide="chevron-left" style="width:16px;height:16px;"></i></button>
-        <span style="font-weight:600;font-size:16px;">${monthNames[month]} ${year}</span>
-        <button class="btn-icon btn-sm" id="monthNextBtn"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></button>
+        <button class="btn-icon btn-sm" id="monthPrevBtn"><i data-lucide="chevron-left" style="width:18px;height:18px;"></i></button>
+        <span style="font-weight:600;font-size:16px;color:var(--text);">${monthNames[month]} ${year}</span>
+        <button class="btn-icon btn-sm" id="monthNextBtn"><i data-lucide="chevron-right" style="width:18px;height:18px;"></i></button>
     `;
     fragment.appendChild(headerDiv);
 
     // Grade do mês
     const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:2px;';
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;';
 
     const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     dayNames.forEach(name => {
         const dayHeader = document.createElement('div');
-        dayHeader.style.cssText = 'text-align:center;font-size:12px;font-weight:500;padding:4px;color:var(--text-secondary);';
+        dayHeader.style.cssText = 'text-align:center;font-size:11px;font-weight:500;padding:8px 2px;color:var(--text-secondary);background:var(--card-bg);';
         dayHeader.textContent = name;
         grid.appendChild(dayHeader);
     });
 
     days.forEach(day => {
         const dayDiv = document.createElement('div');
-        dayDiv.style.cssText = `min-height:60px;border:1px solid var(--border);padding:4px;background:${day.isOtherMonth ? 'var(--hover-bg)' : 'var(--white)'};opacity:${day.isOtherMonth ? 0.5 : 1};`;
+        dayDiv.style.cssText = `background:${day.isOtherMonth ? 'var(--hover-bg)' : 'var(--card-bg)'};min-height:80px;padding:4px;opacity:${day.isOtherMonth ? 0.5 : 1};cursor:${day.appts.length ? 'pointer' : 'default'};`;
 
         if (!day.isOtherMonth && day.dateStr) {
             const dayNumber = document.createElement('div');
             dayNumber.textContent = day.dayNumber;
-            dayNumber.style.cssText = 'font-size:12px;font-weight:600;margin-bottom:4px;';
+            dayNumber.style.cssText = 'font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text);';
             dayDiv.appendChild(dayNumber);
 
             if (day.appts && day.appts.length > 0) {
+                const dotsContainer = document.createElement('div');
+                dotsContainer.style.cssText = 'display:flex;flex-wrap:wrap;gap:3px;';
                 day.appts.forEach(appt => {
-                    const apptDiv = document.createElement('div');
-                    apptDiv.className = 'agenda-item';
-                    apptDiv.setAttribute('data-id', appt.id);
-                    apptDiv.style.cssText = 'font-size:10px;padding:2px 4px;margin-bottom:2px;background:var(--accent-light);border-radius:4px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-                    apptDiv.innerHTML = `${appt.time} ${appt.patient}`;
-                    dayDiv.appendChild(apptDiv);
+                    // Bolinha de status
+                    const dot = document.createElement('span');
+                    dot.title = `${appt.time} ${appt.patient} (${appt.status})`;
+                    dot.style.cssText = 'width:8px;height:8px;border-radius:50%;display:inline-block;';
+                    if (appt.status === 'Confirmado') dot.style.backgroundColor = '#10b981';
+                    else if (appt.status === 'Pendente') dot.style.backgroundColor = '#f59e0b';
+                    else dot.style.backgroundColor = '#6b7280';
+                    dot.setAttribute('data-id', appt.id);
+                    dot.className = 'agenda-item';
+                    dotsContainer.appendChild(dot);
+
+                    // Ícone WhatsApp (só aparece se tiver telefone)
+                    if (appt.phone) {
+                        const whatsIcon = document.createElement('span');
+                        whatsIcon.innerHTML = '<i data-lucide="message-circle" style="width:10px;height:10px;"></i>';
+                        whatsIcon.style.cssText = 'color:#25D366;margin-left:2px;cursor:pointer;';
+                        whatsIcon.title = 'Confirmar via WhatsApp';
+                        whatsIcon.setAttribute('data-id', appt.id);
+                        whatsIcon.className = 'whatsapp-item';
+                        dotsContainer.appendChild(whatsIcon);
+                    }
                 });
+                dayDiv.appendChild(dotsContainer);
             }
         }
 
@@ -155,26 +173,42 @@ function buildAgendaMonthElement() {
 
     fragment.appendChild(grid);
 
-    // Navegação do mês
+    // Navegação do mês (com stopPropagation para não fechar a aba)
     setTimeout(() => {
-        document.getElementById('monthPrevBtn')?.addEventListener('click', () => {
-            if (!state.currentMonth) state.currentMonth = { year: today.getFullYear(), month: today.getMonth() };
-            state.currentMonth.month--;
-            if (state.currentMonth.month < 0) {
-                state.currentMonth.month = 11;
-                state.currentMonth.year--;
-            }
-            renderPage();
-        });
-        document.getElementById('monthNextBtn')?.addEventListener('click', () => {
-            if (!state.currentMonth) state.currentMonth = { year: today.getFullYear(), month: today.getMonth() };
-            state.currentMonth.month++;
-            if (state.currentMonth.month > 11) {
-                state.currentMonth.month = 0;
-                state.currentMonth.year++;
-            }
-            renderPage();
-        });
+        const prevBtn = document.getElementById('monthPrevBtn');
+        const nextBtn = document.getElementById('monthNextBtn');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!state.currentMonth) state.currentMonth = { year: today.getFullYear(), month: today.getMonth() };
+                state.currentMonth.month--;
+                if (state.currentMonth.month < 0) {
+                    state.currentMonth.month = 11;
+                    state.currentMonth.year--;
+                }
+                // Mantém a aba "week" ativa
+                const weekTab = document.querySelector('#agendaTabs .tab[data-tab="week"]');
+                if (weekTab) weekTab.click();
+                renderPage();
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!state.currentMonth) state.currentMonth = { year: today.getFullYear(), month: today.getMonth() };
+                state.currentMonth.month++;
+                if (state.currentMonth.month > 11) {
+                    state.currentMonth.month = 0;
+                    state.currentMonth.year++;
+                }
+                const weekTab = document.querySelector('#agendaTabs .tab[data-tab="week"]');
+                if (weekTab) weekTab.click();
+                renderPage();
+            });
+        }
+
+        // Ícones Lucide
+        if (window.lucide) lucide.createIcons();
     }, 0);
 
     return fragment;
