@@ -3,91 +3,125 @@
 let clinicData = null;
 let teamMembers = [];
 
+/**
+ * Função assíncrona que carrega os dados e retorna o HTML completo.
+ * Chamada pelo app.js com await.
+ */
 async function renderConfig() {
-    const container = getEl('pageContainer');
-    container.innerHTML = `
-        <div class="config-grid">
-            <!-- BLOCO: DADOS DA CLÍNICA -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>Clínica</h2>
-                    <button class="btn btn-outline btn-sm" id="btnEditClinic">
-                        <i data-lucide="edit-2"></i> Editar
-                    </button>
+    // Carrega dados da clínica e equipe em paralelo
+    await Promise.all([loadClinicData(), loadTeamData()]);
+
+    // Retorna o HTML com os dados já carregados
+    return `
+        <div class="card">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                <h3>Clínica</h3>
+                <button class="btn btn-outline btn-sm" id="btnEditClinic">
+                    <i data-lucide="edit-2"></i> Editar
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input id="clinicName" type="text" value="${clinicData?.name || ''}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input id="clinicPhone" type="text" value="${clinicData?.phone || ''}" disabled>
+                    </div>
                 </div>
-                <div class="card-body" id="clinicInfo">
-                    <p class="text-muted">Carregando…</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input id="clinicEmail" type="email" value="${clinicData?.email || ''}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Horário de funcionamento</label>
+                        <input id="clinicSchedule" type="text" value="${clinicData?.hours || ''}" disabled>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input id="clinicAddress" type="text" value="${clinicData?.address || ''}" disabled>
                 </div>
             </div>
+        </div>
 
-            <!-- BLOCO: EQUIPE -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>Equipe</h2>
-                    <button class="btn btn-primary btn-sm" id="btnAddMember">
-                        <i data-lucide="plus"></i> Novo membro
-                    </button>
-                </div>
-                <div class="card-body" id="teamListContainer">
-                    <p class="text-muted">Carregando…</p>
+        <div class="card">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                <h3>Equipe</h3>
+                <button class="btn btn-primary btn-sm" id="newStaffBtn">
+                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Novo membro
+                </button>
+            </div>
+            <div class="card-body no-padding">
+                <table class="data-table">
+                    <thead><tr><th>Nome</th><th>Função</th><th>Status</th></tr></thead>
+                    <tbody>${teamMembers.map(m => `
+                        <tr style="cursor:pointer;" data-staff-id="${m.id}">
+                            <td style="font-weight:500;">${m.name}</td>
+                            <td>${m.specialty || m.role || ''}</td>
+                            <td>${statusBadge(m.status)}</td>
+                        </tr>`).join('')}</tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3>Integrações</h3></div>
+            <div class="card-body">
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span>WhatsApp</span>
+                        ${statusBadge('Conectado')}
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;" id="googleCalendarIntegrationStatus">
+                        <span>Google Calendar</span>
+                        <span style="color: #f59e0b;">Verificando…</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span>E-mail</span>
+                        ${statusBadge('Não conectado')}
+                    </div>
                 </div>
             </div>
         </div>`;
-
-    await Promise.all([loadClinicData(), loadTeamData()]);
-    bindConfigEvents();
-    refreshIcons();
 }
 
 // ==================================================
-// CLÍNICA
+// CARREGAMENTO DE DADOS (assíncronos)
 // ==================================================
 async function loadClinicData() {
     try {
         const data = await window.pluriAPI.getClinic();
         clinicData = data || {};
-        renderClinicInfo();
     } catch (e) {
         showToast('Erro ao carregar dados da clínica.');
         clinicData = {};
-        renderClinicInfo();
     }
 }
 
-function renderClinicInfo() {
-    const container = getEl('clinicInfo');
-    if (!container) return;
-    container.innerHTML = `
-        <div class="info-line"><strong>Nome:</strong> ${clinicData.name || '—'}</div>
-        <div class="info-line"><strong>Telefone:</strong> ${clinicData.phone || '—'}</div>
-        <div class="info-line"><strong>E-mail:</strong> ${clinicData.email || '—'}</div>
-        <div class="info-line"><strong>Endereço:</strong> ${clinicData.address || '—'}</div>
-        <div class="info-line"><strong>Horário de funcionamento:</strong> ${clinicData.hours || '—'}</div>
-    `;
+async function loadTeamData() {
+    try {
+        const members = await window.pluriAPI.getStaff();
+        teamMembers = members || [];
+    } catch (e) {
+        showToast('Erro ao carregar equipe.');
+        teamMembers = [];
+    }
 }
 
+// ==================================================
+// EDITOR DA CLÍNICA (slide panel)
+// ==================================================
 function openClinicEditor() {
     const content = `
-        <div class="form-group">
-            <label>Nome da clínica</label>
-            <input type="text" id="clinicName" value="${clinicData.name || ''}">
-        </div>
-        <div class="form-group">
-            <label>Telefone</label>
-            <input type="text" id="clinicPhone" value="${clinicData.phone || ''}">
-        </div>
-        <div class="form-group">
-            <label>E-mail</label>
-            <input type="email" id="clinicEmail" value="${clinicData.email || ''}">
-        </div>
-        <div class="form-group">
-            <label>Endereço</label>
-            <input type="text" id="clinicAddress" value="${clinicData.address || ''}">
-        </div>
-        <div class="form-group">
-            <label>Horário de funcionamento</label>
-            <input type="text" id="clinicHours" value="${clinicData.hours || ''}" placeholder="Ex: Seg a Sex 08h-18h">
-        </div>`;
+        <div class="form-group"><label>Nome</label><input type="text" id="clinicNameEdit" value="${clinicData?.name || ''}"></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="clinicPhoneEdit" value="${clinicData?.phone || ''}"></div>
+        <div class="form-group"><label>E-mail</label><input type="email" id="clinicEmailEdit" value="${clinicData?.email || ''}"></div>
+        <div class="form-group"><label>Endereço</label><input type="text" id="clinicAddressEdit" value="${clinicData?.address || ''}"></div>
+        <div class="form-group"><label>Horário</label><input type="text" id="clinicScheduleEdit" value="${clinicData?.hours || ''}" placeholder="Ex: Seg a Sex 08h-18h"></div>`;
 
     window.slidePanel.open({
         title: 'Editar clínica',
@@ -95,17 +129,19 @@ function openClinicEditor() {
         width: '450px',
         onSave: async () => {
             const updated = {
-                name: getEl('clinicName')?.value.trim(),
-                phone: getEl('clinicPhone')?.value.trim(),
-                email: getEl('clinicEmail')?.value.trim(),
-                address: getEl('clinicAddress')?.value.trim(),
-                hours: getEl('clinicHours')?.value.trim()
+                name: getEl('clinicNameEdit')?.value.trim(),
+                phone: getEl('clinicPhoneEdit')?.value.trim(),
+                email: getEl('clinicEmailEdit')?.value.trim(),
+                address: getEl('clinicAddressEdit')?.value.trim(),
+                hours: getEl('clinicScheduleEdit')?.value.trim()
             };
             const result = await window.pluriAPI.updateClinic(updated);
             if (result.success) {
                 showToast('Dados da clínica atualizados.');
                 window.slidePanel.close();
-                await loadClinicData();
+                // Recarrega os dados e re-renderiza a página de configurações
+                state.currentPage = 'configuracoes';
+                renderPage(); // re-renderiza a página inteira (chamada assíncrona, mas sem await)
             } else {
                 showToast(result.error || 'Erro ao salvar.');
             }
@@ -114,73 +150,47 @@ function openClinicEditor() {
 }
 
 // ==================================================
-// EQUIPE
+// EQUIPE (ações de abrir/novo – reutilizando funções antigas)
 // ==================================================
-async function loadTeamData() {
-    try {
-        const members = await window.pluriAPI.getStaff();
-        teamMembers = members || [];
-        renderTeamList();
-    } catch (e) {
-        showToast('Erro ao carregar equipe.');
-        teamMembers = [];
-        renderTeamList();
-    }
+function openNewStaff() {
+    openTeamMemberForm(null);
 }
 
-function renderTeamList() {
-    const container = getEl('teamListContainer');
-    if (!container) return;
-    if (!teamMembers.length) {
-        container.innerHTML = '<p class="text-muted text-center">Nenhum membro cadastrado.</p>';
-        return;
-    }
-    container.innerHTML = teamMembers.map(m => `
-        <div class="team-card">
-            <div class="team-card-info">
-                <div class="team-card-name">${m.name}</div>
-                <div class="team-card-specialty">${m.specialty || '—'}</div>
-                <span class="status-badge ${m.status === 'Ativo' ? 'confirmed' : 'cancelled'}">${m.status}</span>
-            </div>
-            <div class="team-card-actions">
-                <button class="btn-icon-sm" title="Editar" onclick="editTeamMember('${m.id}')">
-                    <i data-lucide="edit-2"></i>
-                </button>
-                <button class="btn-icon-sm" title="Excluir" onclick="deleteTeamMember('${m.id}')">
-                    <i data-lucide="trash-2"></i>
-                </button>
-            </div>
-        </div>`).join('');
-    refreshIcons();
+function openStaff(id) {
+    const member = teamMembers.find(m => m.id === id);
+    if (member) openTeamMemberForm(member);
 }
 
+// (re)define a função de edição/exclusão usada nos botões inline
+window.editTeamMember = function(id) { openStaff(id); };
+window.deleteTeamMember = async function(id) {
+    if (!confirm('Excluir este membro?')) return;
+    const result = await window.pluriAPI.deleteStaff(id);
+    if (result.success) {
+        showToast('Membro excluído.');
+        // Recarrega a página de configurações
+        state.currentPage = 'configuracoes';
+        renderPage();
+        // Atualiza também a lista de profissionais no modal, se existir
+        if (typeof loadProfessionals === 'function') loadProfessionals();
+    } else {
+        showToast('Erro ao excluir.');
+    }
+};
+
+// Função compartilhada de formulário de membro (slide panel)
 function openTeamMemberForm(member = null) {
     const isEdit = !!member;
     const title = isEdit ? 'Editar membro' : 'Novo membro';
     const content = `
-        <div class="form-group">
-            <label>Nome</label>
-            <input type="text" id="memberName" value="${member?.name || ''}" placeholder="Nome completo">
-        </div>
-        <div class="form-group">
-            <label>Função</label>
-            <input type="text" id="memberSpecialty" value="${member?.specialty || ''}" placeholder="Ex.: Dentista">
-        </div>
-        <div class="form-group">
-            <label>Telefone</label>
-            <input type="text" id="memberPhone" value="${member?.phone || ''}" placeholder="(11) 9....">
-        </div>
-        <div class="form-group">
-            <label>E-mail</label>
-            <input type="email" id="memberEmail" value="${member?.email || ''}">
-        </div>
-        <div class="form-group">
-            <label>Status</label>
-            <select id="memberStatus">
-                <option value="Ativo" ${member?.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
-                <option value="Inativo" ${member?.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
-            </select>
-        </div>`;
+        <div class="form-group"><label>Nome</label><input type="text" id="memberName" value="${member?.name || ''}" placeholder="Nome completo"></div>
+        <div class="form-group"><label>Função</label><input type="text" id="memberSpecialty" value="${member?.specialty || ''}" placeholder="Ex.: Dentista"></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="memberPhone" value="${member?.phone || ''}" placeholder="(11) 9...."></div>
+        <div class="form-group"><label>E-mail</label><input type="email" id="memberEmail" value="${member?.email || ''}"></div>
+        <div class="form-group"><label>Status</label><select id="memberStatus">
+            <option value="Ativo" ${member?.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
+            <option value="Inativo" ${member?.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+        </select></div>`;
 
     window.slidePanel.open({
         title,
@@ -209,8 +219,9 @@ function openTeamMemberForm(member = null) {
             if (result.success) {
                 showToast(isEdit ? 'Membro atualizado.' : 'Membro adicionado.');
                 window.slidePanel.close();
-                await loadTeamData();
-                // Se a função loadProfessionals existir (modal.js), atualiza o select
+                // Recarrega a página de configurações
+                state.currentPage = 'configuracoes';
+                renderPage();
                 if (typeof loadProfessionals === 'function') loadProfessionals();
             } else {
                 showToast(result.error || 'Erro ao salvar.');
@@ -219,30 +230,23 @@ function openTeamMemberForm(member = null) {
     });
 }
 
-function editTeamMember(id) {
-    const member = teamMembers.find(m => m.id === id);
-    if (member) openTeamMemberForm(member);
-}
-
-async function deleteTeamMember(id) {
-    if (!confirm('Excluir este membro?')) return;
-    const result = await window.pluriAPI.deleteStaff(id);
-    if (result.success) {
-        showToast('Membro excluído.');
-        await loadTeamData();
-        if (typeof loadProfessionals === 'function') loadProfessionals();
-    } else {
-        showToast('Erro ao excluir.');
-    }
-}
-
 // ==================================================
-// EVENTOS
+// EVENTOS (vinculados após renderização)
 // ==================================================
 function bindConfigEvents() {
+    // Botão de editar clínica
     const btnEditClinic = getEl('btnEditClinic');
     if (btnEditClinic) btnEditClinic.onclick = openClinicEditor;
 
-    const btnAddMember = getEl('btnAddMember');
-    if (btnAddMember) btnAddMember.onclick = () => openTeamMemberForm();
+    // Botão novo membro (na tabela de equipe)
+    const newStaffBtn = getEl('newStaffBtn');
+    if (newStaffBtn) newStaffBtn.onclick = openNewStaff;
+
+    // Linhas da tabela de equipe → abrir membro
+    document.querySelectorAll('[data-staff-id]').forEach(row => {
+        row.addEventListener('click', function () {
+            const id = this.dataset.staffId;
+            openStaff(id);
+        });
+    });
 }
