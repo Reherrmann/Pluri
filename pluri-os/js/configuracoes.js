@@ -3,7 +3,19 @@
 function buildConfiguracoes() {
     return `
         <div class="card">
-            <div class="card-header"><h3>Clínica</h3></div>
+            <div class="card-header"
+     style="display:flex;justify-content:space-between;align-items:center;">
+    <h3>Clínica</h3>
+
+    <button
+        class="btn btn-primary"
+        onclick="saveClinicSettings()">
+
+        Salvar
+
+    </button>
+
+</div>
             <div class="card-body">
                 <div class="form-row">
                     <div class="form-group"><label>Nome</label><input id="clinicName" type="text" value="${state.clinic?.name || ''}"></div>
@@ -11,7 +23,7 @@ function buildConfiguracoes() {
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>E-mail</label><input id="clinicEmail" type="email" value="${state.clinic?.email || ''}"></div>
-                    <div class="form-group"><label>Horário</label><input id="clinicSchedule" type="text" value="${state.clinic?.schedule || ''}"></div>
+                    <div class="form-group"><label>Horário</label><input id="clinicSchedule" type="text" value="${state.clinic?.hours || ''}"></div>
                 </div>
                 <div class="form-group"><label>Endereço</label><input id="clinicAddress" type="text" value="${state.clinic?.address || ''}"></div>
             </div>
@@ -85,4 +97,37 @@ function openNewStaff() {
 }
 function openStaff(row) {
     // Código original para abrir edição de membro
+}
+
+async function saveClinicSettings() {
+
+    const clinic = {
+
+        name: document.getElementById('clinicName').value,
+
+        phone: document.getElementById('clinicPhone').value,
+
+        email: document.getElementById('clinicEmail').value,
+
+        address: document.getElementById('clinicAddress').value,
+
+        hours: document.getElementById('clinicSchedule').value
+
+    };
+
+    const result =
+        await window.pluriAPI.updateClinic(clinic);
+
+    if(result.success){
+
+        state.clinic = clinic;
+
+        showToast('Dados da clínica salvos.');
+
+    }else{
+
+        showToast('Erro ao salvar.');
+
+    }
+
 }
