@@ -72,24 +72,34 @@ function attachPageEvents() {
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            document.querySelectorAll('#agendaTabs .tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const tabName = tab.dataset.tab;
-            const dayView = getEl('agendaDayView');
-            const weekView = getEl('agendaWeekView');
-            if (tabName === 'today') {
-                if (dayView) dayView.style.display = 'block';
-                if (weekView) weekView.style.display = 'none';
-            } else {
-                if (dayView) dayView.style.display = 'none';
-                if (weekView) {
-                    weekView.style.display = 'block';
-                    weekView.innerHTML = '';
-                    weekView.appendChild(buildAgendaWeekElement());
-                }
-            }
-            refreshIcons();
+            state.agendaTab = tab.dataset.tab; // 'today' | 'month'
+            renderPage();
         });
+    });
+
+    getEl('agendaPrevDay')?.addEventListener('click', () => {
+        const d = new Date((state.agendaDate || new Date().toISOString().split('T')[0]) + 'T00:00:00');
+        d.setDate(d.getDate() - 1);
+        state.agendaDate = toDateStr(d);
+        renderPage();
+    });
+    getEl('agendaNextDay')?.addEventListener('click', () => {
+        const d = new Date((state.agendaDate || new Date().toISOString().split('T')[0]) + 'T00:00:00');
+        d.setDate(d.getDate() + 1);
+        state.agendaDate = toDateStr(d);
+        renderPage();
+    });
+    getEl('agendaPrevMonth')?.addEventListener('click', () => {
+        if (!state.agendaMonth) { const n = new Date(); state.agendaMonth = { year: n.getFullYear(), month: n.getMonth() }; }
+        state.agendaMonth.month -= 1;
+        if (state.agendaMonth.month < 0) { state.agendaMonth.month = 11; state.agendaMonth.year -= 1; }
+        renderPage();
+    });
+    getEl('agendaNextMonth')?.addEventListener('click', () => {
+        if (!state.agendaMonth) { const n = new Date(); state.agendaMonth = { year: n.getFullYear(), month: n.getMonth() }; }
+        state.agendaMonth.month += 1;
+        if (state.agendaMonth.month > 11) { state.agendaMonth.month = 0; state.agendaMonth.year += 1; }
+        renderPage();
     });
 
     document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
@@ -225,8 +235,69 @@ async function init() {
         openPatient,
         openModal,
         openStaff: typeof openStaff === 'function' ? openStaff : () => {},
-        showToast
+        showToast,
+        editAppointment: openEditAppointment,
+        deleteAppointment: deleteAppointmentById,
+        confirmAppointment: confirmAppointmentById,
+        openDayFromMonth
     };
+}
+
+// =====================================================
+// AÇÕES DE AGENDAMENTO (editar / apagar / confirmar)
+// =====================================================
+
+async function deleteAppointmentById(id) {
+    const appt = state.appointments.find(a => String(a.id) === String(id));
+    if (!appt) return;
+    if (!confirm(`Excluir o agendamento de ${appt.patient}?`)) return;
+
+    const result = await window.pluriAPI.deleteAppointment(id, window.PLURI_USER?.clinicaId);
+    if (!result || !result.success) {
+        showToast(result?.error || 'Erro ao excluir agendamento.');
+        return;
+    }
+
+    state.appointments = await window.pluriAPI.getCalendarAppointments();
+    renderPage();
+    showToast('Agendamento excluído.');
+}
+
+async function confirmAppointmentById(id, phone, patient) {
+    const appt = state.appointments.find(a => String(a.id) === String(id));
+    if (!appt) return;
+
+    // Atualiza o status para Confirmado (Google Calendar + planilha)
+    const result = await window.pluriAPI.updateAppointment({
+        id: appt.id,
+        patient: appt.patient,
+        professional: appt.professional,
+        service: appt.service,
+        phone: appt.phone,
+        notes: appt.notes,
+        status: 'Confirmado',
+        date: appt.date,
+        time: appt.time,
+        clinicaID: window.PLURI_USER?.clinicaId
+    });
+
+    if (!result || !result.success) {
+        showToast(result?.error || 'Erro ao confirmar agendamento.');
+        return;
+    }
+
+    state.appointments = await window.pluriAPI.getCalendarAppointments();
+    renderPage();
+    showToast('Agendamento confirmado.');
+
+    // Abre o WhatsApp com a mensagem de confirmação pronta
+    const cleanPhone = String(phone || '').replace(/\D/g, '');
+    if (cleanPhone) {
+        const msg = encodeURIComponent(`Olá ${patient}, seu agendamento foi confirmado! ✅`);
+        window.open(`https://wa.me/55${cleanPhone}?text=${msg}`, '_blank');
+    } else {
+        showToast('Status confirmado, mas este agendamento não tem telefone salvo.');
+    }
 }
 
 if (document.readyState === 'loading') {

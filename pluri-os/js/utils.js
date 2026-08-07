@@ -43,6 +43,23 @@ function statusDotOnly(status) {
     }
 }
 
+// Cor do status, usada na bolinha do canto do card e no grid do mês
+function statusColor(status) {
+    if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') return '#22C55E';
+    if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo') return '#F59E0B';
+    return '#EF4444'; // Cancelado e afins
+}
+
+// Bolinha de status no canto superior direito do card de agendamento
+function statusDotCorner(status) {
+    return `<span class="agenda-status-corner" style="background:${statusColor(status)};" title="${status}"></span>`;
+}
+
+// Converte um objeto Date em string yyyy-MM-dd (fuso local, sem UTC shift)
+function toDateStr(d) {
+    return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+}
+
 function renderBarChart(values, labels, highlightIdx = -1) {
     const max = Math.max(...values, 1);
     return values.map((v, i) => {
