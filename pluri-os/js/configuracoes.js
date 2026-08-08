@@ -76,10 +76,54 @@ async function updateGoogleCalendarStatus() {
     try {
         const connected = await window.pluriAPI.isCalendarConnected();
         if (connected) {
-            statusDiv.innerHTML = '<span style="color:#10b981;font-weight:500;">Conectado</span>';
-        } else {
-            statusDiv.innerHTML = `<span style="color:#f59e0b;">Não conectado</span>
-                <button class="btn btn-sm btn-outline" id="btnConnectCalendarConfig">Conectar</button>`;
+
+    statusDiv.innerHTML = `
+        <span>Google Calendar</span>
+        <span style="
+            display:flex;
+            align-items:center;
+            gap:8px;
+            color:#10b981;
+            font-weight:600;
+        ">
+            <span style="
+                width:8px;
+                height:8px;
+                border-radius:50%;
+                background:#10b981;
+                display:inline-block;
+            "></span>
+            Conectado
+        </span>
+    `;
+
+} else {
+            statusDiv.innerHTML = `
+    <span>Google Calendar</span>
+
+    <div style="
+        display:flex;
+        align-items:center;
+        gap:10px;
+    ">
+
+        <span style="
+            color:#f59e0b;
+            font-weight:600;
+        ">
+            Não conectado
+        </span>
+
+        <button
+            class="btn btn-sm btn-outline"
+            id="btnConnectCalendarConfig">
+
+            Conectar
+
+        </button>
+
+    </div>
+`;
             document.getElementById('btnConnectCalendarConfig')?.addEventListener('click', async () => {
                 try {
                     const url = await window.pluriAPI.getCalendarAuthUrl();
