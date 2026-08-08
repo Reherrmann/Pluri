@@ -153,6 +153,50 @@ class PluriAPI {
         return this.post({ action: 'delete', sheet: 'Equipe', row });
     }
 
+    /* ======================================================
+   CLÍNICA
+====================================================== */
+
+async getClinic() {
+
+    const data = await this.get(
+        this.config.appsScript.baseUrl + '?action=clinic'
+    );
+
+    return data.clinic || {
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        hours: ''
+    };
+
+}
+
+async saveClinic(clinic) {
+
+    return this.post({
+
+        action: 'updateClinic',
+
+        values: {
+
+            Nome: clinic.name,
+
+            Telefone: clinic.phone,
+
+            'E-mail': clinic.email,
+
+            Endereço: clinic.address,
+
+            Horário: clinic.hours
+
+        }
+
+    });
+
+}
+
     // -------------------------------------------------
     // CALENDAR
     // -------------------------------------------------
