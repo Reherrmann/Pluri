@@ -94,117 +94,14 @@ async function updateGoogleCalendarStatus() {
     }
 }
 
-async function openStaff(row){
-
-    const member =
-        state.staff.find(s => s._row == row);
-
-    if(!member) return;
-
-    const name =
-        prompt('Nome', member.name);
-
-    if(name === null) return;
-
-    const role =
-        prompt('Função', member.role);
-
-    if(role === null) return;
-
-    const phone =
-        prompt('Telefone', member.phone);
-
-    if(phone === null) return;
-
-    const email =
-        prompt('E-mail', member.email);
-
-    if(email === null) return;
-
-    const status =
-        prompt('Status', member.status);
-
-    if(status === null) return;
-
-    const result =
-        await window.pluriAPI.updateStaff(row,{
-            name,
-            role,
-            phone,
-            email,
-            status
-        });
-
-    if(result.success){
-
-        member.name=name;
-        member.role=role;
-        member.phone=phone;
-        member.email=email;
-        member.status=status;
-
-        renderPage();
-
-        showToast('Equipe atualizada.');
-
-    }else{
-
-        showToast('Erro ao salvar.');
-
-    }
-
+function openNewStaff() {
+    // vamos implementar corretamente depois
 }
 
-
-
-async function openNewStaff(){
-
-    const name =
-        prompt('Nome');
-
-    if(!name) return;
-
-    const role =
-        prompt('Função');
-
-    const phone =
-        prompt('Telefone');
-
-    const email =
-        prompt('E-mail');
-
-    const status =
-        'Ativo';
-
-    const result =
-        await window.pluriAPI.createStaff({
-
-            name,
-            role,
-            phone,
-            email,
-            status
-
-        });
-
-    if(result.success){
-
-        const staff =
-            await window.pluriAPI.getStaff();
-
-        state.staff = staff;
-
-        renderPage();
-
-        showToast('Membro cadastrado.');
-
-    }else{
-
-        showToast('Erro ao cadastrar.');
-
-    }
-
+function openStaff(row) {
+    // vamos implementar corretamente depois
 }
+    
 
 async function saveClinicSettings() {
 
