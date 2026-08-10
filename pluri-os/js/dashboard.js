@@ -296,10 +296,10 @@ for (let i = 0; i < 6; i++) {
 
                     <div class="chart-container">
                         ${renderBarChart(
-                            [18,22,26,21,28,12],
-                            ['Seg','Ter','Qua','Qui','Sex','Sáb'],
-                            2
-                        )}
+    weekDays.map(d => d.count),
+    ['Seg','Ter','Qua','Qui','Sex','Sáb'],
+    2
+)}
                     </div>
 
                 </div>
