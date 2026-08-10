@@ -142,7 +142,12 @@ body{
 .kpi-sub.amber{color:var(--yellow-text);}
 
 /* ===== GRID LAYOUTS ===== */
-.grid-2{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:stretch;}
+.grid-2{
+    display:grid;
+    grid-template-columns:3fr 1fr;
+    gap:18px;
+    align-items:stretch;
+}
 .grid-3{
     display:grid;
     grid-template-columns:repeat(3,1fr);
