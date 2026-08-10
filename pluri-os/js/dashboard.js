@@ -232,15 +232,14 @@ for (let i = 0; i < 6; i++) {
 
                             .map(a => `
 
-                                <li class="agenda-item">
+                                <li class="agenda-item"
+    data-id="${a.id}"
+    onclick="window.pluri.editAppointment('${a.id}')"
+    style="cursor:pointer;">
 
                                     <span class="agenda-time">
                                         ${a.time}
                                     </span>
-
-                                    <div class="agenda-avatar">
-                                        ${getInitials(a.patient)}
-                                    </div>
 
                                     <div class="agenda-info">
 
