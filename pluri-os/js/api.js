@@ -290,15 +290,64 @@ async saveClinic(clinic) {
         return Array.isArray(data) ? data.map(c => this.mapConversation(c)) : [];
     }
     mapConversation(c) {
-        return {
-            _row: c._row, id: c.id || c._row,
-            patient: c.patient || c.nome || '', phone: c.phone || c.telefone || '',
-            email: c.email || c['e-mail'] || '', procedure: c.procedure || c.procedimento || '',
-            summary: c.summary || '', lastMsg: c.lastMsg || c.summary || '',
-            conversationDate: this.formatDate(c.conversationDate || c['data da conversa']),
-            status: this.normalizeStatus(c.status, 'Aguardando')
-        };
-    }
+    return {
+        _row: c._row,
+        id: c.id || c._row,
+
+        patient:
+            c.patient ||
+            c.nome ||
+            c['Nome'] ||
+            '',
+
+        phone:
+            c.phone ||
+            c.telefone ||
+            c['Telefone'] ||
+            '',
+
+        email:
+            c.email ||
+            c['e-mail'] ||
+            c['E-mail'] ||
+            '',
+
+        procedure:
+            c.procedure ||
+            c.procedimento ||
+            c['Procedimento'] ||
+            '',
+
+        summary:
+            c.summary ||
+            c['Resumo_conversa'] ||
+            c['Resumo conversa'] ||
+            c['Resumo'] ||
+            '',
+
+        lastMsg:
+            c.lastMsg ||
+            c['Última mensagem'] ||
+            c['Ultima mensagem'] ||
+            c.summary ||
+            c['Resumo_conversa'] ||
+            '',
+
+        conversationDate:
+            c.conversationDate ||
+            c['data da conversa'] ||
+            c['Data da conversa'] ||
+            c['Data'] ||
+            '',
+
+        status:
+            this.normalizeStatus(
+                c.status ||
+                c['Status'],
+                'Aguardando'
+            )
+    };
+}
     async getConversation(id) {
         const list = await this.getConversations();
         return list.find(c => String(c.id) === String(id));
