@@ -41,7 +41,45 @@ console.table(
 const totalToday =
     appointmentsToday.length;
 
-   
+   const weekDays = [];
+
+const todayDate = new Date();
+
+const dayOfWeek = todayDate.getDay();
+
+const mondayOffset =
+    dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+const monday = new Date(todayDate);
+
+monday.setDate(
+    todayDate.getDate() + mondayOffset
+);
+
+monday.setHours(0, 0, 0, 0);
+
+for (let i = 0; i < 6; i++) {
+
+    const date = new Date(monday);
+
+    date.setDate(
+        monday.getDate() + i
+    );
+
+    const dateStr =
+        `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+        ).padStart(2, '0')}-${String(
+            date.getDate()
+        ).padStart(2, '0')}`;
+
+    weekDays.push({
+        date: dateStr,
+        count: state.appointments.filter(
+            a => String(a.date || '').trim() === dateStr
+        ).length
+    });
+}
 
     const conversationsWaiting =
         state.conversations.filter(c => c.status === 'Aguardando').length;
