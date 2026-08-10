@@ -1,15 +1,28 @@
 // js/dashboard.js
 function buildDashboard() {
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const today = new Date();
 
-    const confirmed =
-        state.appointments.filter(a => a.status === 'Confirmado').length;
+const todayStr =
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-    const pending =
-        state.appointments.filter(a => a.status === 'Pendente').length;
+const appointmentsToday =
+    state.appointments.filter(a =>
+        String(a.date || '').trim() === todayStr
+    );
 
-    const totalToday = state.appointments.length;
+const confirmed =
+    appointmentsToday.filter(a =>
+        String(a.status || '').trim() === 'Confirmado'
+    ).length;
+
+const pending =
+    appointmentsToday.filter(a =>
+        String(a.status || '').trim() === 'Pendente'
+    ).length;
+
+const totalToday =
+    appointmentsToday.length;
 
     const automatedToday =
         state.conversations.filter(c =>
@@ -79,7 +92,7 @@ function buildDashboard() {
 
                     <ul class="agenda-list">
 
-                        ${[...state.appointments]
+                        ${[...appointmentsToday]
 
                             .sort((a, b) =>
                                 String(a.time)
