@@ -134,7 +134,7 @@ body{
     transition:all var(--transition);cursor:pointer;
 }
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--primary);}
-.kpi-card:nth-child(3)::before{background:var(--accent);}
+
 .kpi-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08);transform:translateY(-1px);}
 .kpi-value{font-size:30px;font-weight:700;color:var(--primary);letter-spacing:-0.02em;line-height:1;}
 .kpi-label{font-size:13px;color:var(--text-secondary);font-weight:500;}
