@@ -471,12 +471,7 @@ for (let i = 0; i < 6; i++) {
 
                                     ${a.name}
 
-                                    <small
-                                        style="color:var(--text-secondary);">
-
-                                        ${a.sent}
-
-                                    </small>
+                                   
 
                                 </span>
 
