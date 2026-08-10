@@ -16,10 +16,14 @@ const confirmed =
         String(a.status || '').trim() === 'Confirmado'
     ).length;
 
-const pending =
-    appointmentsToday.filter(a =>
-        String(a.status || '').trim() === 'Pendente'
-    ).length;
+console.table(
+    appointmentsToday.map(a => ({
+        paciente: a.patient,
+        data: a.date,
+        horario: a.time,
+        status: a.status
+    }))
+);
 
 const totalToday =
     appointmentsToday.length;
