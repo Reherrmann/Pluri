@@ -63,7 +63,7 @@ ${state.staff.map(s => `
             </div>
         </div>
     </div>
-</div>
+ </div>`;
 }
 
 async function updateGoogleCalendarStatus() {
