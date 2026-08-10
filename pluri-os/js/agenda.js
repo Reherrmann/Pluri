@@ -169,9 +169,20 @@ function buildAgenda() {
                             <span class="agenda-time">${time}</span>
                             <div class="agenda-avatar">${getInitials(appt.patient)}</div>
                             <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
-                                <div class="agenda-name">${appt.patient}</div>
-                                <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
-                            </div>
+
+    <div class="agenda-name">
+        ${appt.patient}
+    </div>
+
+    <div class="agenda-detail">
+        ${appt.service} · ${appt.professional}
+    </div>
+
+    <div style="margin-top:4px;">
+        ${statusBadge(appt.status)}
+    </div>
+
+</div>
                             <!-- Botão Confirmar via WhatsApp (comentado por enquanto)
                             <button class="btn-icon-sm" title="Confirmar via WhatsApp" onclick="event.stopPropagation(); window.pluri.confirmAppointment('${appt.id}', '${appt.phone}', '${appt.patient}')">
                                 <i data-lucide="message-circle" style="width:14px;height:14px;"></i>
