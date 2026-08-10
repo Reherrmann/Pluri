@@ -169,6 +169,7 @@ if (newPatientBtn) {
             getEl('apptPhone')?.value?.trim() || '';
 
         // Fecha o modal de agendamento
+        window._returnToAppointment = true;
         closeModal();
 
         // Abre o cadastro de paciente
