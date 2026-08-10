@@ -45,6 +45,7 @@ ${state.staff.map(s => `
 </tr>
 `).join('')}
 </tbody>
+</table>
             </div>
         </div>
         <div class="card">
