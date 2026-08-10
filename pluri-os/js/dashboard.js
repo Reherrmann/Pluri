@@ -1,4 +1,76 @@
 // js/dashboard.js
+function parseConversationDate(value) {
+
+    if (!value) return null;
+
+    if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value;
+    }
+
+    const str = String(value).trim();
+
+    if (!str) return null;
+
+    // Formato: DD/MM/YYYY HH:mm:ss
+    let match = str.match(
+        /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/
+    );
+
+    if (match) {
+
+        const [
+            ,
+            day,
+            month,
+            year,
+            hour = '00',
+            minute = '00',
+            second = '00'
+        ] = match;
+
+        return new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minute),
+            Number(second)
+        );
+    }
+
+    // Formato: YYYY-MM-DD HH:mm:ss
+    match = str.match(
+        /^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/
+    );
+
+    if (match) {
+
+        const [
+            ,
+            year,
+            month,
+            day,
+            hour = '00',
+            minute = '00',
+            second = '00'
+        ] = match;
+
+        return new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minute),
+            Number(second)
+        );
+    }
+
+    // Última tentativa para formatos ISO
+    const parsed = new Date(str);
+
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function buildDashboard() {
 
     const today = new Date();
@@ -309,6 +381,8 @@ for (let i = 0; i < 6; i++) {
            
 <div class="card">
 
+   <div class="card">
+
     <div class="card-header">
         <h3>Atividade recente</h3>
     </div>
@@ -318,44 +392,59 @@ for (let i = 0; i < 6; i++) {
         <div class="timeline">
 
             ${[...state.conversations]
-                .sort((a, b) =>
-                    new Date(b.conversationDate || 0) -
-                    new Date(a.conversationDate || 0)
-                )
+
+                .sort((a, b) => {
+
+                    const da = parseConversationDate(a.conversationDate);
+                    const db = parseConversationDate(b.conversationDate);
+
+                    return db - da;
+
+                })
+
                 .slice(0, 5)
-                .map(c => `
 
-                    <div class="timeline-item">
+                .map(c => {
 
-                        <span class="timeline-time">
-                            ${
-                                c.conversationDate
-                                    ? new Date(c.conversationDate)
-                                        .toLocaleTimeString(
-                                            'pt-BR',
-                                            {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            }
-                                        )
-                                    : '--:--'
+                    const date = parseConversationDate(c.conversationDate);
+
+                    const time = date
+                        ? date.toLocaleTimeString(
+                            'pt-BR',
+                            {
+                                hour: '2-digit',
+                                minute: '2-digit'
                             }
-                        </span>
+                        )
+                        : '--:--';
 
-                        <div class="timeline-dot"></div>
+                    const text =
+                        c.summary ||
+                        c.lastMsg ||
+                        c['Resumo_conversa'] ||
+                        'Nova conversa';
 
-                        <span class="timeline-text">
-                            ${
-                                c.summary ||
-                                c.lastMsg ||
-                                c['Resumo_conversa'] ||
-                                'Nova conversa'
-                            }
-                        </span>
+                    return `
 
-                    </div>
+                        <div class="timeline-item">
 
-                `).join('')}
+                            <span class="timeline-time">
+                                ${time}
+                            </span>
+
+                            <div class="timeline-dot"></div>
+
+                            <span class="timeline-text">
+                                ${text}
+                            </span>
+
+                        </div>
+
+                    `;
+
+                })
+
+                .join('')}
 
         </div>
 
