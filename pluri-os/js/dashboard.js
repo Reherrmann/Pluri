@@ -366,7 +366,7 @@ for (let i = 0; i < 6; i++) {
                 <div class="card-body">
 
                     <div class="chart-container">
-                       ${renderBarChart(
+                      ${renderBarChart(
     weekDays.map(d => d.count),
     weekDays.map(d => {
 
@@ -377,16 +377,10 @@ for (let i = 0; i < 6; i++) {
             { weekday: 'short' }
         ).replace('.', '');
 
-        const dayNumber = date.getDate();
+        return `${dayName} ${date.getDate()}`;
 
-        const isToday =
-            d.date === todayStr;
-
-        return isToday
-            ? `${dayName} ${dayNumber} · HOJE`
-            : `${dayName} ${dayNumber}`;
-
-    })
+    }),
+    weekDays.findIndex(d => d.date === todayStr)
 )}
                     </div>
                 </div>
