@@ -356,7 +356,7 @@ async saveClinic(clinic) {
     async updateConversation(row, status) {
     return this.post({
         action: 'update',
-        sheet: 'Conversas',
+        sheet: 'Contatos_e_Agendamentos',
         row: row,
         values: {
             Status: status
