@@ -143,8 +143,19 @@ body{
 
 /* ===== GRID LAYOUTS ===== */
 .grid-2{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:stretch;}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:start;}
+.grid-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+    align-items:stretch;
+}
+
+.grid-4{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    align-items:stretch;
+}
 
 /* ===== AGENDA LIST (Hoje) ===== */
 .agenda-list{list-style:none;}
