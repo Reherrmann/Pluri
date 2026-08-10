@@ -75,8 +75,61 @@ function buildPacientes() {
             </div>
 
         </div>
-    `;
+    `    `;
 }
+
+function setupPatientSearch() {
+
+    const searchInput = getEl('patientSearch');
+    const tableBody = getEl('patientTableBody');
+
+    if (!searchInput || !tableBody) return;
+
+    searchInput.oninput = () => {
+
+        const term =
+            searchInput.value.trim().toLowerCase();
+
+        const filtered =
+            (state.patients || []).filter(p => {
+
+                const name =
+                    (p.name || '').toLowerCase();
+
+                const phone =
+                    (p.phone || '').toLowerCase();
+
+                return (
+                    name.includes(term) ||
+                    phone.includes(term)
+                );
+            });
+
+        tableBody.innerHTML = filtered.map(p => `
+
+            <tr
+                style="cursor:pointer;"
+                onclick="openPatient(${p._row})">
+
+                <td>${p.name || '-'}</td>
+
+                <td>${p.phone || '-'}</td>
+
+                <td>${p.lastVisit || '-'}</td>
+
+                <td>${p.nextAppt || '-'}</td>
+
+                <td>
+                    ${statusBadge(p.status)}
+                </td>
+
+            </tr>
+
+        `).join('');
+    };
+}
+
+function openNewPatient() {
 
 function openNewPatient() {
     const content = getEl('slideContent');
