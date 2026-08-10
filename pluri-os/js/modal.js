@@ -155,6 +155,45 @@ if (results) {
     results.style.display = 'none';
     results.innerHTML = '';
 }
+
+    const newPatientBtn = getEl('newPatientFromAppointment');
+
+if (newPatientBtn) {
+
+    newPatientBtn.onclick = () => {
+
+        const currentName =
+            getEl('apptPatient')?.value?.trim() || '';
+
+        const currentPhone =
+            getEl('apptPhone')?.value?.trim() || '';
+
+        // Fecha o modal de agendamento
+        closeModal();
+
+        // Abre o cadastro de paciente
+        openNewPatient();
+
+        // Aproveita o que já foi digitado
+        setTimeout(() => {
+
+            const nameInput =
+                getEl('newPatientName');
+
+            const phoneInput =
+                getEl('newPatientPhone');
+
+            if (nameInput) {
+                nameInput.value = currentName;
+            }
+
+            if (phoneInput) {
+                phoneInput.value = currentPhone;
+            }
+
+        }, 50);
+    };
+}
     
     refreshIcons();
 }
