@@ -41,10 +41,7 @@ console.table(
 const totalToday =
     appointmentsToday.length;
 
-    const automatedToday =
-        state.conversations.filter(c =>
-            String(c.conversationDate || '').startsWith(todayStr)
-        ).length;
+   
 
     const conversationsWaiting =
         state.conversations.filter(c => c.status === 'Aguardando').length;
@@ -64,11 +61,11 @@ const totalToday =
                 <div class="kpi-sub">${confirmed} confirmados</div>
             </div>
 
-            <div class="kpi-card">
-                <div class="kpi-value">${automatedToday}</div>
-                <div class="kpi-label">Atendimentos automatizados</div>
-                <div class="kpi-sub">Hoje</div>
-            </div>
+            <div class="kpi-card" data-link="atendimentos">
+    <div class="kpi-value">${conversationsWaiting}</div>
+    <div class="kpi-label">Conversas aguardando</div>
+    <div class="kpi-sub">Precisam da equipe</div>
+</div>
 
             <div class="kpi-card" data-link="agenda">
                 <div class="kpi-value">${pending}</div>
