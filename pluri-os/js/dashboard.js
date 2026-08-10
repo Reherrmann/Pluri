@@ -306,62 +306,63 @@ for (let i = 0; i < 6; i++) {
 
             </div>
 
-            <div class="card">
+           
+<div class="card">
 
-                <div class="card-header">
-                               <div class="card-body">
+    <div class="card-header">
+        <h3>Atividade recente</h3>
+    </div>
 
-                <div class="timeline">
+    <div class="card-body">
 
-                    ${[...state.conversations]
-                        .sort((a, b) =>
-                            new Date(b.conversationDate || 0) -
-                            new Date(a.conversationDate || 0)
-                        )
-                        .slice(0, 5)
-                        .map(c => `
+        <div class="timeline">
 
-                            <div class="timeline-item">
+            ${[...state.conversations]
+                .sort((a, b) =>
+                    new Date(b.conversationDate || 0) -
+                    new Date(a.conversationDate || 0)
+                )
+                .slice(0, 5)
+                .map(c => `
 
-                                <span class="timeline-time">
+                    <div class="timeline-item">
 
-                                    ${
-                                        c.conversationDate
-                                            ? new Date(c.conversationDate)
-                                                .toLocaleTimeString(
-                                                    'pt-BR',
-                                                    {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    }
-                                                )
-                                            : '--:--'
-                                    }
+                        <span class="timeline-time">
+                            ${
+                                c.conversationDate
+                                    ? new Date(c.conversationDate)
+                                        .toLocaleTimeString(
+                                            'pt-BR',
+                                            {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            }
+                                        )
+                                    : '--:--'
+                            }
+                        </span>
 
-                                </span>
+                        <div class="timeline-dot"></div>
 
-                                <div class="timeline-dot"></div>
+                        <span class="timeline-text">
+                            ${
+                                c.summary ||
+                                c.lastMsg ||
+                                c['Resumo_conversa'] ||
+                                'Nova conversa'
+                            }
+                        </span>
 
-                                <span class="timeline-text">
+                    </div>
 
-                                    ${
-                                        c.summary ||
-                                        c.lastMsg ||
-                                        c['Resumo_conversa'] ||
-                                        'Nova conversa'
-                                    }
-
-                                </span>
-
-                            </div>
-
-                        `).join('')}
-
-                </div>
-
-            </div>
+                `).join('')}
 
         </div>
+
+    </div>
+
+</div>
+            
             <div class="card">
 
                 <div class="card-header">
