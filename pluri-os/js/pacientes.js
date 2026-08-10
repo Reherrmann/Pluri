@@ -31,7 +31,7 @@ function openNewPatient() {
             <button class="btn btn-primary btn-sm" id="saveNewPatient">Criar paciente</button>
         </div>
         <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">O paciente será salvo direto no Google Sheets.</p>`;
-    getEl('cancelNewPatient')?.addEventListener('click', closeSlidePanel);
+    ('cancelNewPatient')?.addEventListener('click', closeSlidePanel);
     getEl('saveNewPatient')?.addEventListener('click', async () => {
         const name = getEl('newPatientName')?.value?.trim() || '';
         const phone = getEl('newPatientPhone')?.value?.trim() || '';
@@ -68,13 +68,40 @@ function openNewPatient() {
 
         try {
 
-    state.patients = await window.pluriAPI.getPatients();
+   state.patients = await window.pluriAPI.getPatients();
 
-    closeSlidePanel();
+closeSlidePanel();
 
-    showToast('Paciente criado com sucesso!');
+showToast('Paciente criado com sucesso!');
 
-    renderPage();
+if (window._returnToAppointment) {
+
+    window._returnToAppointment = false;
+
+    const newPatient =
+        state.patients.find(
+            p =>
+                p.name === name &&
+                p.phone === phone
+        );
+
+    if (newPatient) {
+
+        setTimeout(() => {
+
+            openModal(
+                null,
+                newPatient.name,
+                newPatient.phone
+            );
+
+        }, 100);
+
+        return;
+    }
+}
+
+renderPage();
 
 } catch (e) {
 
