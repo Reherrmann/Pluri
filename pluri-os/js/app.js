@@ -12,9 +12,7 @@ function renderPage() {
             case 'dashboard': html = buildDashboard(); break;
             case 'agenda': html = buildAgenda(); break;
             case 'atendimentos': html = buildAtendimentos(); break;
-            case 'pacientes':
-    html = buildPacientes();
-    break;
+            case 'pacientes': html = buildPacientes(); break;
             case 'automacoes': html = buildAutomacoes(); break;
             case 'indicadores': html = buildIndicadores(); break;
             case 'configuracoes': html = buildConfiguracoes(); break;  // ✅ síncrono, função correta
