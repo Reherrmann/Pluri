@@ -1,4 +1,5 @@
 // js/pacientes.js
+
 function buildPacientes() {
 
     return `
@@ -46,19 +47,27 @@ function buildPacientes() {
 
                     <tbody id="patientTableBody">
 
-                        ${state.patients.map(p => `
+                        ${(state.patients || []).map(p => `
 
                             <tr
-    style="cursor:pointer;"
-    data-patient-row="${p._row}">
+                                style="cursor:pointer;"
+                                data-patient-row="${p._row}">
 
-                                <td>${p.name || '-'}</td>
+                                <td style="font-weight:500;">
+                                    ${p.name || '-'}
+                                </td>
 
-                                <td>${p.phone || '-'}</td>
+                                <td>
+                                    ${p.phone || '-'}
+                                </td>
 
-                                <td>${p.lastVisit || '-'}</td>
+                                <td>
+                                    ${p.lastVisit || '-'}
+                                </td>
 
-                                <td>${p.nextAppt || '-'}</td>
+                                <td>
+                                    ${p.nextAppt || '-'}
+                                </td>
 
                                 <td>
                                     ${statusBadge(p.status)}
@@ -75,159 +84,549 @@ function buildPacientes() {
             </div>
 
         </div>
-    `    `;
+    `;
 }
+
 
 function openNewPatient() {
+
     const content = getEl('slideContent');
+
     if (!content) return;
+
     content.innerHTML = `
-        <h3 style="margin-bottom:16px;">Novo paciente</h3>
-        <div class="form-group"><label>Nome</label><input type="text" id="newPatientName"></div>
-        <div class="form-group"><label>Telefone</label><input type="text" id="newPatientPhone"></div>
-        <div class="form-group"><label>E-mail</label><input type="email" id="newPatientEmail"></div>
-        <div class="form-group"><label>Observações</label><textarea id="newPatientNotes" rows="3"></textarea></div>
-        <div style="margin-top:16px;display:flex;gap:8px;">
-            <button class="btn btn-outline btn-sm" id="cancelNewPatient">Cancelar</button>
-            <button class="btn btn-primary btn-sm" id="saveNewPatient">Criar paciente</button>
+
+        <h3 style="margin-bottom:16px;">
+            Novo paciente
+        </h3>
+
+        <div class="form-group">
+            <label>Nome</label>
+            <input
+                type="text"
+                id="newPatientName">
         </div>
-        <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">O paciente será salvo direto no Google Sheets.</p>`;
-    getEl('cancelNewPatient')?.addEventListener('click', closeSlidePanel);
-    getEl('saveNewPatient')?.addEventListener('click', async () => {
-        const name = getEl('newPatientName')?.value?.trim() || '';
-        const phone = getEl('newPatientPhone')?.value?.trim() || '';
-        const email = getEl('newPatientEmail')?.value?.trim() || '';
-        const notes = getEl('newPatientNotes')?.value?.trim() || '';
 
-        if (!name || !phone) {
-            showToast('Preencha ao menos nome e telefone.');
-            return;
-        }
+        <div class="form-group">
+            <label>Telefone</label>
+            <input
+                type="text"
+                id="newPatientPhone">
+        </div>
 
-        const saveBtn = getEl('saveNewPatient');
-        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Salvando...'; }
+        <div class="form-group">
+            <label>E-mail</label>
+            <input
+                type="email"
+                id="newPatientEmail">
+        </div>
 
-        const values = {
-            name, phone, email, notes,
-            created: new Date().toLocaleDateString('pt-BR'),
-            lastVisit: '-',
-            nextAppt: '-',
-            status: 'Novo',
-        };
+        <div class="form-group">
+            <label>Observações</label>
+            <textarea
+                id="newPatientNotes"
+                rows="3"></textarea>
+        </div>
 
-        let newRow = null;
-        if (window.pluriAPI) {
-            const result = await window.pluriAPI.createPatient(values);
-            if (result?.success) newRow = result.row;
-        }
+        <div
+            style="
+                margin-top:16px;
+                display:flex;
+                gap:8px;
+            ">
 
-        if (newRow === null) {
-            showToast('Não foi possível salvar na planilha. Tente novamente.');
-            if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Criar paciente'; }
-            return;
-        }
+            <button
+                class="btn btn-outline btn-sm"
+                id="cancelNewPatient">
+                Cancelar
+            </button>
 
-        try {
+            <button
+                class="btn btn-primary btn-sm"
+                id="saveNewPatient">
+                Criar paciente
+            </button>
 
-   state.patients = await window.pluriAPI.getPatients();
+        </div>
 
-closeSlidePanel();
+        <p
+            style="
+                font-size:11px;
+                color:var(--text-secondary);
+                margin-top:8px;
+            ">
+            O paciente será salvo direto no Google Sheets.
+        </p>
+    `;
 
-showToast('Paciente criado com sucesso!');
 
-if (window._returnToAppointment) {
+    getEl('cancelNewPatient')
+        ?.addEventListener('click', closeSlidePanel);
 
-    window._returnToAppointment = false;
 
-    const newPatient =
-        state.patients.find(
-            p => String(p._row) === String(newRow)
-        );
+    getEl('saveNewPatient')
+        ?.addEventListener('click', async () => {
 
-    if (newPatient) {
+            const name =
+                getEl('newPatientName')?.value?.trim() || '';
 
-        setTimeout(() => {
+            const phone =
+                getEl('newPatientPhone')?.value?.trim() || '';
 
-            openModal(
-                null,
-                newPatient.name,
-                newPatient.phone
-            );
+            const email =
+                getEl('newPatientEmail')?.value?.trim() || '';
 
-        }, 100);
+            const notes =
+                getEl('newPatientNotes')?.value?.trim() || '';
 
-        return;
-    }
-}
 
-renderPage();
+            if (!name || !phone) {
 
-} catch (e) {
+                showToast(
+                    'Preencha ao menos nome e telefone.'
+                );
 
-    console.error(e);
+                return;
+            }
 
-    showToast('Paciente salvo, mas não foi possível atualizar a lista.');
 
-}
-    });
+            const saveBtn =
+                getEl('saveNewPatient');
+
+
+            if (saveBtn) {
+
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvando...';
+
+            }
+
+
+            const values = {
+
+                name,
+                phone,
+                email,
+                notes,
+
+                created:
+                    new Date()
+                        .toLocaleDateString('pt-BR'),
+
+                lastVisit: '-',
+                nextAppt: '-',
+
+                status: 'Novo'
+
+            };
+
+
+            let newRow = null;
+
+
+            try {
+
+                if (!window.pluriAPI) {
+
+                    throw new Error(
+                        'API não inicializada.'
+                    );
+
+                }
+
+
+                const result =
+                    await window.pluriAPI.createPatient(values);
+
+
+                if (!result?.success) {
+
+                    throw new Error(
+                        result?.error ||
+                        'Não foi possível criar o paciente.'
+                    );
+
+                }
+
+
+                newRow = result.row;
+
+
+                state.patients =
+                    await window.pluriAPI.getPatients();
+
+
+                /*
+                 * Se o cadastro foi aberto a partir
+                 * do agendamento, volta para o modal.
+                 */
+
+                if (window._returnToAppointment) {
+
+                    window._returnToAppointment = false;
+
+
+                    const newPatient =
+                        state.patients.find(
+                            p =>
+                                String(p._row) ===
+                                String(newRow)
+                        );
+
+
+                    closeSlidePanel();
+
+
+                    if (newPatient) {
+
+                        setTimeout(() => {
+
+                            openModal(
+                                null,
+                                newPatient.name,
+                                newPatient.phone
+                            );
+
+                        }, 150);
+
+                        return;
+                    }
+                }
+
+
+                closeSlidePanel();
+
+                showToast(
+                    'Paciente criado com sucesso!'
+                );
+
+                renderPage();
+
+
+            } catch (e) {
+
+                console.error(
+                    'Erro ao criar paciente:',
+                    e
+                );
+
+                showToast(
+                    e.message ||
+                    'Não foi possível salvar o paciente.'
+                );
+
+
+                if (saveBtn) {
+
+                    saveBtn.disabled = false;
+                    saveBtn.textContent =
+                        'Criar paciente';
+
+                }
+
+            }
+
+        });
+
+
     openSlidePanel();
 }
 
+
 function openPatient(row) {
-    const p = state.patients.find(pt => pt._row === row);
+
+    const p =
+        state.patients.find(
+            pt =>
+                String(pt._row) ===
+                String(row)
+        );
+
+
     if (!p) return;
-    const content = getEl('slideContent');
+
+
+    const content =
+        getEl('slideContent');
+
+
     if (!content) return;
+
+
     content.innerHTML = `
-        <h3 style="margin-bottom:16px;">Editar paciente</h3>
-        <div class="form-group"><label>Nome</label><input type="text" id="editPatientName" value="${p.name}"></div>
-        <div class="form-group"><label>Telefone</label><input type="text" id="editPatientPhone" value="${p.phone}"></div>
-        <div class="form-group"><label>E-mail</label><input type="email" id="editPatientEmail" value="${p.email || ''}"></div>
-        <div class="form-group"><label>Observações</label><textarea id="editPatientNotes" rows="3">${p.notes || ''}</textarea></div>
-        <div style="margin-top:16px;display:flex;gap:8px;">
-            <button class="btn btn-outline btn-sm" id="cancelPatientEdit">Cancelar</button>
-            <button class="btn btn-primary btn-sm" id="savePatientEdit">Salvar alterações</button>
+
+        <h3 style="margin-bottom:16px;">
+            Editar paciente
+        </h3>
+
+        <div class="form-group">
+            <label>Nome</label>
+
+            <input
+                type="text"
+                id="editPatientName"
+                value="${p.name || ''}">
         </div>
-        <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">As alterações serão sincronizadas com o Google Sheets.</p>`;
-    getEl('cancelPatientEdit')?.addEventListener('click', closeSlidePanel);
-    getEl('savePatientEdit')?.addEventListener('click', async () => {
-        const name = getEl('editPatientName')?.value?.trim() || p.name;
-        const phone = getEl('editPatientPhone')?.value?.trim() || p.phone;
-        const email = getEl('editPatientEmail')?.value?.trim() || p.email;
-        const notes = getEl('editPatientNotes')?.value?.trim() || '';
 
-        const saveBtn = getEl('savePatientEdit');
-        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Salvando...'; }
 
-        let ok = true;
-        if (window.pluriAPI && p._row) {
-            const result = await window.pluriAPI.updatePatient(p._row, { name, phone, email, notes });
-            ok = !!result?.success;
-        }
+        <div class="form-group">
+            <label>Telefone</label>
 
-        if (!ok) {
-            showToast('Não foi possível salvar na planilha. Tente novamente.');
-            if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Salvar alterações'; }
-            return;
-        }
+            <input
+                type="text"
+                id="editPatientPhone"
+                value="${p.phone || ''}">
+        </div>
 
-        try {
 
-    state.patients = await window.pluriAPI.getPatients();
+        <div class="form-group">
+            <label>E-mail</label>
 
-    closeSlidePanel();
+            <input
+                type="email"
+                id="editPatientEmail"
+                value="${p.email || ''}">
+        </div>
 
-    showToast('Paciente atualizado com sucesso!');
 
-    renderPage();
+        <div class="form-group">
+            <label>Observações</label>
 
-} catch (e) {
+            <textarea
+                id="editPatientNotes"
+                rows="3">${p.notes || ''}</textarea>
+        </div>
 
-    console.error(e);
 
-    showToast('Paciente atualizado.');
+        <div
+            style="
+                margin-top:16px;
+                display:flex;
+                gap:8px;
+            ">
 
-}
-    });
+            <button
+                class="btn btn-outline btn-sm"
+                id="cancelPatientEdit">
+                Cancelar
+            </button>
+
+            <button
+                class="btn btn-primary btn-sm"
+                id="savePatientEdit">
+                Salvar alterações
+            </button>
+
+        </div>
+
+
+        <div
+            style="
+                margin-top:12px;
+                display:flex;
+                gap:8px;
+            ">
+
+            <button
+                class="btn btn-outline btn-sm"
+                id="whatsappPatientBtn">
+                WhatsApp
+            </button>
+
+            <button
+                class="btn btn-outline btn-sm"
+                id="schedulePatientBtn">
+                Agendar
+            </button>
+
+        </div>
+
+
+        <p
+            style="
+                font-size:11px;
+                color:var(--text-secondary);
+                margin-top:8px;
+            ">
+            As alterações serão sincronizadas com o Google Sheets.
+        </p>
+    `;
+
+
+    getEl('cancelPatientEdit')
+        ?.addEventListener(
+            'click',
+            closeSlidePanel
+        );
+
+
+    getEl('savePatientEdit')
+        ?.addEventListener(
+            'click',
+            async () => {
+
+                const name =
+                    getEl('editPatientName')
+                        ?.value?.trim() ||
+                    p.name;
+
+                const phone =
+                    getEl('editPatientPhone')
+                        ?.value?.trim() ||
+                    p.phone;
+
+                const email =
+                    getEl('editPatientEmail')
+                        ?.value?.trim() ||
+                    p.email;
+
+                const notes =
+                    getEl('editPatientNotes')
+                        ?.value?.trim() ||
+                    '';
+
+
+                const saveBtn =
+                    getEl('savePatientEdit');
+
+
+                if (saveBtn) {
+
+                    saveBtn.disabled = true;
+                    saveBtn.textContent =
+                        'Salvando...';
+
+                }
+
+
+                try {
+
+                    if (!window.pluriAPI) {
+
+                        throw new Error(
+                            'API não inicializada.'
+                        );
+
+                    }
+
+
+                    const result =
+                        await window.pluriAPI.updatePatient(
+                            p._row,
+                            {
+                                name,
+                                phone,
+                                email,
+                                notes
+                            }
+                        );
+
+
+                    if (!result?.success) {
+
+                        throw new Error(
+                            result?.error ||
+                            'Não foi possível salvar.'
+                        );
+
+                    }
+
+
+                    state.patients =
+                        await window.pluriAPI.getPatients();
+
+
+                    closeSlidePanel();
+
+                    showToast(
+                        'Paciente atualizado com sucesso!'
+                    );
+
+                    renderPage();
+
+
+                } catch (e) {
+
+                    console.error(e);
+
+                    showToast(
+                        e.message ||
+                        'Não foi possível salvar.'
+                    );
+
+
+                    if (saveBtn) {
+
+                        saveBtn.disabled = false;
+                        saveBtn.textContent =
+                            'Salvar alterações';
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    /*
+     * WhatsApp
+     */
+
+    getEl('whatsappPatientBtn')
+        ?.addEventListener(
+            'click',
+            () => {
+
+                const cleanPhone =
+                    String(
+                        p.phone || ''
+                    ).replace(/\D/g, '');
+
+
+                if (!cleanPhone) {
+
+                    showToast(
+                        'Este paciente não possui telefone.'
+                    );
+
+                    return;
+                }
+
+
+                window.open(
+                    `https://web.whatsapp.com/send?phone=55${cleanPhone}`,
+                    '_blank'
+                );
+
+            }
+        );
+
+
+    /*
+     * Agendar
+     */
+
+    getEl('schedulePatientBtn')
+        ?.addEventListener(
+            'click',
+            () => {
+
+                closeSlidePanel();
+
+                setTimeout(() => {
+
+                    openModal(
+                        null,
+                        p.name || '',
+                        p.phone || ''
+                    );
+
+                }, 100);
+
+            }
+        );
+
+
     openSlidePanel();
 }
