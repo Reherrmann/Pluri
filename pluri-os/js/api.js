@@ -352,6 +352,17 @@ async saveClinic(clinic) {
         const list = await this.getConversations();
         return list.find(c => String(c.id) === String(id));
     }
+
+    async updateConversation(row, status) {
+    return this.post({
+        action: 'update',
+        sheet: 'Conversas',
+        row: row,
+        values: {
+            Status: status
+        }
+    });
+}
     async findConversationByPhone(phone) {
         const list = await this.getConversations();
         return list.find(c => c.phone === phone);
