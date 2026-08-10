@@ -28,17 +28,65 @@ Resumo:
 ${conv.summary || conv.lastMsg}
 </p>
         <p style="font-size:13px;color:var(--text-secondary);">Horário: ${conv.time}</p>
-        <div style="margin-top:16px;display:flex;gap:8px;">
-            <button class="btn btn-sm btn-outline js-nav" data-page="pacientes">Ver paciente</button>
-            <button class="btn btn-sm btn-outline" id="scheduleFromConversation">Agendar</button>
-            <button class="btn btn-sm btn-primary" id="resolveConversationBtn">Marcar como resolvido</button>
-        </div>`;
-    getEl('resolveConversationBtn')?.addEventListener('click', () => {
-        cconv.resolvedAt = new Date().toISOString();
-        closeSlidePanel();
-        showToast('Atendimento marcado como resolvido.');
-        renderPage();
-    });
+        <div style="margin-top:16px;">
+
+    <div class="form-group">
+        <label>Status da conversa</label>
+
+        <select id="conversationStatus">
+            <option value="Aguardando"
+                ${conv.status === 'Aguardando' ? 'selected' : ''}>
+                Aguardando
+            </option>
+
+            <option value="Resolvido"
+                ${conv.status === 'Resolvido' ? 'selected' : ''}>
+                Resolvido
+            </option>
+
+            <option value="Cancelado"
+                ${conv.status === 'Cancelado' ? 'selected' : ''}>
+                Cancelado
+            </option>
+        </select>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:16px;">
+
+        <button
+            class="btn btn-sm btn-outline js-nav"
+            data-page="pacientes">
+            Ver paciente
+        </button>
+
+        <button
+            class="btn btn-sm btn-outline"
+            id="scheduleFromConversation">
+            Agendar
+        </button>
+
+        <button
+            class="btn btn-sm btn-primary"
+            id="saveConversationStatus">
+            Salvar
+        </button>
+
+    </div>
+
+</div>`;
+    getEl('saveConversationStatus')?.addEventListener('click', () => {
+
+    const status =
+        getEl('conversationStatus')?.value || 'Aguardando';
+
+    conv.status = status;
+
+    closeSlidePanel();
+
+    showToast('Status da conversa atualizado.');
+
+    renderPage();
+});
     getEl('scheduleFromConversation')?.addEventListener('click', () => {
         closeSlidePanel();
         navigateTo('agenda');
