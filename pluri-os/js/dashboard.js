@@ -16,10 +16,18 @@ const confirmed =
         String(a.status || '').trim() === 'Confirmado'
     ).length;
 
-    const pending =
-    appointmentsToday.filter(a =>
-        String(a.status || '').trim() === 'Pendente'
-    ).length;
+const pending =
+    appointmentsToday.filter(a => {
+
+        const status =
+            String(a.status || '').trim().toLowerCase();
+
+        return (
+            status === 'aguardando' ||
+            status === 'pendente'
+        );
+
+    }).length;
     
 console.table(
     appointmentsToday.map(a => ({
