@@ -309,75 +309,59 @@ for (let i = 0; i < 6; i++) {
             <div class="card">
 
                 <div class="card-header">
-                    <h3>Atividade recente</h3>
-                </div>
+                               <div class="card-body">
 
-                <div class="card-body">
+                <div class="timeline">
 
-                    <div class="timeline">
-console.table(
-    state.conversations.map(c => ({
-        id: c.id,
-        paciente: c.patient,
-        data: c.conversationDate,
-        resumo: c.summary,
-        ultimaMensagem: c.lastMsg,
-        status: c.status
-    }))
-);
-                        ${[...state.conversations]
+                    ${[...state.conversations]
+                        .sort((a, b) =>
+                            new Date(b.conversationDate || 0) -
+                            new Date(a.conversationDate || 0)
+                        )
+                        .slice(0, 5)
+                        .map(c => `
 
-                            .sort((a,b)=>
-                                new Date(b.conversationDate || 0) -
-                                new Date(a.conversationDate || 0)
-                            )
+                            <div class="timeline-item">
 
-                            .slice(0,5)
+                                <span class="timeline-time">
 
-                            .map(c => `
+                                    ${
+                                        c.conversationDate
+                                            ? new Date(c.conversationDate)
+                                                .toLocaleTimeString(
+                                                    'pt-BR',
+                                                    {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    }
+                                                )
+                                            : '--:--'
+                                    }
 
-                                <div class="timeline-item">
+                                </span>
 
-                                    <span class="timeline-time">
+                                <div class="timeline-dot"></div>
 
-                                        ${
-                                            c.conversationDate
-                                                ? new Date(c.conversationDate)
-                                                    .toLocaleTimeString(
-                                                        'pt-BR',
-                                                        {
-                                                            hour:'2-digit',
-                                                            minute:'2-digit'
-                                                        }
-                                                    )
-                                                : '--:--'
-                                        }
+                                <span class="timeline-text">
 
-                                    </span>
+                                    ${
+                                        c.summary ||
+                                        c.lastMsg ||
+                                        c['Resumo_conversa'] ||
+                                        'Nova conversa'
+                                    }
 
-                                    <div class="timeline-dot"></div>
+                                </span>
 
-                                    <span class="timeline-text">
+                            </div>
 
-                                        ${
-                                            c.summary ||
-                                            c.lastMsg ||
-                                            c['Resumo_conversa'] ||
-                                            'Nova conversa'
-                                        }
-
-                                    </span>
-
-                                </div>
-
-                            `).join('')}
-
-                    </div>
+                        `).join('')}
 
                 </div>
 
             </div>
 
+        </div>
             <div class="card">
 
                 <div class="card-header">
