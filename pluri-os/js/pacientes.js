@@ -31,7 +31,7 @@ function openNewPatient() {
             <button class="btn btn-primary btn-sm" id="saveNewPatient">Criar paciente</button>
         </div>
         <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">O paciente será salvo direto no Google Sheets.</p>`;
-    ('cancelNewPatient')?.addEventListener('click', closeSlidePanel);
+    getEl('cancelNewPatient')?.addEventListener('click', closeSlidePanel);
     getEl('saveNewPatient')?.addEventListener('click', async () => {
         const name = getEl('newPatientName')?.value?.trim() || '';
         const phone = getEl('newPatientPhone')?.value?.trim() || '';
