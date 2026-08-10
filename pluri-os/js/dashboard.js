@@ -45,7 +45,7 @@ function parseConversationDate(value) {
 
     if (match) {
 
-        const [
+         [
             ,
             year,
             month,
@@ -460,29 +460,7 @@ for (let i = 0; i < 6; i++) {
 
                     <div style="display:flex;flex-direction:column;gap:8px;">
 
-                        ${[
-                            {
-                                name:'Confirmação de consultas',
-                                status:'Ativo',
-                                sent:'128 enviadas'
-                            },
-                            {
-                                name:'Lembrete 24h antes',
-                                status:'Ativo',
-                                sent:'256 enviados'
-                            },
-                            {
-                                name:'Atendimento inicial',
-                                status:'Ativo',
-                                sent:'342 realizados'
-                            },
-                            {
-                                name:'Recuperação de faltas',
-                                status:'Pausado',
-                                sent:'89 acompanhamentos'
-                            }
-
-                        ].map(a => `
+                        ${getAutomacoesData().map(a => ` `
 
                             <div
                                 style="
