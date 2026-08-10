@@ -366,42 +366,46 @@ for (let i = 0; i < 6; i++) {
                 <div class="card-body">
 
                     <div class="chart-container">
-                        ${renderBarChart(
+                       ${renderBarChart(
     weekDays.map(d => d.count),
-    ['Seg','Ter','Qua','Qui','Sex','Sáb']
+    weekDays.map(d => {
+
+        const date = new Date(d.date + 'T00:00:00');
+
+        const dayName = date.toLocaleDateString(
+            'pt-BR',
+            { weekday: 'short' }
+        ).replace('.', '');
+
+        const dayNumber = date.getDate();
+
+        const isToday =
+            d.date === todayStr;
+
+        return isToday
+            ? `${dayName} ${dayNumber} · HOJE`
+            : `${dayName} ${dayNumber}`;
+
+    })
 )}
                     </div>
-
                 </div>
-
             </div>
-
            
 <div class="card">
-
     <div class="card-header">
         <h3>Atividade recente</h3>
     </div>
-
     <div class="card-body">
-
         <div class="timeline">
-
             ${[...state.conversations]
-
                 .sort((a, b) => {
-
                     const da = parseConversationDate(a.conversationDate);
                     const db = parseConversationDate(b.conversationDate);
-
                     return db - da;
-
                 })
-
                 .slice(0, 5)
-
                 .map(c => {
-
                     const date = parseConversationDate(c.conversationDate);
 
                     const time = date
