@@ -55,7 +55,7 @@ const totalToday =
 
         <div class="kpi-row">
 
-            <div class="kpi-card" data-link="atendimentos">
+            <div class="kpi-card" data-link="agenda">
                 <div class="kpi-value">${totalToday}</div>
                 <div class="kpi-label">Atendimentos hoje</div>
                 <div class="kpi-sub">${confirmed} confirmados</div>
