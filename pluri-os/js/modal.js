@@ -15,11 +15,124 @@ function openModal(time = null, patientName = null, patientPhone = null) {
     if (timeInput) timeInput.value = time || '09:00';
 
     const patientInput = getEl('apptPatient');
-    if (patientInput) patientInput.value = patientName || '';
 
-    const phoneInput = getEl('apptPhone');
-    if (phoneInput) phoneInput.value = patientPhone || '';
+if (patientInput) {
 
+    patientInput.value = patientName || '';
+
+    patientInput.oninput = () => {
+
+        const term =
+            patientInput.value.trim().toLowerCase();
+
+        const results =
+            getEl('patientSearchResults');
+
+        if (!results) return;
+
+        if (!term) {
+            results.style.display = 'none';
+            results.innerHTML = '';
+            return;
+        }
+
+        const patients =
+            (state.patients || []).filter(p =>
+                (p.name || '').toLowerCase().includes(term) ||
+                (p.phone || '').includes(term)
+            );
+
+        if (!patients.length) {
+
+            results.innerHTML = `
+                <div style="
+                    padding:12px;
+                    color:var(--text-secondary);
+                    font-size:13px;
+                ">
+                    Nenhum paciente encontrado.
+                </div>
+            `;
+
+            results.style.display = 'block';
+
+            return;
+        }
+
+        results.innerHTML = patients
+            .slice(0, 8)
+            .map(p => `
+                <div
+                    class="patient-search-result"
+                    data-patient-row="${p._row}"
+                    style="
+                        padding:10px 12px;
+                        cursor:pointer;
+                        border-bottom:1px solid var(--border);
+                    ">
+
+                    <div style="
+                        font-weight:600;
+                        font-size:13px;
+                    ">
+                        ${p.name}
+                    </div>
+
+                    <div style="
+                        font-size:11px;
+                        color:var(--text-secondary);
+                        margin-top:2px;
+                    ">
+                        ${p.phone || 'Sem telefone'}
+                    </div>
+
+                </div>
+            `)
+            .join('');
+
+        results.style.display = 'block';
+
+        results
+            .querySelectorAll('.patient-search-result')
+            .forEach(item => {
+
+                item.addEventListener('click', () => {
+
+                    const row =
+                        item.dataset.patientRow;
+
+                    const patient =
+                        state.patients.find(
+                            p => String(p._row) === String(row)
+                        );
+
+                    if (!patient) return;
+
+                    patientInput.value =
+                        patient.name || '';
+
+                    const phoneInput =
+                        getEl('apptPhone');
+
+                    if (phoneInput) {
+                        phoneInput.value =
+                            patient.phone || '';
+                    }
+
+                    results.style.display = 'none';
+                    results.innerHTML = '';
+                });
+
+            });
+    };
+}
+
+
+const phoneInput = getEl('apptPhone');
+
+if (phoneInput) {
+    phoneInput.value = patientPhone || '';
+}
     const notesInput = getEl('apptNotes');
     if (notesInput) notesInput.value = '';
 
@@ -36,6 +149,13 @@ function openModal(time = null, patientName = null, patientPhone = null) {
     if (btnConfirmar) btnConfirmar.onclick = pedirConfirmacao;
     if (btnCancelar) btnCancelar.onclick = cancelarAgendamento;
 
+const results = getEl('patientSearchResults');
+
+if (results) {
+    results.style.display = 'none';
+    results.innerHTML = '';
+}
+    
     refreshIcons();
 }
 
