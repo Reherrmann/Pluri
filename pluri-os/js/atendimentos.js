@@ -74,10 +74,46 @@ ${conv.summary || conv.lastMsg}
     </div>
 
 </div>`;
-    getEl('saveConversationStatus')?.addEventListener('click', () => {
+    getEl('saveConversationStatus')?.addEventListener('click', async () => {
 
     const status =
         getEl('conversationStatus')?.value || 'Aguardando';
+
+    const saveBtn = getEl('saveConversationStatus');
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Salvando...';
+    }
+
+    if (!conv._row) {
+        showToast('Não foi possível identificar a conversa na planilha.');
+
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Salvar';
+        }
+
+        return;
+    }
+
+    const result =
+        await window.pluriAPI.updateConversation(
+            conv._row,
+            status
+        );
+
+    if (!result?.success) {
+
+        showToast('Não foi possível salvar o status.');
+
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Salvar';
+        }
+
+        return;
+    }
 
     conv.status = status;
 
@@ -85,7 +121,11 @@ ${conv.summary || conv.lastMsg}
 
     showToast('Status da conversa atualizado.');
 
+    state.conversations =
+        await window.pluriAPI.getConversations();
+
     renderPage();
+});
 });
     getEl('scheduleFromConversation')?.addEventListener('click', () => {
         closeSlidePanel();
