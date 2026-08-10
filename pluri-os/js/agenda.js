@@ -274,6 +274,8 @@ function openEditAppointment(eventId) {
 
 function refreshAgendaIcons() {
     if (window.lucide) lucide.createIcons();
+
+    initAgendaTabs();
 }
 
 // js/agenda.js
