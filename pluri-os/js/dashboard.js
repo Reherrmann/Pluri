@@ -315,7 +315,16 @@ for (let i = 0; i < 6; i++) {
                 <div class="card-body">
 
                     <div class="timeline">
-
+console.table(
+    state.conversations.map(c => ({
+        id: c.id,
+        paciente: c.patient,
+        data: c.conversationDate,
+        resumo: c.summary,
+        ultimaMensagem: c.lastMsg,
+        status: c.status
+    }))
+);
                         ${[...state.conversations]
 
                             .sort((a,b)=>
