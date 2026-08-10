@@ -80,9 +80,7 @@ if (window._returnToAppointment) {
 
     const newPatient =
         state.patients.find(
-            p =>
-                p.name === name &&
-                p.phone === phone
+            p => String(p._row) === String(newRow)
         );
 
     if (newPatient) {
