@@ -51,13 +51,14 @@ ${state.staff.map(s => `
     <div class="card-header"><h3>Integrações</h3></div>
     <div class="card-body">
         <div style="display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>WhatsApp</span> ${statusBadge('Desconectado')}
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;" id="googleCalendarIntegrationStatus">
+        <div style="display:flex; justify-content:space-between; align-items:center;" id="googleCalendarIntegrationStatus">
                 <span>Google Calendar</span>
                 <span style="color: #f59e0b;">Verificando…</span>
             </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>WhatsApp</span> ${statusBadge('Desconectado')}
+            </div>
+            
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>E-mail</span> ${statusBadge('Em breve...')}
             </div>
