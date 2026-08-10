@@ -460,7 +460,7 @@ for (let i = 0; i < 6; i++) {
 
                     <div style="display:flex;flex-direction:column;gap:8px;">
 
-                        ${getAutomacoesData().map(a => ` `
+                        ${getAutomacoesData().map(a => `
 
                             <div
                                 style="
