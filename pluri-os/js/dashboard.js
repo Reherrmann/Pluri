@@ -381,8 +381,6 @@ for (let i = 0; i < 6; i++) {
            
 <div class="card">
 
-   <div class="card">
-
     <div class="card-header">
         <h3>Atividade recente</h3>
     </div>
