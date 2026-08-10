@@ -46,10 +46,15 @@ const totalToday =
     const conversationsWaiting =
         state.conversations.filter(c => c.status === 'Aguardando').length;
 
-    const occupation =
-        totalToday > 0
-            ? Math.round((confirmed / totalToday) * 100)
-            : 0;
+   const cancelled =
+    appointmentsToday.filter(a => {
+
+        const status =
+            String(a.status || '').trim().toLowerCase();
+
+        return status === 'cancelado';
+
+    }).length;
 
     return `
 
@@ -75,13 +80,13 @@ const totalToday =
                 </div>
             </div>
 
-            <div class="kpi-card">
-                <div class="kpi-value">${occupation}%</div>
-                <div class="kpi-label">Taxa de ocupação</div>
-                <div class="kpi-sub">
-                    Atualizado automaticamente
-                </div>
-            </div>
+            <div class="kpi-card" data-link="agenda">
+    <div class="kpi-value">${cancelled}</div>
+    <div class="kpi-label">Cancelamentos hoje</div>
+    <div class="kpi-sub">
+        ${cancelled > 0 ? 'Precisam de atenção' : 'Nenhum cancelamento'}
+    </div>
+</div>
 
         </div>
 
