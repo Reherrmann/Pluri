@@ -410,6 +410,9 @@
         const currentDate = state.agendaDate;
         const isToday = state.agendaTab === 'today';
 
+        const selectedProfessional =
+    state.agendaProfessionalFilter || '';
+
         const allSlots = [];
         for (let h = 8; h < 18; h++) {
             for (let m = 0; m < 60; m += 30) {
@@ -417,7 +420,13 @@
             }
         }
 
-        const appointmentsToday = state.appointments.filter(a => a.date === currentDate);
+        const appointmentsToday = state.appointments.filter(a =>
+    a.date === currentDate &&
+    (
+        !selectedProfessional ||
+        a.professional === selectedProfessional
+    )
+);
         const grouped = {};
         appointmentsToday.forEach(appt => {
             const time = String(appt.time || '').trim();
@@ -460,6 +469,30 @@
             </div>
 
             <div class="agenda-toolbar-right">
+            <select
+            id="agendaProfessionalFilter"
+            class="form-control"
+            style="min-width:210px;"
+            onchange="
+                state.agendaProfessionalFilter = this.value;
+                renderPage();
+            "
+        >
+
+            <option value="">
+                Todos os profissionais
+            </option>
+
+            ${(state.staff || []).map(staff => `
+                <option
+                    value="${staff.name}"
+                    ${state.agendaProfessionalFilter === staff.name ? 'selected' : ''}
+                >
+                    ${staff.name}
+                </option>
+            `).join('')}
+
+        </select>
                 <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
                 <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button>
             </div>
@@ -525,7 +558,20 @@
         const cellsHtml = cells.map(day => {
             if (day === null) return '<div class="agenda-month-cell empty"></div>';
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            const dayAppts = state.appointments.filter(a => a.date === dateStr).sort((a,b) => a.time.localeCompare(b.time));
+            const selectedProfessional =
+    state.agendaProfessionalFilter || '';
+
+const dayAppts = state.appointments
+    .filter(a =>
+        a.date === dateStr &&
+        (
+            !selectedProfessional ||
+            a.professional === selectedProfessional
+        )
+    )
+    .sort((a, b) =>
+        a.time.localeCompare(b.time)
+    );
             const shown = dayAppts.slice(0, maxShow);
             const extra = dayAppts.length - shown.length;
             const isToday = dateStr === todayStr;
