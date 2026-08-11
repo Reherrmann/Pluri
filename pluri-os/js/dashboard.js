@@ -445,7 +445,7 @@ for (let i = 0; i < 6; i++) {
     </div>
 
 </div>
-            
+           /* 
             <div class="card">
 
                 <div class="card-header">
@@ -494,6 +494,11 @@ for (let i = 0; i < 6; i++) {
 
                 </div>
 
+            </div>
+            */
+
+            <div class="card-placeholder">
+                Espaço adaptável para a clínica
             </div>
 
             <div class="card-placeholder">
