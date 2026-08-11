@@ -49,6 +49,74 @@
         }
     };
 
+// ======================================================
+// PERSISTÊNCIA LOCAL — DEMO
+// ======================================================
+
+const STORAGE_KEY = 'pluri-os-demo-v1';
+
+function saveState() {
+    try {
+        const data = {
+            clinic: state.clinic,
+            appointments: state.appointments,
+            patients: state.patients,
+            conversations: state.conversations,
+            staff: state.staff,
+            activities: state.activities
+        };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (error) {
+        console.error('Erro ao salvar dados da demo:', error);
+    }
+}
+
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+
+        if (!raw) {
+            return false;
+        }
+
+        const data = JSON.parse(raw);
+
+        if (data.clinic) {
+            state.clinic = {
+                ...state.clinic,
+                ...data.clinic
+            };
+        }
+
+        state.appointments = Array.isArray(data.appointments)
+            ? data.appointments
+            : [];
+
+        state.patients = Array.isArray(data.patients)
+            ? data.patients
+            : [];
+
+        state.conversations = Array.isArray(data.conversations)
+            ? data.conversations
+            : [];
+
+        state.staff = Array.isArray(data.staff)
+            ? data.staff
+            : [];
+
+        state.activities = Array.isArray(data.activities)
+            ? data.activities
+            : [];
+
+        return true;
+
+    } catch (error) {
+        console.error('Erro ao carregar dados da demo:', error);
+        return false;
+    }
+}
+    
     // ======================================================
     // STATUS HELPERS (mesma assinatura do pluri-os original)
     // ======================================================
@@ -910,16 +978,21 @@
         }
 
         closeModal();
-        showToast(isEditing ? 'Agendamento atualizado.' : 'Agendamento criado.');
-        renderPage();
+saveState();
+showToast(isEditing ? 'Agendamento atualizado.' : 'Agendamento criado.');
+renderPage();
     }
 
     window.deleteAppointment = function(id) {
-        if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
-        state.appointments = state.appointments.filter(a => a.id != id);
-        renderPage();
-        showToast('Agendamento excluído.');
-    };
+    if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+
+    state.appointments = state.appointments.filter(a => a.id != id);
+
+    saveState();
+
+    renderPage();
+    showToast('Agendamento excluído.');
+};
 
     // ======================================================
     // THEME
@@ -1006,8 +1079,14 @@
     // INIT
     // ======================================================
     function init() {
+    const loaded = loadState();
+
+    if (!loaded) {
         initMockData();
-        loadTheme();
+        saveState();
+    }
+
+    loadTheme();
 
         getEl('themeToggle')?.addEventListener('click', toggleTheme);
         getEl('modalClose')?.addEventListener('click', closeModal);
