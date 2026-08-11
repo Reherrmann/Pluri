@@ -167,6 +167,24 @@ function getSessionToken() {
 }
 
 async function init() {
+
+// Saudação automática conforme o horário
+    const hour = new Date().getHours();
+
+    let greeting = 'Boa noite';
+
+    if (hour >= 5 && hour < 12) {
+        greeting = 'Bom dia';
+    } else if (hour >= 12 && hour < 18) {
+        greeting = 'Boa tarde';
+    }
+
+    const pageTitle = getEl('pageTitle');
+
+    if (pageTitle) {
+        pageTitle.textContent = `${greeting}!`;
+    }
+    
     if (!window.pluriAPI) {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
