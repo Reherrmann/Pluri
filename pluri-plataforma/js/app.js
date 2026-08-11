@@ -1339,9 +1339,4 @@ Object.assign(window.pluri, {
     confirmAppointment: function() {}
 });
 
-renderPage();
-    }
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-})();
