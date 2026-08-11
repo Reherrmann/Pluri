@@ -210,11 +210,11 @@ function buildAgenda() {
     }
 
 
-    const currentDate =
-        state.agendaDate;
-
-    const isToday =
-        state.agendaTab === 'today';
+    const currentDate = state.agendaDate;
+    const isToday = state.agendaTab === 'today';
+    
+    const selectedProfessional =
+    state.agendaProfessionalFilter || '';
 
 
     // -------------------------------------------------
@@ -239,9 +239,13 @@ function buildAgenda() {
     // -------------------------------------------------
 
     const appointmentsToday =
-        state.appointments.filter(
-            a => a.date === currentDate
-        );
+    state.appointments.filter(a =>
+        a.date === currentDate &&
+        (
+            !selectedProfessional ||
+            a.professional === selectedProfessional
+        )
+    );
 
 
     // -------------------------------------------------
@@ -460,15 +464,24 @@ function buildAgenda() {
         id="agendaProfessionalFilter"
         class="form-control"
         style="min-width:210px;"
+        onchange="
+        state.agendaProfessionalFilter = this.value;
+        renderPage();
+    "
     >
-        <option value="">Todos os profissionais</option>
+        <option value="">
+        Todos os profissionais
+    </option>
 
-        ${(state.staff || []).map(staff => `
-            <option value="${staff.name}">
-                ${staff.name}
-            </option>
-        `).join('')}
-    </select>
+    ${(state.staff || []).map(staff => `
+        <option
+            value="${staff.name}"
+            ${state.agendaProfessionalFilter === staff.name ? 'selected' : ''}
+        >
+            ${staff.name}
+        </option>
+    `).join('')}
+</select>
 
                 <button
                     class="btn btn-primary"
@@ -852,18 +865,20 @@ function buildAgendaMonthHTML() {
                     `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
 
-                const dayAppts =
-                    state.appointments
-                        .filter(
-                            a => a.date === dateStr
-                        )
-                        .sort(
-                            (a, b) =>
-                                String(a.time)
-                                    .localeCompare(
-                                        String(b.time)
-                                    )
-                        );
+                const selectedProfessional =
+    state.agendaProfessionalFilter || '';
+
+const dayAppts = state.appointments
+    .filter(a =>
+        a.date === dateStr &&
+        (
+            !selectedProfessional ||
+            a.professional === selectedProfessional
+        )
+    )
+    .sort((a, b) =>
+        String(a.time).localeCompare(String(b.time))
+    );
 
 
                 const isCellToday =
