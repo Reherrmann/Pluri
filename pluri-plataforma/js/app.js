@@ -422,18 +422,7 @@ function loadState() {
                     </div>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header"><h3>Automações ativas</h3></div>
-                <div class="card-body">
-                    <div style="display:flex;flex-direction:column;gap:8px;">
-                        ${[{name:'Confirmação de consultas',status:'Ativo'},{name:'Lembrete 24h antes',status:'Ativo'},{name:'Atendimento inicial',status:'Ativo'},{name:'Recuperação de faltas',status:'Pausado'}].map(a => `
-                            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-light);">
-                                <span style="font-size:13px;">${a.name}</span>${statusBadge(a.status)}
-                            </div>`).join('')}
-                        <a class="btn btn-sm btn-outline js-nav" data-page="automacoes" style="margin-top:8px;width:100%;">Gerenciar</a>
-                    </div>
-                </div>
-            </div>
+            <div class="card-placeholder">Espaço adaptável para a clínica</div>
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
         </div>`;
     }
@@ -577,19 +566,24 @@ function loadState() {
             const isToday = dateStr === todayStr;
 
             return `
-                <div class="agenda-month-cell ${isToday ? 'is-today' : ''}" data-date="${dateStr}">
+               <div
+    class="agenda-month-cell ${isToday ? 'is-today' : ''}"
+    data-date="${dateStr}"
+    onclick="window.openNewAppointmentForDate('${dateStr}')"
+    style="cursor:pointer;"
+>
                     <div class="agenda-month-daynum">${day}</div>
                     <div class="agenda-month-events">
                         ${shown.map(appt => {
                             const status = String(appt.status || '').trim() || 'Aguardando';
                             return `
-                                <div class="agenda-month-event" title="${appt.patient} · ${status}" onclick="window.pluri.editAppointment('${appt.id}')">
+                                <div class="agenda-month-event" title="${appt.patient} · ${status}" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
                                     <span class="agenda-month-dot" style="background:${window.statusColor(status)}"></span>
                                     <span class="agenda-month-event-time">${appt.time}</span>
                                     <span class="agenda-month-event-name">${appt.patient}</span>
                                 </div>`;
                         }).join('')}
-                        ${extra > 0 ? `<div class="agenda-month-more" onclick="openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
+                        ${extra > 0 ? `<div class="agenda-month-more" onclick="event.stopPropagation(); openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
                     </div>
                 </div>`;
         }).join('');
@@ -609,6 +603,16 @@ function loadState() {
         state.agendaTab = 'today';
         renderPage();
     };
+    window.openNewAppointmentForDate = function(dateStr) {
+
+    openModal();
+
+    const dateInput = getEl('apptDate');
+
+    if (dateInput) {
+        dateInput.value = dateStr;
+    }
+};
 
     // -- Atendimentos --
     function buildAtendimentos() {
