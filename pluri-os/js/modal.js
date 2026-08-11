@@ -148,19 +148,16 @@ if (phoneInput) {
     if (saveBtn) saveBtn.disabled = false;
 
     // Configura os botões de ação
-    const btnConfirmar = getEl('btnConfirmarPresenca');
-    const btnCancelar = getEl('btnCancelarAgendamento');
-    if (btnConfirmar) btnConfirmar.onclick = confirmarPresenca;
-    if (btnCancelar) btnCancelar.onclick = cancelarAgendamento;
+const btnConfirmar = getEl('btnConfirmarPresenca');
+const btnCancelar = getEl('btnCancelarAgendamento');
 
-const results = getEl('patientSearchResults');
+if (btnConfirmar) btnConfirmar.onclick = pedirConfirmacao;
+if (btnCancelar) btnCancelar.onclick = cancelarAgendamento;
 
-if (results) {
-    results.style.display = 'none';
-    results.innerHTML = '';
-}
 
-    const newPatientBtn = getEl('newPatientFromAppointment');
+// NOVO PACIENTE A PARTIR DO AGENDAMENTO
+const newPatientBtn =
+    getEl('newPatientFromAppointment');
 
 if (newPatientBtn) {
 
@@ -172,14 +169,12 @@ if (newPatientBtn) {
         const currentPhone =
             getEl('apptPhone')?.value?.trim() || '';
 
-        // Fecha o modal de agendamento
         window._returnToAppointment = true;
+
         closeModal();
 
-        // Abre o cadastro de paciente
         openNewPatient();
 
-        // Aproveita o que já foi digitado
         setTimeout(() => {
 
             const nameInput =
