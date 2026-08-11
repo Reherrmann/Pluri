@@ -469,30 +469,27 @@
             </div>
 
             <div class="agenda-toolbar-right">
+            
             <select
-            id="agendaProfessionalFilter"
-            class="form-control"
-            style="min-width:210px;"
-            onchange="
-                state.agendaProfessionalFilter = this.value;
-                renderPage();
-            "
+    id="agendaProfessionalFilter"
+    class="form-control"
+    style="min-width:210px;"
+>
+    <option value="">
+        Todos os profissionais
+    </option>
+
+    ${(state.staff || []).map(staff => `
+        <option
+            value="${staff.name}"
+            ${state.agendaProfessionalFilter === staff.name ? 'selected' : ''}
         >
+            ${staff.name}
+        </option>
+    `).join('')}
+</select>
 
-            <option value="">
-                Todos os profissionais
-            </option>
 
-            ${(state.staff || []).map(staff => `
-                <option
-                    value="${staff.name}"
-                    ${state.agendaProfessionalFilter === staff.name ? 'selected' : ''}
-                >
-                    ${staff.name}
-                </option>
-            `).join('')}
-
-        </select>
                 <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
                 <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button>
             </div>
@@ -1115,6 +1112,26 @@ const dayAppts = state.appointments
             });
         });
 
+
+const professionalFilter =
+    getEl('agendaProfessionalFilter');
+
+if (professionalFilter) {
+
+    professionalFilter.addEventListener(
+        'change',
+        () => {
+
+            state.agendaProfessionalFilter =
+                professionalFilter.value;
+
+            renderPage();
+
+        }
+    );
+
+}
+        
         getEl('agendaPrevDay')?.addEventListener('click', () => {
             const d = new Date(state.agendaDate + 'T00:00:00');
             d.setDate(d.getDate() - 1);
