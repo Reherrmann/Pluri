@@ -312,26 +312,19 @@ function loadState() {
 
     // --- Dashboard (inalterado) ---
     function buildDashboard() {
-        const today = new Date();
-        const todayStr = toDateStr(today);
-        const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-        const confirmed = appointmentsToday.filter(a => a.status === 'Confirmado').length;
-        const pending = appointmentsToday.filter(a => a.status === 'Pendente' || a.status === 'Aguardando').length;
-        const cancelled = appointmentsToday.filter(a => a.status === 'Cancelado').length;
-        const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
-
-        const dayOfWeek = today.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(today);
-        monday.setDate(today.getDate() + mondayOffset);
-        monday.setHours(0, 0, 0, 0);
-        const weekDays = [];
-        for (let i = 0; i < 6; i++) {
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + i);
-            const dateStr = toDateStr(date);
-            weekDays.push({ date: dateStr, count: state.appointments.filter(a => a.date === dateStr).length });
-        }
+        const fakeCounts = [3, 7, 2, 8, 5, 1]; // seg a sáb
+const dayOfWeek = today.getDay();
+const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+const monday = new Date(today);
+monday.setDate(today.getDate() + mondayOffset);
+monday.setHours(0, 0, 0, 0);
+const weekDays = [];
+for (let i = 0; i < 6; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    const dateStr = toDateStr(date);
+    weekDays.push({ date: dateStr, count: fakeCounts[i] });
+}
 
         return `
         <div class="kpi-row">
