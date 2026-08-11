@@ -166,17 +166,40 @@
             <a data-page="indicadores"><i data-lucide="bar-chart-3"></i><span>Indicadores</span></a>
             <a data-page="configuracoes"><i data-lucide="settings"></i><span>Configurações</span></a>
         </nav>
-        <div class="sidebar-bottom">
-    <div class="sidebar-user" id="logoutBtn" title="Sair da PLURI">
-        <div class="avatar-sm" id="sidebarUserAvatar">--</div>
+        <div class="sidebar-user">
 
-        <div class="user-info">
-            <div class="user-name" id="sidebarUserName">Usuário</div>
-            <div class="user-role">
-                <span id="sidebarUserRole">Perfil</span> · Sair
-            </div>
-        </div>
+    <div class="avatar-sm" id="sidebarUserAvatar">
+        --
     </div>
+
+    <div class="user-info">
+
+        <div class="user-name" id="sidebarUserName">
+            Usuário
+        </div>
+
+        <div class="user-role">
+            <span id="sidebarUserRole">
+                Perfil
+            </span>
+        </div>
+
+        <button
+            type="button"
+            class="sidebar-logout"
+            id="logoutBtn"
+            title="Sair da PLURI">
+
+            <i
+                data-lucide="log-out"
+                style="width:13px;height:13px;">
+            </i>
+
+            Sair
+        </button>
+
+    </div>
+
 </div>
         </div>
     </aside>
