@@ -445,47 +445,37 @@ function openPatient(row) {
 
 
     // Se o cadastro foi iniciado pelo agendamento,
-    // volta automaticamente para o agendamento.
+// volta automaticamente para o Novo agendamento.
 
-    if (window._returnToAppointment) {
+if (window._returnToAppointment) {
 
-        window._returnToAppointment = false;
-
-        const newPatient =
-            state.patients.find(
-                p => String(p._row) === String(newRow)
-            );
-
-        closeSlidePanel();
-
-
-        if (newPatient) {
-
-            setTimeout(() => {
-
-                openModal(
-                    null,
-                    newPatient.name,
-                    newPatient.phone
-                );
-
-            }, 150);
-
-            return;
-        }
-    }
-
-
-    // Cadastro normal pela aba Pacientes
+    window._returnToAppointment = false;
 
     closeSlidePanel();
 
-    showToast(
-        'Paciente criado com sucesso!'
-    );
+    setTimeout(() => {
 
-    renderPage();
+        openModal(
+            null,
+            name,
+            phone
+        );
 
+    }, 150);
+
+    return;
+}
+
+
+// Cadastro normal pela aba Pacientes
+
+closeSlidePanel();
+
+showToast(
+    'Paciente criado com sucesso!'
+);
+
+renderPage();
 } catch (e) {
 
                     console.error(e);
