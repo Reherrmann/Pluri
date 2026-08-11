@@ -357,6 +357,132 @@ function loadState() {
     ];
 }
 
+    // ------------------------------------------------------
+    // GERAR AGENDAMENTOS PARA 3 MESES (hoje + 90 dias)
+    // ------------------------------------------------------
+    const extraPatients = [
+        { name: 'Alice Mendes', phone: '(11) 98888-1111' },
+        { name: 'Bruno Costa', phone: '(21) 97777-2222' },
+        { name: 'Carla Dias', phone: '(31) 96666-3333' },
+        { name: 'Daniel Peres', phone: '(41) 95555-4444' },
+        { name: 'Elisa Rocha', phone: '(51) 94444-5555' },
+        { name: 'Fábio Lins', phone: '(61) 93333-6666' },
+        { name: 'Gabriela Mello', phone: '(71) 92222-7777' },
+        { name: 'Henrique Sá', phone: '(81) 91111-8888' },
+        { name: 'Isabela Torres', phone: '(91) 90000-9999' },
+        { name: 'Juliano Vargas', phone: '(11) 98989-0000' },
+    ];
+    const professionals = ['Dra. Ana', 'Dr. Carlos', 'Dra. Fernanda'];
+    const services = ['Avaliação', 'Retorno', 'Procedimento', 'Limpeza', 'Clareamento'];
+    const statusOptions = ['Aguardando', 'Confirmado', 'Pendente', 'Concluído'];
+    let idCounter = 8;
+
+    // Função auxiliar: adiciona dias a uma data e retorna string yyyy-mm-dd
+    const addDays = (date, days) => {
+        const d = new Date(date);
+        d.setDate(d.getDate() + days);
+        return toDateStr(d);
+    };
+
+    // Para cada uma das próximas 12 semanas (aproximadamente 3 meses)
+    for (let week = 0; week < 12; week++) {
+        const mondayOffset = week * 7 + 1; // a partir de amanhã (se hoje for segunda, segunda começa na próxima semana)
+
+        // Segunda-feira: 2 agendamentos
+        for (let i = 0; i < 2; i++) {
+            const date = addDays(today, mondayOffset);
+            const patient = extraPatients[(week + i) % extraPatients.length];
+            state.appointments.push({
+                id: idCounter++,
+                time: `${8 + i}:00`,
+                patient: patient.name,
+                professional: professionals[i % professionals.length],
+                service: services[i % services.length],
+                status: statusOptions[i % statusOptions.length],
+                date: date,
+                phone: patient.phone,
+                notes: ''
+            });
+        }
+
+        // Quarta-feira: 2 agendamentos
+        for (let i = 0; i < 2; i++) {
+            const date = addDays(today, mondayOffset + 2);
+            const patient = extraPatients[(week + 3 + i) % extraPatients.length];
+            state.appointments.push({
+                id: idCounter++,
+                time: `${10 + i}:30`,
+                patient: patient.name,
+                professional: professionals[(i + 1) % professionals.length],
+                service: services[(i + 1) % services.length],
+                status: statusOptions[(i + 1) % statusOptions.length],
+                date: date,
+                phone: patient.phone,
+                notes: ''
+            });
+        }
+
+        // Sexta-feira: 3 agendamentos
+        for (let i = 0; i < 3; i++) {
+            const date = addDays(today, mondayOffset + 4);
+            const patient = extraPatients[(week + 6 + i) % extraPatients.length];
+            state.appointments.push({
+                id: idCounter++,
+                time: `${14 + i}:00`,
+                patient: patient.name,
+                professional: professionals[i % professionals.length],
+                service: services[i % services.length],
+                status: statusOptions[(i + 2) % statusOptions.length],
+                date: date,
+                phone: patient.phone,
+                notes: ''
+            });
+        }
+    }
+
+    // Também adicionar alguns agendamentos em sábados aleatórios
+    for (let i = 0; i < 6; i++) {
+        const saturdayOffset = 7 * i + 5; // sábados a cada semana
+        const date = addDays(today, saturdayOffset);
+        const patient = extraPatients[i % extraPatients.length];
+        state.appointments.push({
+            id: idCounter++,
+            time: '09:00',
+            patient: patient.name,
+            professional: 'Dr. Carlos',
+            service: 'Avaliação',
+            status: 'Confirmado',
+            date: date,
+            phone: patient.phone,
+            notes: ''
+        });
+    }
+
+    // Conversas e equipe permanecem iguais
+    state.conversations = [
+        { id: 1, _row: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', phone: '(11) 98765-4321', summary: '' },
+        { id: 2, _row: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', phone: '(41) 99876-1111', summary: '' },
+        { id: 3, _row: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', phone: '(31) 98765-1234', summary: '' },
+        { id: 4, _row: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', phone: '', summary: '' },
+        { id: 5, _row: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', phone: '(91) 98765-6666', summary: '' },
+    ];
+
+    state.staff = [
+        { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
+        { _row: 2, id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
+        { _row: 3, id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
+        { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
+    ];
+
+    state.activities = [
+        { time: '10:42', text: 'Maria confirmou consulta.' },
+        { time: '10:38', text: 'Novo paciente cadastrado.' },
+        { time: '10:31', text: 'PLURI respondeu solicitação de horário.' },
+        { time: '10:24', text: 'Consulta de João reagendada.' },
+        { time: '10:17', text: 'Lembrete enviado para Ana.' },
+    ];
+}
+
     // ======================================================
     // NAVIGATION
     // ======================================================
