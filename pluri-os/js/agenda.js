@@ -73,6 +73,17 @@ function openDayFromMonth(dateStr) {
     renderPage();
 }
 
+function openNewAppointmentForDate(dateStr) {
+
+    openModal();
+
+    const dateInput = getEl('apptDate');
+
+    if (dateInput) {
+        dateInput.value = dateStr;
+    }
+}
+
 window.pluri = window.pluri || {};
 
 window.pluri.openDayFromMonth = openDayFromMonth;
@@ -875,12 +886,14 @@ function buildAgendaMonthHTML() {
                 return `
 
                     <div
-                        class="
-                            agenda-month-cell
-                            ${isCellToday ? 'is-today' : ''}
-                        "
-                        data-date="${dateStr}"
-                    >
+    class="
+        agenda-month-cell
+        ${isCellToday ? 'is-today' : ''}
+    "
+    data-date="${dateStr}"
+    onclick="openNewAppointmentForDate('${dateStr}')"
+    style="cursor:pointer;"
+>
 
                         <div class="agenda-month-daynum">
                             ${day}
@@ -905,8 +918,9 @@ function buildAgendaMonthHTML() {
                                             class="agenda-month-event"
                                             title="${appt.patient} · ${status}"
                                             onclick="
-                                                window.pluri.editAppointment('${appt.id}')
-                                            "
+    event.stopPropagation();
+    window.pluri.editAppointment('${appt.id}')
+"
                                         >
 
                                             <span
@@ -944,8 +958,9 @@ function buildAgendaMonthHTML() {
                                     <div
                                         class="agenda-month-more"
                                         onclick="
-                                            openDayFromMonth('${dateStr}')
-                                        "
+    event.stopPropagation();
+    openDayFromMonth('${dateStr}')
+"
                                     >
                                         +${extra} mais
                                     </div>
