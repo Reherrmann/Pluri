@@ -219,10 +219,25 @@ function loadState() {
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-       state.appointments = [
-    // =========================
+       const demoDate = (daysFromToday = 0, monthsFromToday = 0, dayOfMonth = null) => {
+
+    const d = new Date();
+
+    if (monthsFromToday) {
+        d.setMonth(d.getMonth() + monthsFromToday);
+
+        if (dayOfMonth !== null) {
+            d.setDate(dayOfMonth);
+        }
+    } else {
+        d.setDate(d.getDate() + daysFromToday);
+    }
+
+    return d.toISOString().split('T')[0];
+};
+
+state.appointments = [
     // HOJE
-    // =========================
     { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
     { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
     { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(21) 99876-5432', notes: '' },
@@ -231,56 +246,33 @@ function loadState() {
     { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
     { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
 
-    // =========================
-    // PRÓXIMOS DIAS
-    // =========================
-    { id: 8, time: '09:00', patient: 'Juliana Mendes', professional: 'Dra. Ana', service: 'Avaliação', status: 'Confirmado', date: addDays(todayStr, 1), phone: '(51) 98888-1111', notes: '' },
-    { id: 9, time: '11:00', patient: 'Rafael Souza', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: addDays(todayStr, 1), phone: '(11) 97777-2222', notes: '' },
+    // AMANHÃ
+    { id: 8, time: '09:00', patient: 'Juliana Mendes', professional: 'Dra. Ana', service: 'Avaliação', status: 'Confirmado', date: demoDate(1), phone: '(51) 98888-1111', notes: '' },
+    { id: 9, time: '11:00', patient: 'Rafael Souza', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: demoDate(1), phone: '(11) 97777-2222', notes: '' },
 
-    { id: 10, time: '08:30', patient: 'Patrícia Oliveira', professional: 'Dra. Fernanda', service: 'Procedimento', status: 'Confirmado', date: addDays(todayStr, 2), phone: '(21) 96666-3333', notes: '' },
-    { id: 11, time: '14:30', patient: 'Ricardo Alves', professional: 'Dra. Ana', service: 'Avaliação', status: 'Cancelado', date: addDays(todayStr, 2), phone: '(61) 95555-4444', notes: '' },
+    // DAQUI A 2 DIAS
+    { id: 10, time: '08:30', patient: 'Patrícia Oliveira', professional: 'Dra. Fernanda', service: 'Procedimento', status: 'Confirmado', date: demoDate(2), phone: '(21) 96666-3333', notes: '' },
+    { id: 11, time: '14:30', patient: 'Ricardo Alves', professional: 'Dra. Ana', service: 'Avaliação', status: 'Cancelado', date: demoDate(2), phone: '(61) 95555-4444', notes: '' },
 
-    { id: 12, time: '10:00', patient: 'Fernanda Lima', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: addDays(todayStr, 3), phone: '(71) 94444-5555', notes: '' },
-    { id: 13, time: '16:00', patient: 'Gustavo Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Aguardando', date: addDays(todayStr, 3), phone: '(81) 93333-6666', notes: '' },
+    // DAQUI A 3 DIAS
+    { id: 12, time: '10:00', patient: 'Fernanda Lima', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: demoDate(3), phone: '(71) 94444-5555', notes: '' },
+    { id: 13, time: '16:00', patient: 'Gustavo Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Aguardando', date: demoDate(3), phone: '(81) 93333-6666', notes: '' },
 
-    { id: 14, time: '09:30', patient: 'Carolina Rocha', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: addDays(todayStr, 5), phone: '(11) 92222-7777', notes: '' },
-    { id: 15, time: '13:30', patient: 'Marcelo Dias', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: addDays(todayStr, 6), phone: '(21) 91111-8888', notes: '' },
+    // DAQUI A 5 DIAS
+    { id: 14, time: '09:30', patient: 'Carolina Rocha', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: demoDate(5), phone: '(11) 92222-7777', notes: '' },
 
-    // =========================
+    // DAQUI A 6 DIAS
+    { id: 15, time: '13:30', patient: 'Marcelo Dias', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: demoDate(6), phone: '(21) 91111-8888', notes: '' },
+
     // MÊS SEGUINTE
-    // =========================
-    { id: 16, time: '09:00', patient: 'Renata Martins', professional: 'Dra. Ana', service: 'Avaliação', status: 'Confirmado', date: addMonths(todayStr, 1, 3), phone: '(51) 98888-1010', notes: '' },
-    { id: 17, time: '10:30', patient: 'Thiago Costa', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: addMonths(todayStr, 1, 7), phone: '(11) 97777-2020', notes: '' },
-    { id: 18, time: '14:00', patient: 'Isabela Santos', professional: 'Dra. Fernanda', service: 'Procedimento', status: 'Confirmado', date: addMonths(todayStr, 1, 10), phone: '(21) 96666-3030', notes: '' },
-    { id: 19, time: '08:30', patient: 'Eduardo Lima', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: addMonths(todayStr, 1, 15), phone: '(61) 95555-4040', notes: '' },
-    { id: 20, time: '15:00', patient: 'Larissa Alves', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: addMonths(todayStr, 1, 18), phone: '(71) 94444-5050', notes: '' },
-    { id: 21, time: '11:30', patient: 'Daniel Rocha', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Cancelado', date: addMonths(todayStr, 1, 22), phone: '(81) 93333-6060', notes: '' },
-    { id: 22, time: '16:30', patient: 'Aline Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: addMonths(todayStr, 1, 26), phone: '(11) 92222-7070', notes: '' },
+    { id: 16, time: '09:00', patient: 'Renata Martins', professional: 'Dra. Ana', service: 'Avaliação', status: 'Confirmado', date: demoDate(0, 1, 3), phone: '(51) 98888-1010', notes: '' },
+    { id: 17, time: '10:30', patient: 'Thiago Costa', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: demoDate(0, 1, 7), phone: '(11) 97777-2020', notes: '' },
+    { id: 18, time: '14:00', patient: 'Isabela Santos', professional: 'Dra. Fernanda', service: 'Procedimento', status: 'Confirmado', date: demoDate(0, 1, 10), phone: '(21) 96666-3030', notes: '' },
+    { id: 19, time: '08:30', patient: 'Eduardo Lima', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: demoDate(0, 1, 15), phone: '(61) 95555-4040', notes: '' },
+    { id: 20, time: '15:00', patient: 'Larissa Alves', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: demoDate(0, 1, 18), phone: '(71) 94444-5050', notes: '' },
+    { id: 21, time: '11:30', patient: 'Daniel Rocha', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Cancelado', date: demoDate(0, 1, 22), phone: '(81) 93333-6060', notes: '' },
+    { id: 22, time: '16:30', patient: 'Aline Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: demoDate(0, 1, 26), phone: '(11) 92222-7070', notes: '' }
 ];
-
-        state.conversations = [
-            { id: 1, _row: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', phone: '(11) 98765-4321', summary: '' },
-            { id: 2, _row: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', phone: '(41) 99876-1111', summary: '' },
-            { id: 3, _row: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', phone: '(31) 98765-1234', summary: '' },
-            { id: 4, _row: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', phone: '', summary: '' },
-            { id: 5, _row: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', phone: '(91) 98765-6666', summary: '' },
-        ];
-
-        state.staff = [
-            { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
-            { _row: 2, id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
-            { _row: 3, id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
-            { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
-        ];
-
-        state.activities = [
-            { time: '10:42', text: 'Maria confirmou consulta.' },
-            { time: '10:38', text: 'Novo paciente cadastrado.' },
-            { time: '10:31', text: 'PLURI respondeu solicitação de horário.' },
-            { time: '10:24', text: 'Consulta de João reagendada.' },
-            { time: '10:17', text: 'Lembrete enviado para Ana.' },
-        ];
-    }
     // ======================================================
     // NAVIGATION
     // ======================================================
