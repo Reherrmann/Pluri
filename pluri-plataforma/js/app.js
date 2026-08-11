@@ -219,15 +219,120 @@ function loadState() {
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-        state.appointments = [
-            { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
-            { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
-            { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' },
-            { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' },
-            { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' },
-            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
-            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
-        ];
+       state.appointments = (() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const toDateStr = (d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+    const addDays = (date, days) => {
+        const d = new Date(date);
+        d.setDate(d.getDate() + days);
+        return toDateStr(d);
+    };
+
+    // Base (hoje)
+    const base = [
+        { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
+        { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
+        { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' },
+        { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' },
+        { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' },
+        { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
+        { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
+    ];
+
+    const extraPatients = [
+        { name: 'Alice Mendes', phone: '(11) 98888-1111' },
+        { name: 'Bruno Costa', phone: '(21) 97777-2222' },
+        { name: 'Carla Dias', phone: '(31) 96666-3333' },
+        { name: 'Daniel Peres', phone: '(41) 95555-4444' },
+        { name: 'Elisa Rocha', phone: '(51) 94444-5555' },
+        { name: 'Fábio Lins', phone: '(61) 93333-6666' },
+        { name: 'Gabriela Mello', phone: '(71) 92222-7777' },
+        { name: 'Henrique Sá', phone: '(81) 91111-8888' },
+        { name: 'Isabela Torres', phone: '(91) 90000-9999' },
+        { name: 'Juliano Vargas', phone: '(11) 98989-0000' },
+    ];
+    const professionals = ['Dra. Ana', 'Dr. Carlos', 'Dra. Fernanda'];
+    const services = ['Avaliação', 'Retorno', 'Procedimento', 'Limpeza', 'Clareamento'];
+    const statusOptions = ['Aguardando', 'Confirmado', 'Pendente', 'Concluído'];
+    let idCounter = 8;
+    const generated = [];
+
+    // 12 semanas a partir de amanhã
+    for (let week = 0; week < 12; week++) {
+        const mondayOffset = week * 7 + 1;
+
+        // Segunda-feira: 2 agendamentos
+        for (let i = 0; i < 2; i++) {
+            const date = addDays(new Date(), mondayOffset);
+            const patient = extraPatients[(week + i) % extraPatients.length];
+            generated.push({
+                id: idCounter++,
+                time: `${8 + i}:00`,
+                patient: patient.name,
+                professional: professionals[i % professionals.length],
+                service: services[i % services.length],
+                status: statusOptions[i % statusOptions.length],
+                date: date,
+                phone: patient.phone,
+                notes: ''
+            });
+        }
+
+        // Quarta-feira: 2 agendamentos
+        for (let i = 0; i < 2; i++) {
+            const date = addDays(new Date(), mondayOffset + 2);
+            const patient = extraPatients[(week + 3 + i) % extraPatients.length];
+            generated.push({
+                id: idCounter++,
+                time: `${10 + i}:30`,
+                patient: patient.name,
+                professional: professionals[(i + 1) % professionals.length],
+                service: services[(i + 1) % services.length],
+                status: statusOptions[(i + 1) % statusOptions.length],
+                date: date,
+                phone: patient.phone,
+                notes: ''
+            });
+        }
+
+        // Sexta-feira: 3 agendamentos
+        for (let i = 0; i < 3; i++) {
+            const date = addDays(new Date(), mondayOffset + 4);
+            const patient = extraPatients[(week + 6 + i) % extraPatients.length];
+            generated.push({
+                id: idCounter++,
+                time: `${14 + i}:00`,
+                patient: patient.name,
+                professional: professionals[i % professionals.length],
+                service: services[i % services.length],
+                status: statusOptions[(i + 2) % statusOptions.length],
+                date: date,
+                phone: patient.phone,
+                notes: ''
+            });
+        }
+    }
+
+    // Sábados (6 semanas)
+    for (let i = 0; i < 6; i++) {
+        const saturdayOffset = 7 * i + 5;
+        const date = addDays(new Date(), saturdayOffset);
+        const patient = extraPatients[i % extraPatients.length];
+        generated.push({
+            id: idCounter++,
+            time: '09:00',
+            patient: patient.name,
+            professional: 'Dr. Carlos',
+            service: 'Avaliação',
+            status: 'Confirmado',
+            date: date,
+            phone: patient.phone,
+            notes: ''
+        });
+    }
+
+    return base.concat(generated);
+})();
 
         state.conversations = [
             { id: 1, _row: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', phone: '(11) 98765-4321', summary: '' },
