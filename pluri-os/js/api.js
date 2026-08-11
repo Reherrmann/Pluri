@@ -13,22 +13,45 @@ class PluriAPI {
     // -------------------------------------------------
     // HTTP com fetch
     // -------------------------------------------------
-    async get(url) {
-        try {
-            console.log('🌐 [GET]', url);
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const json = await response.json();
-            if (json && json.error) throw new Error(json.error);
-            return json;
-        } catch (e) {
-            console.error('[GET]', e.message);
-            return null;
+   async get(url) {
+
+    try {
+
+        showLoading('Carregando...');
+
+        console.log('🌐 [GET]', url);
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
+
+        const json = await response.json();
+
+        if (json && json.error) {
+            throw new Error(json.error);
+        }
+
+        return json;
+
+    } catch (e) {
+
+        console.error('[GET]', e.message);
+
+        return null;
+
+    } finally {
+
+        hideLoading();
+
     }
+}
 
     async post(body) {
         try {
+             showLoading('Salvando...');
+
             const response = await fetch(
                 this.config.appsScript.baseUrl,
                 {
@@ -44,8 +67,12 @@ class PluriAPI {
         } catch (e) {
             console.error('[POST]', e.message);
             return { success: false, error: e.message };
-        }
+         } finally {
+
+        hideLoading();
+
     }
+}
 
     // -------------------------------------------------
     // FORMATADORES
