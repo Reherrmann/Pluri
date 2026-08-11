@@ -299,7 +299,20 @@ body{
 /* ===== MODAL ===== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--card-bg);border-radius:var(--radius-lg);width:90%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;border:2px solid var(--border);}
+.modal {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 650px;
+
+    height: auto;
+    max-height: none;
+
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+
+    border: 2px solid var(--border);
+}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border-light);background:var(--hover-bg);}
 .modal-header h3{font-size:16px;font-weight:600;color:var(--text);}
 .modal-close{background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:4px;border-radius:4px;}
