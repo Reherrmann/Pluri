@@ -417,7 +417,7 @@
         const { year, month } = state.agendaMonth;
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = toDateStr(new Date());
         const cells = [];
         for (let i = 0; i < firstDay; i++) cells.push(null);
         for (let d = 1; d <= daysInMonth; d++) cells.push(d);
@@ -754,7 +754,7 @@
         getEl('modalOverlay').classList.add('show');
         window._editingAppointmentId = null;
         setModalMode('create');
-        getEl('apptDate').value = new Date().toISOString().split('T')[0];
+        getEl('apptDate').value = toDateStr(new Date());
         getEl('apptTime').value = time || '09:00';
         getEl('apptPatient').value = patientName || '';
         getEl('apptPhone').value = patientPhone || '';
