@@ -8,6 +8,65 @@ function openModal(time = null, patientName = null, patientPhone = null) {
     window._editingAppointmentId = null;
     setModalMode('create');
 
+// Carrega os profissionais cadastrados na equipe
+const professionalSelect = getEl('apptProfessional');
+
+if (professionalSelect) {
+
+    const currentProfessional =
+        professionalSelect.value || '';
+
+    const professionals =
+        Array.isArray(state.staff)
+            ? state.staff.filter(staff =>
+                String(staff.status || 'Ativo')
+                    .toLowerCase() === 'ativo'
+            )
+            : [];
+
+    professionalSelect.innerHTML = '';
+
+    if (professionals.length) {
+
+        professionals.forEach(professional => {
+
+            const option =
+                document.createElement('option');
+
+            option.value =
+                professional.name || '';
+
+            option.textContent =
+                professional.name || '';
+
+            professionalSelect.appendChild(option);
+        });
+
+        if (
+            currentProfessional &&
+            professionals.some(
+                professional =>
+                    professional.name === currentProfessional
+            )
+        ) {
+            professionalSelect.value =
+                currentProfessional;
+        }
+
+    } else {
+
+        const option =
+            document.createElement('option');
+
+        option.value = '';
+
+        option.textContent =
+            'Nenhum profissional cadastrado';
+
+        professionalSelect.appendChild(option);
+    }
+}
+    
     const dateInput = getEl('apptDate');
     if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
