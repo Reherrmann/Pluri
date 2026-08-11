@@ -312,8 +312,7 @@ function loadState() {
 
     // --- Dashboard (inalterado) ---
     function buildDashboard() {
-        const fakeCounts = [3, 7, 2, 8, 5, 1]; // seg a sáb
-const dayOfWeek = today.getDay();
+       const dayOfWeek = today.getDay();
 const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 const monday = new Date(today);
 monday.setDate(today.getDate() + mondayOffset);
@@ -323,7 +322,7 @@ for (let i = 0; i < 6; i++) {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
     const dateStr = toDateStr(date);
-    weekDays.push({ date: dateStr, count: fakeCounts[i] });
+    weekDays.push({ date: dateStr, count: state.appointments.filter(a => a.date === dateStr).length });
 }
 
         return `
