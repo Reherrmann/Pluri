@@ -49,74 +49,45 @@
         }
     };
 
-// ======================================================
-// PERSISTÊNCIA LOCAL — DEMO
-// ======================================================
+    // ======================================================
+    // PERSISTÊNCIA LOCAL — DEMO
+    // ======================================================
+    const STORAGE_KEY = 'pluri-os-demo-v1';
 
-const STORAGE_KEY = 'pluri-os-demo-v1';
-
-function saveState() {
-    try {
-        const data = {
-            clinic: state.clinic,
-            appointments: state.appointments,
-            patients: state.patients,
-            conversations: state.conversations,
-            staff: state.staff,
-            activities: state.activities
-        };
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (error) {
-        console.error('Erro ao salvar dados da demo:', error);
+    function saveState() {
+        try {
+            const data = {
+                clinic: state.clinic,
+                appointments: state.appointments,
+                patients: state.patients,
+                conversations: state.conversations,
+                staff: state.staff,
+                activities: state.activities
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (error) {
+            console.error('Erro ao salvar dados da demo:', error);
+        }
     }
-}
 
-function loadState() {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-
-        if (!raw) {
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+            const data = JSON.parse(raw);
+            if (data.clinic) state.clinic = { ...state.clinic, ...data.clinic };
+            state.appointments = Array.isArray(data.appointments) ? data.appointments : [];
+            state.patients = Array.isArray(data.patients) ? data.patients : [];
+            state.conversations = Array.isArray(data.conversations) ? data.conversations : [];
+            state.staff = Array.isArray(data.staff) ? data.staff : [];
+            state.activities = Array.isArray(data.activities) ? data.activities : [];
+            return true;
+        } catch (error) {
+            console.error('Erro ao carregar dados da demo:', error);
             return false;
         }
-
-        const data = JSON.parse(raw);
-
-        if (data.clinic) {
-            state.clinic = {
-                ...state.clinic,
-                ...data.clinic
-            };
-        }
-
-        state.appointments = Array.isArray(data.appointments)
-            ? data.appointments
-            : [];
-
-        state.patients = Array.isArray(data.patients)
-            ? data.patients
-            : [];
-
-        state.conversations = Array.isArray(data.conversations)
-            ? data.conversations
-            : [];
-
-        state.staff = Array.isArray(data.staff)
-            ? data.staff
-            : [];
-
-        state.activities = Array.isArray(data.activities)
-            ? data.activities
-            : [];
-
-        return true;
-
-    } catch (error) {
-        console.error('Erro ao carregar dados da demo:', error);
-        return false;
     }
-}
-    
+
     // ======================================================
     // STATUS HELPERS (mesma assinatura do pluri-os original)
     // ======================================================
@@ -201,7 +172,7 @@ function loadState() {
     // ======================================================
     // MOCK DATA INIT
     // ======================================================
-   function initMockData() {
+    function initMockData() {
         const today = new Date();
         const todayStr = toDateStr(today);
         state.agendaDate = todayStr;
@@ -219,33 +190,31 @@ function loadState() {
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-       state.appointments = [ 
-           { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' }, 
-           { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' }, 
-           { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' }, 
-           { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' }, 
-           { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' }, 
-           { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' }, 
-           { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' }, 
-
-
-       ];
+        state.appointments = [ 
+            { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' }, 
+            { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' }, 
+            { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' }, 
+            { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' }, 
+            { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' }, 
+            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' }, 
+            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' }, 
+        ];
 
         state.staff = [
-        { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
-        { _row: 2, id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
-        { _row: 3, id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
-        { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
-    ];
+            { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
+            { _row: 2, id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
+            { _row: 3, id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
+            { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
+        ];
 
-    state.activities = [
-        { time: '10:42', text: 'Maria confirmou consulta.' },
-        { time: '10:38', text: 'Novo paciente cadastrado.' },
-        { time: '10:31', text: 'PLURI respondeu solicitação de horário.' },
-        { time: '10:24', text: 'Consulta de João reagendada.' },
-        { time: '10:17', text: 'Lembrete enviado para Ana.' },
-    ];
-}
+        state.activities = [
+            { time: '10:42', text: 'Maria confirmou consulta.' },
+            { time: '10:38', text: 'Novo paciente cadastrado.' },
+            { time: '10:31', text: 'PLURI respondeu solicitação de horário.' },
+            { time: '10:24', text: 'Consulta de João reagendada.' },
+            { time: '10:17', text: 'Lembrete enviado para Ana.' },
+        ];
+    }
 
     // ======================================================
     // NAVIGATION
@@ -310,32 +279,32 @@ function loadState() {
     // PAGE BUILDERS
     // ======================================================
 
-    // --- Dashboard (inalterado) ---
-    ffunction buildDashboard() {
-    const today = new Date();
-    const todayStr = toDateStr(today);
-    const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-    const confirmed = appointmentsToday.filter(a => a.status === 'Confirmado').length;
-    const pending = appointmentsToday.filter(a => a.status === 'Pendente' || a.status === 'Aguardando').length;
-    const cancelled = appointmentsToday.filter(a => a.status === 'Cancelado').length;
-    const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
+    // --- Dashboard ---
+    function buildDashboard() {
+        const today = new Date();
+        const todayStr = toDateStr(today);
+        const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
+        const confirmed = appointmentsToday.filter(a => a.status === 'Confirmado').length;
+        const pending = appointmentsToday.filter(a => a.status === 'Pendente' || a.status === 'Aguardando').length;
+        const cancelled = appointmentsToday.filter(a => a.status === 'Cancelado').length;
+        const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
 
-    // Dados fake para o gráfico de atendimentos da semana
-    const fakeCounts = [3, 7, 2, 8, 5, 1]; // seg a sáb
-    const dayOfWeek = today.getDay();
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + mondayOffset);
-    monday.setHours(0, 0, 0, 0);
-    const weekDays = [];
-    for (let i = 0; i < 6; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        const dateStr = toDateStr(date);
-        weekDays.push({ date: dateStr, count: fakeCounts[i] });
-    }
+        // Dados fake para o gráfico de atendimentos da semana
+        const fakeCounts = [3, 7, 2, 8, 5, 1]; // seg a sáb
+        const dayOfWeek = today.getDay();
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + mondayOffset);
+        monday.setHours(0, 0, 0, 0);
+        const weekDays = [];
+        for (let i = 0; i < 6; i++) {
+            const date = new Date(monday);
+            date.setDate(monday.getDate() + i);
+            const dateStr = toDateStr(date);
+            weekDays.push({ date: dateStr, count: fakeCounts[i] });
+        }
 
-    return `
+        return `
         <div class="kpi-row">
             <div class="kpi-card" data-link="agenda">
                 <div class="kpi-value">${appointmentsToday.length}</div>
@@ -421,7 +390,7 @@ function loadState() {
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
         </div>`;
-}
+    }
 
     // ======================================================
     // AGENDA – idêntica ao agenda.js original
@@ -507,7 +476,7 @@ function loadState() {
                                     <span class="agenda-time">${time}</span>
                                     <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
                                     <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
-                                    <button class="btn btn-sm btn-outline" id="openModalBtn"('${time}')">Agendar</button>
+                                    <button class="btn btn-sm btn-outline" onclick="openModal('${time}')">Agendar</button>
                                 </li>`;
                         }
                         return events.map((appt, index) => {
@@ -600,15 +569,10 @@ function loadState() {
         renderPage();
     };
     window.openNewAppointmentForDate = function(dateStr) {
-
-    openModal();
-
-    const dateInput = getEl('apptDate');
-
-    if (dateInput) {
-        dateInput.value = dateStr;
-    }
-};
+        openModal();
+        const dateInput = getEl('apptDate');
+        if (dateInput) dateInput.value = dateStr;
+    };
 
     // -- Atendimentos --
     function buildAtendimentos() {
@@ -709,24 +673,18 @@ function loadState() {
                 lastVisit: '-', nextAppt: '-', status: 'Novo'
             };
             state.patients.push(newPatient);
-saveState();
-
-if (window._returnToAppointment === true) {
-
-    window._returnToAppointment = false;
-
-    closeSlidePanel();
-
-    setTimeout(() => {
-        openModal(null, name, phone);
-    }, 150);
-
-    return;
-}
-
-closeSlidePanel();
-showToast('Paciente criado!');
-renderPage();
+            saveState();
+            if (window._returnToAppointment === true) {
+                window._returnToAppointment = false;
+                closeSlidePanel();
+                setTimeout(() => {
+                    openModal(null, name, phone);
+                }, 150);
+                return;
+            }
+            closeSlidePanel();
+            showToast('Paciente criado!');
+            renderPage();
         };
         openSlidePanel();
     }
@@ -914,239 +872,89 @@ renderPage();
     // MODAL & APPOINTMENT ACTIONS
     // ======================================================
     function openModal(time = null, patientName = null, patientPhone = null) {
+        const overlay = getEl('modalOverlay');
+        if (!overlay) return;
+        overlay.classList.add('show');
 
-    const overlay = getEl('modalOverlay');
+        const dateInput = getEl('apptDate');
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
-    if (!overlay) return;
+        const timeInput = getEl('apptTime');
+        if (timeInput) timeInput.value = time || '09:00';
 
-    overlay.classList.add('show');
-
-    const dateInput = getEl('apptDate');
-
-    if (dateInput) {
-        dateInput.value =
-            new Date().toISOString().split('T')[0];
-    }
-
-    const timeInput = getEl('apptTime');
-
-    if (timeInput) {
-        timeInput.value = time || '09:00';
-    }
-
-    const patientInput = getEl('apptPatient');
-
-    if (patientInput) {
-
-        patientInput.value = patientName || '';
-
-        patientInput.oninput = () => {
-
-            const term =
-                patientInput.value
-                    .trim()
-                    .toLowerCase();
-
-            const results =
-                getEl('patientSearchResults');
-
-            if (!results) return;
-
-            if (!term) {
-
-                results.style.display = 'none';
-                results.innerHTML = '';
-
-                return;
-            }
-
-            const patients =
-                (state.patients || []).filter(p =>
-
-                    String(p.name || '')
-                        .toLowerCase()
-                        .includes(term)
-
-                    ||
-
-                    String(p.phone || '')
-                        .toLowerCase()
-                        .includes(term)
-
+        const patientInput = getEl('apptPatient');
+        if (patientInput) {
+            patientInput.value = patientName || '';
+            patientInput.oninput = () => {
+                const term = patientInput.value.trim().toLowerCase();
+                const results = getEl('patientSearchResults');
+                if (!results) return;
+                if (!term) {
+                    results.style.display = 'none';
+                    results.innerHTML = '';
+                    return;
+                }
+                const patients = (state.patients || []).filter(p =>
+                    String(p.name || '').toLowerCase().includes(term) ||
+                    String(p.phone || '').toLowerCase().includes(term)
                 );
-
-            if (!patients.length) {
-
-                results.innerHTML = `
-                    <div style="
-                        padding:12px;
-                        color:var(--text-secondary);
-                        font-size:13px;
-                    ">
-                        Nenhum paciente encontrado.
-                    </div>
-                `;
-
+                if (!patients.length) {
+                    results.innerHTML = `<div style="padding:12px;color:var(--text-secondary);font-size:13px;">Nenhum paciente encontrado.</div>`;
+                    results.style.display = 'block';
+                    return;
+                }
+                results.innerHTML = patients.slice(0, 8).map(p => `
+                    <div class="patient-search-result" data-patient-row="${p._row}" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);">
+                        <div style="font-weight:600;font-size:13px;">${p.name || '-'}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${p.phone || 'Sem telefone'}</div>
+                    </div>`).join('');
                 results.style.display = 'block';
-
-                return;
-            }
-
-            results.innerHTML = patients
-                .slice(0, 8)
-                .map(p => `
-
-                    <div
-                        class="patient-search-result"
-                        data-patient-row="${p._row}"
-                        style="
-                            padding:10px 12px;
-                            cursor:pointer;
-                            border-bottom:1px solid var(--border);
-                        "
-                    >
-
-                        <div style="
-                            font-weight:600;
-                            font-size:13px;
-                        ">
-                            ${p.name || '-'}
-                        </div>
-
-                        <div style="
-                            font-size:11px;
-                            color:var(--text-secondary);
-                            margin-top:2px;
-                        ">
-                            ${p.phone || 'Sem telefone'}
-                        </div>
-
-                    </div>
-
-                `)
-                .join('');
-
-            results.style.display = 'block';
-
-            results
-                .querySelectorAll('.patient-search-result')
-                .forEach(item => {
-
+                results.querySelectorAll('.patient-search-result').forEach(item => {
                     item.addEventListener('click', () => {
-
-                        const row =
-                            item.dataset.patientRow;
-
-                        const patient =
-                            state.patients.find(
-                                p =>
-                                    String(p._row) ===
-                                    String(row)
-                            );
-
+                        const row = item.dataset.patientRow;
+                        const patient = state.patients.find(p => String(p._row) === String(row));
                         if (!patient) return;
-
-                        patientInput.value =
-                            patient.name || '';
-
-                        const phoneInput =
-                            getEl('apptPhone');
-
-                        if (phoneInput) {
-                            phoneInput.value =
-                                patient.phone || '';
-                        }
-
+                        patientInput.value = patient.name || '';
+                        const phoneInput = getEl('apptPhone');
+                        if (phoneInput) phoneInput.value = patient.phone || '';
                         results.style.display = 'none';
                         results.innerHTML = '';
-
                     });
-
                 });
-        };
+            };
+        }
+
+        const phoneInput = getEl('apptPhone');
+        if (phoneInput) phoneInput.value = patientPhone || '';
+
+        const notesInput = getEl('apptNotes');
+        if (notesInput) notesInput.value = '';
+
+        const statusInput = getEl('apptStatus');
+        if (statusInput) statusInput.value = 'Aguardando';
+
+        const results = getEl('patientSearchResults');
+        if (results) { results.style.display = 'none'; results.innerHTML = ''; }
+
+        const newPatientBtn = getEl('newPatientFromAppointment');
+        if (newPatientBtn) {
+            newPatientBtn.onclick = () => {
+                const currentName = getEl('apptPatient')?.value?.trim() || '';
+                const currentPhone = getEl('apptPhone')?.value?.trim() || '';
+                window._returnToAppointment = true;
+                closeModal();
+                openNewPatient();
+                setTimeout(() => {
+                    const nameInput = getEl('newPatientName');
+                    const phoneInput = getEl('newPatientPhone');
+                    if (nameInput) nameInput.value = currentName;
+                    if (phoneInput) phoneInput.value = currentPhone;
+                }, 50);
+            };
+        }
+
+        refreshIcons();
     }
-
-    const phoneInput =
-        getEl('apptPhone');
-
-    if (phoneInput) {
-        phoneInput.value =
-            patientPhone || '';
-    }
-
-    const notesInput =
-        getEl('apptNotes');
-
-    if (notesInput) {
-        notesInput.value = '';
-    }
-
-    const statusInput =
-        getEl('apptStatus');
-
-    if (statusInput) {
-        statusInput.value = 'Aguardando';
-    }
-
-    const results =
-        getEl('patientSearchResults');
-
-    if (results) {
-        results.style.display = 'none';
-        results.innerHTML = '';
-    }
-
-    // ============================================
-    // CADASTRAR NOVO PACIENTE PELO AGENDAMENTO
-    // ============================================
-
-    const newPatientBtn =
-        getEl('newPatientFromAppointment');
-
-    if (newPatientBtn) {
-
-        newPatientBtn.onclick = () => {
-
-            const currentName =
-                getEl('apptPatient')
-                    ?.value
-                    ?.trim() || '';
-
-            const currentPhone =
-                getEl('apptPhone')
-                    ?.value
-                    ?.trim() || '';
-
-            window._returnToAppointment = true;
-
-            closeModal();
-
-            openNewPatient();
-
-            setTimeout(() => {
-
-                const nameInput =
-                    getEl('newPatientName');
-
-                const phoneInput =
-                    getEl('newPatientPhone');
-
-                if (nameInput) {
-                    nameInput.value =
-                        currentName;
-                }
-
-                if (phoneInput) {
-                    phoneInput.value =
-                        currentPhone;
-                }
-
-            }, 50);
-        };
-    }
-
-    refreshIcons();
-}
 
     function openEditAppointment(eventId) {
         const appt = state.appointments.find(a => String(a.id) === String(eventId));
@@ -1215,21 +1023,18 @@ renderPage();
         }
 
         closeModal();
-saveState();
-showToast(isEditing ? 'Agendamento atualizado.' : 'Agendamento criado.');
-renderPage();
+        saveState();
+        showToast(isEditing ? 'Agendamento atualizado.' : 'Agendamento criado.');
+        renderPage();
     }
 
     window.deleteAppointment = function(id) {
-    if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
-
-    state.appointments = state.appointments.filter(a => a.id != id);
-
-    saveState();
-
-    renderPage();
-    showToast('Agendamento excluído.');
-};
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+        state.appointments = state.appointments.filter(a => a.id != id);
+        saveState();
+        renderPage();
+        showToast('Agendamento excluído.');
+    };
 
     // ======================================================
     // THEME
@@ -1316,14 +1121,13 @@ renderPage();
     // INIT
     // ======================================================
     function init() {
-    const loaded = loadState();
+        const loaded = loadState();
+        if (!loaded) {
+            initMockData();
+            saveState();
+        }
 
-    if (!loaded) {
-        initMockData();
-        saveState();
-    }
-
-    loadTheme();
+        loadTheme();
 
         getEl('themeToggle')?.addEventListener('click', toggleTheme);
         getEl('modalClose')?.addEventListener('click', closeModal);
@@ -1342,25 +1146,21 @@ renderPage();
 
         getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
-// API pública (mesma do pluri-os)
-// Criar ANTES de renderizar a agenda,
-// porque os botões "Agendar" já são criados durante o renderPage().
-window.pluri = window.pluri || {};
+        window.pluri = window.pluri || {};
+        Object.assign(window.pluri, {
+            navigateTo,
+            openConversation,
+            openPatient,
+            openModal,
+            openStaff,
+            showToast,
+            editAppointment: openEditAppointment,
+            deleteAppointment: window.deleteAppointment,
+            openDayFromMonth: window.openDayFromMonth,
+            confirmAppointment: function() {}
+        });
 
-Object.assign(window.pluri, {
-    navigateTo,
-    openConversation,
-    openPatient,
-    openModal,
-    openStaff,
-    showToast,
-    editAppointment: openEditAppointment,
-    deleteAppointment: window.deleteAppointment,
-    openDayFromMonth: window.openDayFromMonth,
-    confirmAppointment: function() {}
-});
-
-renderPage();
+        renderPage();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
