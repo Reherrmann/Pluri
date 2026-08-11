@@ -644,3 +644,23 @@ body{
 .team-card-name { font-weight: 600; }
 .team-card-specialty { font-size: 0.85em; color: var(--text-secondary); }
 .team-card-actions { display: flex; gap: 0.25rem; }
+
+
+.sidebar-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #B42318;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.sidebar-logout:hover {
+    text-decoration: underline;
+}
