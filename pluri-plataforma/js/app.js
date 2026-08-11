@@ -522,7 +522,7 @@ function loadState() {
                                     <span class="agenda-time">${time}</span>
                                     <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
                                     <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
-                                    <button class="btn btn-sm btn-outline" onclick="window.pluri.openModal('${time}')">Agendar</button>
+                                    <button class="btn btn-sm btn-outline" id="openModalBtn"('${time}')">Agendar</button>
                                 </li>`;
                         }
                         return events.map((appt, index) => {
