@@ -234,17 +234,57 @@ function openWhatsApp(phone, message) {
 
 // --- Ação: Pedir confirmação ---
 function pedirConfirmacao() {
+
     const phone = getPatientPhoneForWhatsApp();
-    const patient = getEl('apptPatient')?.value?.trim() || 'Paciente';
-    const date = getEl('apptDate')?.value || '';
-    const time = getEl('apptTime')?.value || '';
+
+    const patient =
+        getEl('apptPatient')?.value?.trim() ||
+        'Paciente';
+
+    const date =
+        getEl('apptDate')?.value || '';
+
+    const time =
+        getEl('apptTime')?.value || '';
+
 
     if (!phone) {
-        showToast('Telefone do paciente não informado.');
+
+        showToast(
+            'Telefone do paciente não informado.'
+        );
+
         return;
     }
-    const msg = `Olá ${patient}, sua consulta está agendada para ${date} às ${time}. Poderia confirmar sua presença?`;
-    openWhatsApp(phone, msg);
+
+
+    // Marca como aguardando confirmação
+    const statusInput =
+        getEl('apptStatus');
+
+    if (statusInput) {
+        statusInput.value = 'Aguardando';
+    }
+
+
+    const msg =
+        `Olá ${patient}, sua consulta está agendada para ${date} às ${time}. Poderia confirmar sua presença?`;
+
+
+    openWhatsApp(
+        phone,
+        msg
+    );
+
+
+    /*
+     * Se for um agendamento já existente,
+     * salva o status Aguardando.
+     */
+
+    if (window._editingAppointmentId) {
+        saveAppointment();
+    }
 }
 
 // --- Ação: Cancelar agendamento (muda status + WhatsApp) ---
