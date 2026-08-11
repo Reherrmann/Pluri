@@ -219,64 +219,7 @@ function loadState() {
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-       const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-
-const dayAfterTomorrow = new Date();
-dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-
-const threeDays = new Date();
-threeDays.setDate(threeDays.getDate() + 3);
-
-const fiveDays = new Date();
-fiveDays.setDate(fiveDays.getDate() + 5);
-
-const sixDays = new Date();
-sixDays.setDate(sixDays.getDate() + 6);
-
-const nextMonth = new Date();
-nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-const demoDate = (date) =>
-    date.toISOString().split('T')[0];
-
-state.appointments = [
-    // HOJE
-    { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
-    { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
-    { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(21) 99876-5432', notes: '' },
-    { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' },
-    { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: todayStr, phone: '(71) 91234-8888', notes: '' },
-    { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
-    { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
-
-    // AMANHÃ
-    { id: 8, time: '09:00', patient: 'Juliana Mendes', professional: 'Dra. Ana', service: 'Avaliação', status: 'Confirmado', date: demoDate(1), phone: '(51) 98888-1111', notes: '' },
-    { id: 9, time: '11:00', patient: 'Rafael Souza', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: demoDate(1), phone: '(11) 97777-2222', notes: '' },
-
-    // DAQUI A 2 DIAS
-    { id: 10, time: '08:30', patient: 'Patrícia Oliveira', professional: 'Dra. Fernanda', service: 'Procedimento', status: 'Confirmado', date: demoDate(2), phone: '(21) 96666-3333', notes: '' },
-    { id: 11, time: '14:30', patient: 'Ricardo Alves', professional: 'Dra. Ana', service: 'Avaliação', status: 'Cancelado', date: demoDate(2), phone: '(61) 95555-4444', notes: '' },
-
-    // DAQUI A 3 DIAS
-    { id: 12, time: '10:00', patient: 'Fernanda Lima', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: demoDate(3), phone: '(71) 94444-5555', notes: '' },
-    { id: 13, time: '16:00', patient: 'Gustavo Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Aguardando', date: demoDate(3), phone: '(81) 93333-6666', notes: '' },
-
-    // DAQUI A 5 DIAS
-    { id: 14, time: '09:30', patient: 'Carolina Rocha', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: demoDate(5), phone: '(11) 92222-7777', notes: '' },
-
-    // DAQUI A 6 DIAS
-    { id: 15, time: '13:30', patient: 'Marcelo Dias', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: demoDate(6), phone: '(21) 91111-8888', notes: '' },
-
-    // MÊS SEGUINTE
-    { id: 16, time: '09:00', patient: 'Renata Martins', professional: 'Dra. Ana', service: 'Avaliação', status: 'Confirmado', date: demoDate(0, 1, 3), phone: '(51) 98888-1010', notes: '' },
-    { id: 17, time: '10:30', patient: 'Thiago Costa', professional: 'Dr. Carlos', service: 'Retorno', status: 'Aguardando', date: demoDate(0, 1, 7), phone: '(11) 97777-2020', notes: '' },
-    { id: 18, time: '14:00', patient: 'Isabela Santos', professional: 'Dra. Fernanda', service: 'Procedimento', status: 'Confirmado', date: demoDate(0, 1, 10), phone: '(21) 96666-3030', notes: '' },
-    { id: 19, time: '08:30', patient: 'Eduardo Lima', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: demoDate(0, 1, 15), phone: '(61) 95555-4040', notes: '' },
-    { id: 20, time: '15:00', patient: 'Larissa Alves', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: demoDate(0, 1, 18), phone: '(71) 94444-5050', notes: '' },
-    { id: 21, time: '11:30', patient: 'Daniel Rocha', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Cancelado', date: demoDate(0, 1, 22), phone: '(81) 93333-6060', notes: '' },
-    { id: 22, time: '16:30', patient: 'Aline Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: demoDate(0, 1, 26), phone: '(11) 92222-7070', notes: '' }
-];
+       state.appointments = [ { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' }, { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' }, { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' }, { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' }, { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' }, { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' }, { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' }, ];
     // ======================================================
     // NAVIGATION
     // ======================================================
