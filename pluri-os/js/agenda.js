@@ -454,21 +454,38 @@ function buildAgenda() {
 
             </div>
 
+<!-- NOVO: filtro fica à esquerda -->
+    <div
+        style="
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-left:auto;
+            margin-right:16px;
+        "
+    >
+
+        <select
+            id="agendaProfessionalFilter"
+            class="form-control"
+            style="min-width:210px;"
+        >
+
+            <option value="">
+                Todos os profissionais
+            </option>
+
+            ${(state.staff || []).map(staff => `
+                <option value="${staff.name}">
+                    ${staff.name}
+                </option>
+            `).join('')}
+
+        </select>
+
+    </div>
 
             <div class="agenda-toolbar-right">
-<select
-        id="agendaProfessionalFilter"
-        class="form-control"
-        style="min-width:210px;"
-    >
-        <option value="">Todos os profissionais</option>
-
-        ${(state.staff || []).map(staff => `
-            <option value="${staff.name}">
-                ${staff.name}
-            </option>
-        `).join('')}
-    </select>
 
                 <button
                     class="btn btn-primary"
