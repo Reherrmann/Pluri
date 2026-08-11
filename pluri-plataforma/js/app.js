@@ -79,6 +79,12 @@
         getEl('modalOverlay')?.classList.remove('show');
         window._editingAppointmentId = null;
     };
+    const closeSidebar = () => {
+        const sidebar = getEl('sidebar');
+        const overlay = getEl('sidebarOverlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('show');
+    };
     const setModalMode = (mode) => {
         const title = document.querySelector('#modalOverlay .modal-header h3');
         const saveBtn = getEl('modalSave');
@@ -150,7 +156,7 @@
     }
 
     // ======================================================
-    // NAVIGATION
+    // NAVIGATION (fecha sempre o menu lateral)
     // ======================================================
     function navigateTo(page) {
         state.currentPage = page;
@@ -158,12 +164,7 @@
         const link = document.querySelector(`.sidebar-nav a[data-page="${page}"]`);
         if (link) link.classList.add('active');
         renderPage();
-        if (window.innerWidth <= 767) {
-            const sidebar = getEl('sidebar');
-            const overlay = getEl('sidebarOverlay');
-            if (sidebar) sidebar.classList.remove('open');
-            if (overlay) overlay.classList.remove('show');
-        }
+        closeSidebar();  // sempre recolhe o menu lateral
     }
 
     // ======================================================
@@ -326,7 +327,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card">
+           <!-- <div class="card">
                 <div class="card-header"><h3>Automações ativas</h3></div>
                 <div class="card-body">
                     <div style="display:flex;flex-direction:column;gap:8px;">
@@ -337,7 +338,8 @@
                         <a class="btn btn-sm btn-outline js-nav" data-page="automacoes" style="margin-top:8px;width:100%;">Gerenciar</a>
                     </div>
                 </div>
-            </div>
+            </div> -->
+            <div class="card-placeholder">Espaço adaptável para a clínica</div>
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
         </div>`;
     }
@@ -945,6 +947,9 @@
                 navigateTo(a.dataset.page);
             });
         });
+
+        // Fechar menu lateral ao clicar no overlay (mobile)
+        getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
         renderPage();
 
