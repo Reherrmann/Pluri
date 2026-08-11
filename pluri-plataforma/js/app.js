@@ -522,7 +522,7 @@ function loadState() {
                                     <span class="agenda-time">${time}</span>
                                     <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
                                     <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
-                                    <button class="btn btn-sm btn-outline" onclick="openModal('${time}')">Agendar</button>
+                                    <button class="btn btn-sm btn-outline" onclick="window.pluri.openModal('${time}')">Agendar</button>
                                 </li>`;
                         }
                         return events.map((appt, index) => {
@@ -709,9 +709,24 @@ function loadState() {
                 lastVisit: '-', nextAppt: '-', status: 'Novo'
             };
             state.patients.push(newPatient);
-            closeSlidePanel();
-            showToast('Paciente criado!');
-            renderPage();
+saveState();
+
+if (window._returnToAppointment === true) {
+
+    window._returnToAppointment = false;
+
+    closeSlidePanel();
+
+    setTimeout(() => {
+        openModal(null, name, phone);
+    }, 150);
+
+    return;
+}
+
+closeSlidePanel();
+showToast('Paciente criado!');
+renderPage();
         };
         openSlidePanel();
     }
