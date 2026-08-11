@@ -253,15 +253,41 @@ function openNewPatient() {
                 try {
 
                     state.patients =
-                        await window.pluriAPI.getPatients();
+    await window.pluriAPI.getPatients();
 
-                    closeSlidePanel();
 
-                    showToast(
-                        'Paciente criado com sucesso!'
-                    );
+// Se o cadastro foi iniciado pelo agendamento,
+// volta automaticamente para o Novo agendamento.
 
-                    renderPage();
+if (window._returnToAppointment === true) {
+
+    window._returnToAppointment = false;
+
+    closeSlidePanel();
+
+    setTimeout(() => {
+
+        openModal(
+            null,
+            name,
+            phone
+        );
+
+    }, 150);
+
+    return;
+}
+
+
+// Cadastro normal pela aba Pacientes.
+
+closeSlidePanel();
+
+showToast(
+    'Paciente criado com sucesso!'
+);
+
+renderPage();
 
                 } catch (e) {
 
