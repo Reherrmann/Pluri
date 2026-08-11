@@ -49,7 +49,34 @@
         }
     };
 
-    // Status badge usado nas outras telas (dashboard, pacientes, etc.)
+    // ======================================================
+    // STATUS HELPERS (mesma assinatura do pluri-os original)
+    // ======================================================
+    window.getStatusClass = function(status) {
+        switch (String(status || '').trim()) {
+            case 'Aguardando': return 'status-aguardando';
+            case 'Confirmado': return 'status-confirmado';
+            case 'Cancelado': return 'status-cancelado';
+            default: return 'status-aguardando';
+        }
+    };
+
+    window.statusColor = function(status) {
+        switch (String(status || '').trim()) {
+            case 'Aguardando': return '#ffc107';
+            case 'Confirmado': return '#28a745';
+            case 'Cancelado': return '#dc3545';
+            default: return '#ffc107';
+        }
+    };
+
+    window.statusBadge = function(status) {
+        const normalizedStatus = String(status || '').trim() || 'Aguardando';
+        const cls = window.getStatusClass(normalizedStatus);
+        return `<span class="appointment-status ${cls}">${normalizedStatus}</span>`;
+    };
+
+    // badge usado fora da agenda (ex.: dashboard, pacientes)
     const statusBadge = (status) => {
         let cls = '';
         if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') cls = 'confirmed';
@@ -57,27 +84,6 @@
         else cls = 'cancelled';
         const dotColor = cls === 'confirmed' ? 'green' : 'amber';
         return `<span class="status-badge ${cls}"><span class="status-dot ${dotColor}"></span>${status}</span>`;
-    };
-
-    // Status badge específico da agenda (estilo pluri-os)
-    const agendaStatusBadge = (status) => {
-        const normalized = String(status || '').trim() || 'Aguardando';
-        let cls = '';
-        switch (normalized) {
-            case 'Aguardando': cls = 'status-aguardando'; break;
-            case 'Confirmado': cls = 'status-confirmado'; break;
-            case 'Cancelado': cls = 'status-cancelado'; break;
-            default: cls = 'status-aguardando';
-        }
-        return `<span class="appointment-status ${cls}">${normalized}</span>`;
-    };
-
-    // Cores para a bolinha do mês (paleta do pluri-os)
-    const statusColor = (status) => {
-        const s = String(status || '').trim();
-        if (s === 'Confirmado' || s === 'Concluído' || s === 'Ativo' || s === 'Resolvido') return '#28a745';
-        if (s === 'Cancelado') return '#dc3545';
-        return '#ffc107'; // Aguardando, Pendente, Novo, etc.
     };
 
     const renderBarChart = (values, labels, highlightIdx = -1) => {
@@ -180,7 +186,7 @@
     }
 
     // ======================================================
-    // NAVIGATION (fecha sempre o menu lateral)
+    // NAVIGATION
     // ======================================================
     function navigateTo(page) {
         state.currentPage = page;
@@ -242,7 +248,7 @@
     // PAGE BUILDERS
     // ======================================================
 
-    // -- Dashboard (inalterado) --
+    // --- Dashboard (inalterado) ---
     function buildDashboard() {
         const today = new Date();
         const todayStr = toDateStr(today);
@@ -288,7 +294,6 @@
                 <div class="kpi-sub">${cancelled > 0 ? 'Precisam de atenção' : 'Nenhum'}</div>
             </div>
         </div>
-
         <div class="grid-2">
             <div class="card">
                 <div class="card-header">
@@ -326,7 +331,6 @@
                 </div>
             </div>
         </div>
-
         <div class="grid-4">
             <div class="card">
                 <div class="card-header"><h3>Atendimentos da semana</h3></div>
@@ -367,20 +371,15 @@
     }
 
     // ======================================================
-    // AGENDA (com tabs Hoje / Mês) – layout e lógica do pluri-os
+    // AGENDA – idêntica ao agenda.js original
     // ======================================================
     function buildAgenda() {
         if (!state || !state.appointments) {
             return `<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>`;
         }
 
-        // Estado inicial
-        if (!state.agendaDate) {
-            state.agendaDate = new Date().toISOString().split('T')[0];
-        }
-        if (!state.agendaTab) {
-            state.agendaTab = 'today';
-        }
+        if (!state.agendaDate) state.agendaDate = new Date().toISOString().split('T')[0];
+        if (!state.agendaTab) state.agendaTab = 'today';
         if (!state.agendaMonth) {
             const now = new Date();
             state.agendaMonth = { year: now.getFullYear(), month: now.getMonth() };
@@ -389,11 +388,10 @@
         const currentDate = state.agendaDate;
         const isToday = state.agendaTab === 'today';
 
-        // Horários
         const allSlots = [];
         for (let h = 8; h < 18; h++) {
             for (let m = 0; m < 60; m += 30) {
-                allSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                allSlots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
             }
         }
 
@@ -406,9 +404,7 @@
         });
 
         const dataFormatada = new Date(currentDate + 'T00:00:00').toLocaleDateString('pt-BR', {
-            weekday: 'long',
-            day: '2-digit',
-            month: '2-digit'
+            weekday: 'long', day: '2-digit', month: '2-digit'
         });
 
         const monthDate = new Date(state.agendaMonth.year, state.agendaMonth.month, 1);
@@ -423,21 +419,19 @@
                     <button class="tab ${!isToday ? 'active' : ''}" data-tab="month">Mês</button>
                 </div>
 
-                <!-- Navegação do dia -->
                 <div class="agenda-date-navigator" id="agendaDayNav" style="display:${isToday ? 'flex' : 'none'};align-items:center;gap:8px;margin-left:20px;">
-                    <button class="btn-icon btn-sm" id="agendaPrevDay" title="Dia anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
+                    <button class="btn-icon btn-sm" id="agendaPrevDay"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
                     <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${dataFormatada}</span>
-                    <button class="btn-icon btn-sm" id="agendaNextDay" title="Próximo dia"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+                    <button class="btn-icon btn-sm" id="agendaNextDay"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
 
-                <!-- Navegação do mês -->
                 <div class="agenda-date-navigator" id="agendaMonthNav" style="display:${isToday ? 'none' : 'flex'};align-items:center;gap:8px;margin-left:20px;">
-                    <button class="btn-icon btn-sm" id="agendaPrevMonth" title="Mês anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
+                    <button class="btn-icon btn-sm" id="agendaPrevMonth"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
                     <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${monthLabel}</span>
-                    <button class="btn-icon btn-sm" id="agendaNextMonth" title="Próximo mês"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+                    <button class="btn-icon btn-sm" id="agendaNextMonth"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
 
-                <div class="agenda-google-calendar" id="googleCalendarIndicator">
+                <div class="agenda-google-calendar">
                     <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
                     <span>Sincronizado com Google Calendar</span>
                 </div>
@@ -449,7 +443,6 @@
             </div>
         </div>
 
-        <!-- Visão Hoje -->
         <div id="agendaDayView" class="card" style="display:${isToday ? 'block' : 'none'};">
             <div class="card-body no-padding">
                 <ul class="agenda-list">
@@ -473,7 +466,7 @@
                                     <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
                                         <div class="agenda-name">${appt.patient}</div>
                                         <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
-                                        <div style="margin-top:6px;">${agendaStatusBadge(status)}</div>
+                                        <div style="margin-top:6px;">${window.statusBadge(status)}</div>
                                     </div>
                                     <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation();window.pluri.editAppointment('${appt.id}')"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
                                     <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation();window.pluri.deleteAppointment('${appt.id}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
@@ -484,7 +477,6 @@
             </div>
         </div>
 
-        <!-- Visão Mês -->
         <div id="agendaMonthView" style="display:${isToday ? 'none' : 'block'};">
             ${buildAgendaMonthHTML()}
         </div>`;
@@ -499,20 +491,19 @@
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const todayStr = toDateStr(new Date());
-
         const cells = [];
         for (let i = 0; i < firstDay; i++) cells.push(null);
         for (let d = 1; d <= daysInMonth; d++) cells.push(d);
         while (cells.length % 7 !== 0) cells.push(null);
 
-        const weekdayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-            .map(day => `<div class="agenda-month-weekday">${day}</div>`).join('');
+        const weekdayHeaders = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+            .map(d => `<div class="agenda-month-weekday">${d}</div>`).join('');
 
         const maxShow = 3;
         const cellsHtml = cells.map(day => {
             if (day === null) return '<div class="agenda-month-cell empty"></div>';
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dayAppts = state.appointments.filter(a => a.date === dateStr).sort((a, b) => String(a.time).localeCompare(String(b.time)));
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const dayAppts = state.appointments.filter(a => a.date === dateStr).sort((a,b) => a.time.localeCompare(b.time));
             const shown = dayAppts.slice(0, maxShow);
             const extra = dayAppts.length - shown.length;
             const isToday = dateStr === todayStr;
@@ -525,7 +516,7 @@
                             const status = String(appt.status || '').trim() || 'Aguardando';
                             return `
                                 <div class="agenda-month-event" title="${appt.patient} · ${status}" onclick="window.pluri.editAppointment('${appt.id}')">
-                                    <span class="agenda-month-dot" style="background:${statusColor(status)}"></span>
+                                    <span class="agenda-month-dot" style="background:${window.statusColor(status)}"></span>
                                     <span class="agenda-month-event-time">${appt.time}</span>
                                     <span class="agenda-month-event-name">${appt.patient}</span>
                                 </div>`;
@@ -544,13 +535,14 @@
             </div>`;
     }
 
-    function openDayFromMonth(dateStr) {
+    // Função global usada no clique dos eventos do mês
+    window.openDayFromMonth = function(dateStr) {
         state.agendaDate = dateStr;
         state.agendaTab = 'today';
         renderPage();
-    }
+    };
 
-    // -- Atendimentos / Pacientes / Configurações (inalterados) --
+    // -- Atendimentos --
     function buildAtendimentos() {
         return `<div class="card"><div class="card-body no-padding">
             ${state.conversations.map(c => `
@@ -604,6 +596,7 @@
         openSlidePanel();
     }
 
+    // -- Pacientes --
     function buildPacientes() {
         return `
             <div class="search-bar" style="display:flex;gap:8px;">
@@ -682,6 +675,7 @@
         openSlidePanel();
     }
 
+    // -- Configurações --
     function buildConfiguracoes() {
         return `
             <div class="card">
@@ -834,7 +828,7 @@
     }
 
     // ======================================================
-    // MODAL & APPOINTMENT ACTIONS (compatível com agenda.js)
+    // MODAL & APPOINTMENT ACTIONS
     // ======================================================
     function openModal(time = null, patientName = null, patientPhone = null) {
         getEl('modalOverlay').classList.add('show');
@@ -863,12 +857,10 @@
             if (parsed && typeof parsed === 'object' && parsed.notes !== undefined) {
                 notesValue = parsed.notes || '';
             }
-        } catch (e) { /* não é JSON */ }
+        } catch (e) {}
         getEl('apptNotes').value = notesValue;
 
-        const statusInput = getEl('apptStatus');
-        if (statusInput) statusInput.value = appt.status || 'Aguardando';
-
+        getEl('apptStatus').value = appt.status || 'Aguardando';
         window._editingAppointmentId = eventId;
         setModalMode('edit');
     }
@@ -1036,7 +1028,9 @@
 
         renderPage();
 
-        window.pluri = {
+        // API pública (mesma do pluri-os)
+        window.pluri = window.pluri || {};
+        Object.assign(window.pluri, {
             navigateTo,
             openConversation,
             openPatient,
@@ -1045,8 +1039,9 @@
             showToast,
             editAppointment: openEditAppointment,
             deleteAppointment: window.deleteAppointment,
-            openDayFromMonth
-        };
+            openDayFromMonth: window.openDayFromMonth,
+            confirmAppointment: function() {} // pausada
+        });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
