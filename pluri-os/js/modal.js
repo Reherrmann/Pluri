@@ -146,7 +146,7 @@ if (phoneInput) {
     // Configura os botões de ação
     const btnConfirmar = getEl('btnConfirmarPresenca');
     const btnCancelar = getEl('btnCancelarAgendamento');
-    if (btnConfirmar) btnConfirmar.onclick = pedirConfirmacao;
+    if (btnConfirmar) btnConfirmar.onclick = confirmarPresenca;
     if (btnCancelar) btnCancelar.onclick = cancelarAgendamento;
 
 const results = getEl('patientSearchResults');
@@ -285,6 +285,22 @@ function pedirConfirmacao() {
     if (window._editingAppointmentId) {
         saveAppointment();
     }
+}
+
+async function confirmarPresenca() {
+
+    const statusInput = getEl('apptStatus');
+
+    if (statusInput) {
+        statusInput.value = 'Confirmado';
+    }
+
+    if (!window._editingAppointmentId) {
+        showToast('Nenhum agendamento em edição.');
+        return;
+    }
+
+    await saveAppointment();
 }
 
 // --- Ação: Cancelar agendamento (muda status + WhatsApp) ---
