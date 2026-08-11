@@ -588,6 +588,15 @@ body{
  }
 }
 
+@media (max-width: 767px) {
+    .modal {
+        width: 94%;
+        max-width: none;
+        max-height: 92vh;
+        overflow-y: auto;
+    }
+}
+
 /* =============================================
    CORES DE STATUS
    ============================================= */
