@@ -201,160 +201,57 @@ function loadState() {
     // ======================================================
     // MOCK DATA INIT
     // ======================================================
-    function initMockData() {
-    const today = new Date();
-    const todayStr = toDateStr(today);
-    state.agendaDate = todayStr;
-    state.agendaMonth = { year: today.getFullYear(), month: today.getMonth() };
+   function initMockData() {
+        const today = new Date();
+        const todayStr = toDateStr(today);
+        state.agendaDate = todayStr;
+        state.agendaMonth = { year: today.getFullYear(), month: today.getMonth() };
 
-    // Pacientes
-    state.patients = [
-        { _row: 1, id: 1, name: 'Maria Silva', phone: '(11) 98765-4321', email: 'maria@email.com', created: '10/01/2026', lastVisit: '22/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Prefere contato pelo WhatsApp.' },
-        { _row: 2, id: 2, name: 'João Santos', phone: '(11) 91234-5678', email: 'joao@email.com', created: '15/02/2026', lastVisit: '20/07/2026', nextAppt: '29/07/2026', status: 'Ativo', notes: '' },
-        { _row: 3, id: 3, name: 'Ana Oliveira', phone: '(21) 99876-5432', email: 'ana@email.com', created: '05/03/2026', lastVisit: '18/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Prefere atendimento no período da manhã.' },
-        { _row: 4, id: 4, name: 'Carlos Souza', phone: '(31) 98765-1234', email: 'carlos@email.com', created: '20/04/2026', lastVisit: '25/07/2026', nextAppt: '30/07/2026', status: 'Ativo', notes: '' },
-        { _row: 5, id: 5, name: 'Fernanda Lima', phone: '(41) 99876-1111', email: 'fernanda@email.com', created: '12/05/2026', lastVisit: '15/07/2026', nextAppt: '28/07/2026', status: 'Inativo', notes: 'Retorno pendente.' },
-        { _row: 6, id: 6, name: 'Mariana Costa', phone: '(51) 91234-9999', email: 'mariana@email.com', created: '01/06/2026', lastVisit: '-', nextAppt: '28/07/2026', status: 'Novo', notes: '' },
-        { _row: 7, id: 7, name: 'Lucas Ferreira', phone: '(61) 98765-0000', email: 'lucas@email.com', created: '18/06/2026', lastVisit: '-', nextAppt: '28/07/2026', status: 'Novo', notes: '' },
-        { _row: 8, id: 8, name: 'Beatriz Lima', phone: '(81) 99876-7777', email: 'beatriz@email.com', created: '02/07/2026', lastVisit: '-', nextAppt: '28/07/2026', status: 'Novo', notes: '' },
-        { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
-    ];
+        state.patients = [
+            { _row: 1, id: 1, name: 'Maria Silva', phone: '(11) 98765-4321', email: 'maria@email.com', created: '10/01/2026', lastVisit: '22/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Prefere contato pelo WhatsApp.' },
+            { _row: 2, id: 2, name: 'João Santos', phone: '(11) 91234-5678', email: 'joao@email.com', created: '15/02/2026', lastVisit: '20/07/2026', nextAppt: '29/07/2026', status: 'Ativo', notes: '' },
+            { _row: 3, id: 3, name: 'Ana Oliveira', phone: '(21) 99876-5432', email: 'ana@email.com', created: '05/03/2026', lastVisit: '18/07/2026', nextAppt: '28/07/2026', status: 'Ativo', notes: 'Prefere atendimento no período da manhã.' },
+            { _row: 4, id: 4, name: 'Carlos Souza', phone: '(31) 98765-1234', email: 'carlos@email.com', created: '20/04/2026', lastVisit: '25/07/2026', nextAppt: '30/07/2026', status: 'Ativo', notes: '' },
+            { _row: 5, id: 5, name: 'Fernanda Lima', phone: '(41) 99876-1111', email: 'fernanda@email.com', created: '12/05/2026', lastVisit: '15/07/2026', nextAppt: '28/07/2026', status: 'Inativo', notes: 'Retorno pendente.' },
+            { _row: 6, id: 6, name: 'Mariana Costa', phone: '(51) 91234-9999', email: 'mariana@email.com', created: '01/06/2026', lastVisit: '-', nextAppt: '28/07/2026', status: 'Novo', notes: '' },
+            { _row: 7, id: 7, name: 'Lucas Ferreira', phone: '(61) 98765-0000', email: 'lucas@email.com', created: '18/06/2026', lastVisit: '-', nextAppt: '28/07/2026', status: 'Novo', notes: '' },
+            { _row: 8, id: 8, name: 'Beatriz Lima', phone: '(81) 99876-7777', email: 'beatriz@email.com', created: '02/07/2026', lastVisit: '-', nextAppt: '28/07/2026', status: 'Novo', notes: '' },
+            { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
+        ];
 
-    // Agendamentos base (hoje)
-    state.appointments = [
-        { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
-        { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
-        { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' },
-        { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' },
-        { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' },
-        { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
-        { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
-    ];
+        state.appointments = [
+            { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
+            { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
+            { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' },
+            { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' },
+            { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' },
+            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
+            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
+        ];
 
-    // ------------------------------------------------------
-    // GERAR AGENDAMENTOS PARA 3 MESES (hoje + 90 dias)
-    // ------------------------------------------------------
-    const extraPatients = [
-        { name: 'Alice Mendes', phone: '(11) 98888-1111' },
-        { name: 'Bruno Costa', phone: '(21) 97777-2222' },
-        { name: 'Carla Dias', phone: '(31) 96666-3333' },
-        { name: 'Daniel Peres', phone: '(41) 95555-4444' },
-        { name: 'Elisa Rocha', phone: '(51) 94444-5555' },
-        { name: 'Fábio Lins', phone: '(61) 93333-6666' },
-        { name: 'Gabriela Mello', phone: '(71) 92222-7777' },
-        { name: 'Henrique Sá', phone: '(81) 91111-8888' },
-        { name: 'Isabela Torres', phone: '(91) 90000-9999' },
-        { name: 'Juliano Vargas', phone: '(11) 98989-0000' },
-    ];
-    const professionals = ['Dra. Ana', 'Dr. Carlos', 'Dra. Fernanda'];
-    const services = ['Avaliação', 'Retorno', 'Procedimento', 'Limpeza', 'Clareamento'];
-    const statusOptions = ['Aguardando', 'Confirmado', 'Pendente', 'Concluído'];
-    let idCounter = 8;
+        state.conversations = [
+            { id: 1, _row: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', phone: '(11) 98765-4321', summary: '' },
+            { id: 2, _row: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', phone: '(41) 99876-1111', summary: '' },
+            { id: 3, _row: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', phone: '(31) 98765-1234', summary: '' },
+            { id: 4, _row: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', phone: '', summary: '' },
+            { id: 5, _row: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', phone: '(91) 98765-6666', summary: '' },
+        ];
 
-    const addDays = (date, days) => {
-        const d = new Date(date);
-        d.setDate(d.getDate() + days);
-        return toDateStr(d);
-    };
+        state.staff = [
+            { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
+            { _row: 2, id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
+            { _row: 3, id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
+            { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
+        ];
 
-    for (let week = 0; week < 12; week++) {
-        const mondayOffset = week * 7 + 1;
-
-        // Segunda-feira: 2 agendamentos
-        for (let i = 0; i < 2; i++) {
-            const date = addDays(today, mondayOffset);
-            const patient = extraPatients[(week + i) % extraPatients.length];
-            state.appointments.push({
-                id: idCounter++,
-                time: `${8 + i}:00`,
-                patient: patient.name,
-                professional: professionals[i % professionals.length],
-                service: services[i % services.length],
-                status: statusOptions[i % statusOptions.length],
-                date: date,
-                phone: patient.phone,
-                notes: ''
-            });
-        }
-
-        // Quarta-feira: 2 agendamentos
-        for (let i = 0; i < 2; i++) {
-            const date = addDays(today, mondayOffset + 2);
-            const patient = extraPatients[(week + 3 + i) % extraPatients.length];
-            state.appointments.push({
-                id: idCounter++,
-                time: `${10 + i}:30`,
-                patient: patient.name,
-                professional: professionals[(i + 1) % professionals.length],
-                service: services[(i + 1) % services.length],
-                status: statusOptions[(i + 1) % statusOptions.length],
-                date: date,
-                phone: patient.phone,
-                notes: ''
-            });
-        }
-
-        // Sexta-feira: 3 agendamentos
-        for (let i = 0; i < 3; i++) {
-            const date = addDays(today, mondayOffset + 4);
-            const patient = extraPatients[(week + 6 + i) % extraPatients.length];
-            state.appointments.push({
-                id: idCounter++,
-                time: `${14 + i}:00`,
-                patient: patient.name,
-                professional: professionals[i % professionals.length],
-                service: services[i % services.length],
-                status: statusOptions[(i + 2) % statusOptions.length],
-                date: date,
-                phone: patient.phone,
-                notes: ''
-            });
-        }
+        state.activities = [
+            { time: '10:42', text: 'Maria confirmou consulta.' },
+            { time: '10:38', text: 'Novo paciente cadastrado.' },
+            { time: '10:31', text: 'PLURI respondeu solicitação de horário.' },
+            { time: '10:24', text: 'Consulta de João reagendada.' },
+            { time: '10:17', text: 'Lembrete enviado para Ana.' },
+        ];
     }
-
-    // Sábados aleatórios
-    for (let i = 0; i < 6; i++) {
-        const saturdayOffset = 7 * i + 5;
-        const date = addDays(today, saturdayOffset);
-        const patient = extraPatients[i % extraPatients.length];
-        state.appointments.push({
-            id: idCounter++,
-            time: '09:00',
-            patient: patient.name,
-            professional: 'Dr. Carlos',
-            service: 'Avaliação',
-            status: 'Confirmado',
-            date: date,
-            phone: patient.phone,
-            notes: ''
-        });
-    }
-
-    // Conversas e equipe
-    state.conversations = [
-        { id: 1, _row: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', phone: '(11) 98765-4321', summary: '' },
-        { id: 2, _row: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', phone: '(41) 99876-1111', summary: '' },
-        { id: 3, _row: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', phone: '(31) 98765-1234', summary: '' },
-        { id: 4, _row: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', phone: '', summary: '' },
-        { id: 5, _row: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', phone: '(91) 98765-6666', summary: '' },
-    ];
-
-    state.staff = [
-        { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
-        { _row: 2, id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
-        { _row: 3, id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
-        { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
-    ];
-
-    state.activities = [
-        { time: '10:42', text: 'Maria confirmou consulta.' },
-        { time: '10:38', text: 'Novo paciente cadastrado.' },
-        { time: '10:31', text: 'PLURI respondeu solicitação de horário.' },
-        { time: '10:24', text: 'Consulta de João reagendada.' },
-        { time: '10:17', text: 'Lembrete enviado para Ana.' },
-    ];
-}
-
     // ======================================================
     // NAVIGATION
     // ======================================================
