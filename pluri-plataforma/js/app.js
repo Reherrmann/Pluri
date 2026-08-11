@@ -364,7 +364,7 @@ function getFirstVisitTip(page) {
             html = `<div style="padding:40px;text-align:center;color:#B91C1C;">Erro ao carregar a página.</div>`;
         }
 
-        container.innerHTML =
+       container.innerHTML =
     getFirstVisitTip(state.currentPage) + html;
 
 attachPageEvents();
@@ -380,6 +380,7 @@ getEl('dismissFirstVisitTip')
         );
 
         getEl('firstVisitTip')?.remove();
+
     });
 
     function updateTitleAndSubtitle(title, subtitle) {
