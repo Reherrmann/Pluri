@@ -1307,49 +1307,62 @@ if (professionalFilter) {
     // INIT
     // ======================================================
     function init() {
-        const loaded = loadState();
-        if (!loaded) {
-            initMockData();
-            saveState();
-        }
+    const loaded = loadState();
 
-        loadTheme();
-
-        getEl('themeToggle')?.addEventListener('click', toggleTheme);
-        getEl('modalClose')?.addEventListener('click', closeModal);
-        getEl('modalCancel')?.addEventListener('click', closeModal);
-        getEl('modalSave')?.addEventListener('click', saveAppointment);
-        getEl('modalOverlay')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
-        getEl('slideOverlay')?.addEventListener('click', closeSlidePanel);
-        getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
-
-        document.querySelectorAll('.sidebar-nav a').forEach(a => {
-            a.addEventListener('click', (e) => {
-                e.preventDefault();
-                navigateTo(a.dataset.page);
-            });
-        });
-
-        getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
-
-        window.pluri = window.pluri || {};
-        Object.assign(window.pluri, {
-            navigateTo,
-            openConversation,
-            openPatient,
-            openModal,
-            openStaff,
-            showToast,
-            editAppointment: openEditAppointment,
-            deleteAppointment: window.deleteAppointment,
-            openDayFromMonth: window.openDayFromMonth,
-            confirmAppointment: function() {}
-        });
-
-        renderPage();
+    if (!loaded) {
+        initMockData();
+        saveState();
     }
 
-    if (document.readyState === 'loading') {
+    loadTheme();
+
+    getEl('themeToggle')?.addEventListener('click', toggleTheme);
+    getEl('modalClose')?.addEventListener('click', closeModal);
+    getEl('modalCancel')?.addEventListener('click', closeModal);
+    getEl('modalSave')?.addEventListener('click', saveAppointment);
+
+    getEl('modalOverlay')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeModal();
+    });
+
+    getEl('slideOverlay')?.addEventListener('click', closeSlidePanel);
+
+    getEl('notifBtn')?.addEventListener(
+        'click',
+        () => showToast('Nenhuma notificação nova.')
+    );
+
+    document.querySelectorAll('.sidebar-nav a').forEach(a => {
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo(a.dataset.page);
+        });
+    });
+
+    getEl('sidebarOverlay')?.addEventListener(
+        'click',
+        closeSidebar
+    );
+
+    window.pluri = window.pluri || {};
+
+    Object.assign(window.pluri, {
+        navigateTo,
+        openConversation,
+        openPatient,
+        openModal,
+        openStaff,
+        showToast,
+        editAppointment: openEditAppointment,
+        deleteAppointment: window.deleteAppointment,
+        openDayFromMonth: window.openDayFromMonth,
+        confirmAppointment: function() {}
+    });
+
+    renderPage();
+}
+
+if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
