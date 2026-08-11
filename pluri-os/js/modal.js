@@ -37,10 +37,14 @@ if (patientInput) {
         }
 
         const patients =
-            (state.patients || []).filter(p =>
-                (p.name || '').toLowerCase().includes(term) ||
-                (p.phone || '').includes(term)
-            );
+    (state.patients || []).filter(p =>
+        String(p.name || '')
+            .toLowerCase()
+            .includes(term) ||
+
+        String(p.phone || '')
+            .includes(term)
+    );
 
         if (!patients.length) {
 
