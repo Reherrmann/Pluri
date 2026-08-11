@@ -228,6 +228,23 @@ function loadState() {
            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' }, 
            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' }, 
        ];
+
+        state.staff = [
+        { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
+        { _row: 2, id: 2, name: 'Dra. Ana', role: 'Dentista', status: 'Ativo', email: 'ana@bemestar.com', phone: '(11) 98765-1111' },
+        { _row: 3, id: 3, name: 'Dr. Carlos', role: 'Dentista', status: 'Ativo', email: 'carlos@bemestar.com', phone: '(11) 98765-2222' },
+        { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
+    ];
+
+    state.activities = [
+        { time: '10:42', text: 'Maria confirmou consulta.' },
+        { time: '10:38', text: 'Novo paciente cadastrado.' },
+        { time: '10:31', text: 'PLURI respondeu solicitação de horário.' },
+        { time: '10:24', text: 'Consulta de João reagendada.' },
+        { time: '10:17', text: 'Lembrete enviado para Ana.' },
+    ];
+}
+
     // ======================================================
     // NAVIGATION
     // ======================================================
@@ -1339,4 +1356,9 @@ Object.assign(window.pluri, {
     confirmAppointment: function() {}
 });
 
+renderPage();
+    }
 
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
