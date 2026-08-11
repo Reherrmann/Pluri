@@ -320,24 +320,21 @@ function buildAgenda() {
             <div class="agenda-toolbar-left">
 
                 <div class="tabs" id="agendaTabs">
-
-                    <button
-                        class="tab ${isToday ? 'active' : ''}"
-                        data-tab="today">
-
-                        Hoje
-
-                    </button>
-
-                    <button
-                        class="tab ${!isToday ? 'active' : ''}"
-                        data-tab="month">
-
-                        Mês
-
-                    </button>
-
+                    <button class="tab ${isToday ? 'active' : ''}" data-tab="today">Hoje</button>
+                    <button class="tab ${!isToday ? 'active' : ''}" data-tab="month">Mês</button>
                 </div>
+
+                <div style="margin-left:16px;">
+    <select id="agendaProfessionalFilter" class="form-control">
+        <option value="">Todos os profissionais</option>
+
+        ${(state.staff || []).map(staff => `
+            <option value="${staff.name}">
+                ${staff.name}
+            </option>
+        `).join('')}
+    </select>
+</div>
 
 
                 <!-- Navegação do dia -->
