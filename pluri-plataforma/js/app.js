@@ -219,22 +219,26 @@ function loadState() {
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-       const demoDate = (daysFromToday = 0, monthsFromToday = 0, dayOfMonth = null) => {
+       const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const d = new Date();
+const dayAfterTomorrow = new Date();
+dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 
-    if (monthsFromToday) {
-        d.setMonth(d.getMonth() + monthsFromToday);
+const threeDays = new Date();
+threeDays.setDate(threeDays.getDate() + 3);
 
-        if (dayOfMonth !== null) {
-            d.setDate(dayOfMonth);
-        }
-    } else {
-        d.setDate(d.getDate() + daysFromToday);
-    }
+const fiveDays = new Date();
+fiveDays.setDate(fiveDays.getDate() + 5);
 
-    return d.toISOString().split('T')[0];
-};
+const sixDays = new Date();
+sixDays.setDate(sixDays.getDate() + 6);
+
+const nextMonth = new Date();
+nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+const demoDate = (date) =>
+    date.toISOString().split('T')[0];
 
 state.appointments = [
     // HOJE
