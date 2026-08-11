@@ -48,6 +48,8 @@
             lucide.createIcons();
         }
     };
+
+    // Status badge usado nas outras telas (dashboard, pacientes, etc.)
     const statusBadge = (status) => {
         let cls = '';
         if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') cls = 'confirmed';
@@ -56,6 +58,28 @@
         const dotColor = cls === 'confirmed' ? 'green' : 'amber';
         return `<span class="status-badge ${cls}"><span class="status-dot ${dotColor}"></span>${status}</span>`;
     };
+
+    // Status badge específico da agenda (estilo pluri-os)
+    const agendaStatusBadge = (status) => {
+        const normalized = String(status || '').trim() || 'Aguardando';
+        let cls = '';
+        switch (normalized) {
+            case 'Aguardando': cls = 'status-aguardando'; break;
+            case 'Confirmado': cls = 'status-confirmado'; break;
+            case 'Cancelado': cls = 'status-cancelado'; break;
+            default: cls = 'status-aguardando';
+        }
+        return `<span class="appointment-status ${cls}">${normalized}</span>`;
+    };
+
+    // Cores para a bolinha do mês (paleta do pluri-os)
+    const statusColor = (status) => {
+        const s = String(status || '').trim();
+        if (s === 'Confirmado' || s === 'Concluído' || s === 'Ativo' || s === 'Resolvido') return '#28a745';
+        if (s === 'Cancelado') return '#dc3545';
+        return '#ffc107'; // Aguardando, Pendente, Novo, etc.
+    };
+
     const renderBarChart = (values, labels, highlightIdx = -1) => {
         const max = Math.max(...values, 1);
         return values.map((v, i) => {
@@ -164,7 +188,7 @@
         const link = document.querySelector(`.sidebar-nav a[data-page="${page}"]`);
         if (link) link.classList.add('active');
         renderPage();
-        closeSidebar();  // sempre recolhe o menu lateral
+        closeSidebar();
     }
 
     // ======================================================
@@ -215,10 +239,10 @@
     }
 
     // ======================================================
-    // PAGE BUILDERS (mesmo layout do pluri-os)
+    // PAGE BUILDERS
     // ======================================================
 
-    // -- Dashboard --
+    // -- Dashboard (inalterado) --
     function buildDashboard() {
         const today = new Date();
         const todayStr = toDateStr(today);
@@ -228,7 +252,6 @@
         const cancelled = appointmentsToday.filter(a => a.status === 'Cancelado').length;
         const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
 
-        // Semana
         const dayOfWeek = today.getDay();
         const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         const monday = new Date(today);
@@ -327,7 +350,7 @@
                     </div>
                 </div>
             </div>
-           <!-- <div class="card">
+            <div class="card">
                 <div class="card-header"><h3>Automações ativas</h3></div>
                 <div class="card-body">
                     <div style="display:flex;flex-direction:column;gap:8px;">
@@ -338,23 +361,56 @@
                         <a class="btn btn-sm btn-outline js-nav" data-page="automacoes" style="margin-top:8px;width:100%;">Gerenciar</a>
                     </div>
                 </div>
-            </div> -->
-            <div class="card-placeholder">Espaço adaptável para a clínica</div>
+            </div>
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
         </div>`;
     }
 
-    // -- Agenda (com tabs Hoje / Mês) --
+    // ======================================================
+    // AGENDA (com tabs Hoje / Mês) – layout e lógica do pluri-os
+    // ======================================================
     function buildAgenda() {
-        const todayStr = state.agendaDate;
-        const allSlots = [];
-        for (let h = 8; h < 18; h++) for (let m = 0; m < 60; m += 30) allSlots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-        const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-        const grouped = {};
-        appointmentsToday.forEach(a => { if (!grouped[a.time]) grouped[a.time] = []; grouped[a.time].push(a); });
-        const isTodayTab = state.agendaTab === 'today';
+        if (!state || !state.appointments) {
+            return `<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>`;
+        }
 
-        const dataFormatada = new Date(todayStr + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+        // Estado inicial
+        if (!state.agendaDate) {
+            state.agendaDate = new Date().toISOString().split('T')[0];
+        }
+        if (!state.agendaTab) {
+            state.agendaTab = 'today';
+        }
+        if (!state.agendaMonth) {
+            const now = new Date();
+            state.agendaMonth = { year: now.getFullYear(), month: now.getMonth() };
+        }
+
+        const currentDate = state.agendaDate;
+        const isToday = state.agendaTab === 'today';
+
+        // Horários
+        const allSlots = [];
+        for (let h = 8; h < 18; h++) {
+            for (let m = 0; m < 60; m += 30) {
+                allSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+            }
+        }
+
+        const appointmentsToday = state.appointments.filter(a => a.date === currentDate);
+        const grouped = {};
+        appointmentsToday.forEach(appt => {
+            const time = String(appt.time || '').trim();
+            if (!grouped[time]) grouped[time] = [];
+            grouped[time].push(appt);
+        });
+
+        const dataFormatada = new Date(currentDate + 'T00:00:00').toLocaleDateString('pt-BR', {
+            weekday: 'long',
+            day: '2-digit',
+            month: '2-digit'
+        });
+
         const monthDate = new Date(state.agendaMonth.year, state.agendaMonth.month, 1);
         let monthLabel = monthDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
         monthLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
@@ -363,102 +419,138 @@
         <div class="agenda-toolbar">
             <div class="agenda-toolbar-left">
                 <div class="tabs" id="agendaTabs">
-                    <button class="tab ${isTodayTab ? 'active' : ''}" data-tab="today">Hoje</button>
-                    <button class="tab ${!isTodayTab ? 'active' : ''}" data-tab="month">Mês</button>
+                    <button class="tab ${isToday ? 'active' : ''}" data-tab="today">Hoje</button>
+                    <button class="tab ${!isToday ? 'active' : ''}" data-tab="month">Mês</button>
                 </div>
-                <div class="agenda-date-navigator" id="agendaDayNav" style="display:${isTodayTab ? 'flex' : 'none'};align-items:center;gap:8px;margin-left:20px;">
-                    <button class="btn-icon btn-sm" id="agendaPrevDay"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
-                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;">${dataFormatada}</span>
-                    <button class="btn-icon btn-sm" id="agendaNextDay"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+
+                <!-- Navegação do dia -->
+                <div class="agenda-date-navigator" id="agendaDayNav" style="display:${isToday ? 'flex' : 'none'};align-items:center;gap:8px;margin-left:20px;">
+                    <button class="btn-icon btn-sm" id="agendaPrevDay" title="Dia anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
+                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${dataFormatada}</span>
+                    <button class="btn-icon btn-sm" id="agendaNextDay" title="Próximo dia"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
-                <div class="agenda-date-navigator" id="agendaMonthNav" style="display:${isTodayTab ? 'none' : 'flex'};align-items:center;gap:8px;margin-left:20px;">
-                    <button class="btn-icon btn-sm" id="agendaPrevMonth"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
-                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;">${monthLabel}</span>
-                    <button class="btn-icon btn-sm" id="agendaNextMonth"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+
+                <!-- Navegação do mês -->
+                <div class="agenda-date-navigator" id="agendaMonthNav" style="display:${isToday ? 'none' : 'flex'};align-items:center;gap:8px;margin-left:20px;">
+                    <button class="btn-icon btn-sm" id="agendaPrevMonth" title="Mês anterior"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
+                    <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${monthLabel}</span>
+                    <button class="btn-icon btn-sm" id="agendaNextMonth" title="Próximo mês"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
+
                 <div class="agenda-google-calendar" id="googleCalendarIndicator">
                     <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
                     <span>Sincronizado com Google Calendar</span>
                 </div>
             </div>
+
             <div class="agenda-toolbar-right">
                 <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
+                <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button>
             </div>
         </div>
-        <div id="agendaDayView" class="card" style="display:${isTodayTab ? 'block' : 'none'};">
+
+        <!-- Visão Hoje -->
+        <div id="agendaDayView" class="card" style="display:${isToday ? 'block' : 'none'};">
             <div class="card-body no-padding">
-                <ul class="agenda-list">${allSlots.map(time => {
-                    const events = grouped[time] || [];
-                    if (events.length === 0) {
-                        return `<li class="agenda-item free-slot">
-                            <span class="agenda-time">${time}</span>
-                            <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
-                            <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
-                            <button class="btn btn-sm btn-outline" onclick="window.pluri.openModal('${time}')">Agendar</button>
-                        </li>`;
-                    }
-                    return events.map((appt, idx) => `
-                        <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer;${idx > 0 ? 'border-top:1px dashed var(--border);' : ''}">
-                            <span class="agenda-time">${time}</span>
-                            <div class="agenda-avatar">${getInitials(appt.patient)}</div>
-                            <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
-                                <div class="agenda-name">${appt.patient}</div>
-                                <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
-                                <div style="margin-top:6px;">${statusBadge(appt.status)}</div>
-                            </div>
-                            <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation();window.pluri.editAppointment('${appt.id}')"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
-                            <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation();window.pluri.deleteAppointment('${appt.id}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
-                        </li>`).join('');
-                }).join('')}</ul>
+                <ul class="agenda-list">
+                    ${allSlots.map(time => {
+                        const events = grouped[time] || [];
+                        if (events.length === 0) {
+                            return `
+                                <li class="agenda-item free-slot">
+                                    <span class="agenda-time">${time}</span>
+                                    <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
+                                    <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
+                                    <button class="btn btn-sm btn-outline" onclick="openModal('${time}')">Agendar</button>
+                                </li>`;
+                        }
+                        return events.map((appt, index) => {
+                            const status = String(appt.status || '').trim() || 'Aguardando';
+                            return `
+                                <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer;position:relative;${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
+                                    <span class="agenda-time">${time}</span>
+                                    <div class="agenda-avatar">${getInitials(appt.patient)}</div>
+                                    <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
+                                        <div class="agenda-name">${appt.patient}</div>
+                                        <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
+                                        <div style="margin-top:6px;">${agendaStatusBadge(status)}</div>
+                                    </div>
+                                    <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation();window.pluri.editAppointment('${appt.id}')"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
+                                    <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation();window.pluri.deleteAppointment('${appt.id}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+                                </li>`;
+                        }).join('');
+                    }).join('')}
+                </ul>
             </div>
         </div>
-        <div id="agendaMonthView" style="display:${isTodayTab ? 'none' : 'block'};">${buildAgendaMonthHTML()}</div>`;
+
+        <!-- Visão Mês -->
+        <div id="agendaMonthView" style="display:${isToday ? 'none' : 'block'};">
+            ${buildAgendaMonthHTML()}
+        </div>`;
     }
 
     function buildAgendaMonthHTML() {
+        if (!state || !state.appointments || !state.agendaMonth) {
+            return `<div class="card"><div class="card-body">Erro ao carregar o mês.</div></div>`;
+        }
+
         const { year, month } = state.agendaMonth;
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const todayStr = toDateStr(new Date());
+
         const cells = [];
         for (let i = 0; i < firstDay; i++) cells.push(null);
         for (let d = 1; d <= daysInMonth; d++) cells.push(d);
         while (cells.length % 7 !== 0) cells.push(null);
-        const weekdayHeaders = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => `<div class="agenda-month-weekday">${d}</div>`).join('');
+
+        const weekdayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+            .map(day => `<div class="agenda-month-weekday">${day}</div>`).join('');
+
         const maxShow = 3;
         const cellsHtml = cells.map(day => {
             if (day === null) return '<div class="agenda-month-cell empty"></div>';
-            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            const dayAppts = state.appointments.filter(a => a.date === dateStr).sort((a,b) => a.time.localeCompare(b.time));
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayAppts = state.appointments.filter(a => a.date === dateStr).sort((a, b) => String(a.time).localeCompare(String(b.time)));
             const shown = dayAppts.slice(0, maxShow);
             const extra = dayAppts.length - shown.length;
             const isToday = dateStr === todayStr;
-            return `<div class="agenda-month-cell ${isToday ? 'is-today' : ''}" data-date="${dateStr}">
-                <div class="agenda-month-daynum">${day}</div>
-                <div class="agenda-month-events">
-                    ${shown.map(a => `<div class="agenda-month-event" onclick="window.pluri.editAppointment('${a.id}')">
-                        <span class="agenda-month-dot" style="background:${statusColor(a.status)}"></span>
-                        <span class="agenda-month-event-time">${a.time}</span>
-                        <span class="agenda-month-event-name">${a.patient}</span>
-                    </div>`).join('')}
-                    ${extra > 0 ? `<div class="agenda-month-more" onclick="openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
+
+            return `
+                <div class="agenda-month-cell ${isToday ? 'is-today' : ''}" data-date="${dateStr}">
+                    <div class="agenda-month-daynum">${day}</div>
+                    <div class="agenda-month-events">
+                        ${shown.map(appt => {
+                            const status = String(appt.status || '').trim() || 'Aguardando';
+                            return `
+                                <div class="agenda-month-event" title="${appt.patient} · ${status}" onclick="window.pluri.editAppointment('${appt.id}')">
+                                    <span class="agenda-month-dot" style="background:${statusColor(status)}"></span>
+                                    <span class="agenda-month-event-time">${appt.time}</span>
+                                    <span class="agenda-month-event-name">${appt.patient}</span>
+                                </div>`;
+                        }).join('')}
+                        ${extra > 0 ? `<div class="agenda-month-more" onclick="openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
+                    </div>
+                </div>`;
+        }).join('');
+
+        return `
+            <div class="card">
+                <div class="card-body no-padding">
+                    <div class="agenda-month-grid-header">${weekdayHeaders}</div>
+                    <div class="agenda-month-grid">${cellsHtml}</div>
                 </div>
             </div>`;
-        }).join('');
-        return `<div class="card"><div class="card-body no-padding">
-            <div class="agenda-month-grid-header">${weekdayHeaders}</div>
-            <div class="agenda-month-grid">${cellsHtml}</div>
-        </div></div>`;
     }
 
-    function openDayFromMonth(dateStr) { state.agendaDate = dateStr; state.agendaTab = 'today'; renderPage(); }
-    function statusColor(status) {
-        if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') return '#22C55E';
-        if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo') return '#F59E0B';
-        return '#EF4444';
+    function openDayFromMonth(dateStr) {
+        state.agendaDate = dateStr;
+        state.agendaTab = 'today';
+        renderPage();
     }
 
-    // -- Atendimentos --
+    // -- Atendimentos / Pacientes / Configurações (inalterados) --
     function buildAtendimentos() {
         return `<div class="card"><div class="card-body no-padding">
             ${state.conversations.map(c => `
@@ -512,7 +604,6 @@
         openSlidePanel();
     }
 
-    // -- Pacientes --
     function buildPacientes() {
         return `
             <div class="search-bar" style="display:flex;gap:8px;">
@@ -549,16 +640,12 @@
             const phone = getEl('newPatientPhone').value.trim();
             if (!name || !phone) { showToast('Preencha nome e telefone.'); return; }
             const newPatient = {
-                _row: Date.now(),
-                id: Date.now(),
-                name,
-                phone,
+                _row: Date.now(), id: Date.now(),
+                name, phone,
                 email: getEl('newPatientEmail').value.trim(),
                 notes: getEl('newPatientNotes').value.trim(),
                 created: new Date().toLocaleDateString('pt-BR'),
-                lastVisit: '-',
-                nextAppt: '-',
-                status: 'Novo'
+                lastVisit: '-', nextAppt: '-', status: 'Novo'
             };
             state.patients.push(newPatient);
             closeSlidePanel();
@@ -595,7 +682,6 @@
         openSlidePanel();
     }
 
-    // -- Configurações --
     function buildConfiguracoes() {
         return `
             <div class="card">
@@ -661,9 +747,7 @@
             const role = getEl('newStaffRole').value.trim();
             if (!name || !role) { showToast('Preencha nome e função.'); return; }
             const newStaff = {
-                _row: Date.now(),
-                name,
-                role,
+                _row: Date.now(), name, role,
                 email: getEl('newStaffEmail').value.trim(),
                 phone: getEl('newStaffPhone').value.trim(),
                 status: getEl('newStaffStatus').value
@@ -723,7 +807,6 @@
         renderPage();
     };
 
-    // -- Automações, Indicadores --
     function buildAutomacoes() {
         const autos = [
             {name:'Atendimento inicial',desc:'Responde automaticamente novos contatos.',status:'Ativo'},
@@ -737,6 +820,7 @@
                 <div class="automation-meta">${statusBadge(a.status)}</div>
             </div>`).join('')}</div>`;
     }
+
     function buildIndicadores() {
         return `
             <div class="grid-2">
@@ -750,7 +834,7 @@
     }
 
     // ======================================================
-    // MODAL & APPOINTMENT ACTIONS
+    // MODAL & APPOINTMENT ACTIONS (compatível com agenda.js)
     // ======================================================
     function openModal(time = null, patientName = null, patientPhone = null) {
         getEl('modalOverlay').classList.add('show');
@@ -765,16 +849,27 @@
         refreshIcons();
     }
 
-    function openEditAppointment(id) {
-        const appt = state.appointments.find(a => a.id == id);
+    function openEditAppointment(eventId) {
+        const appt = state.appointments.find(a => String(a.id) === String(eventId));
         if (!appt) return;
         openModal(appt.time, appt.patient, appt.phone);
-        getEl('apptProfessional').value = appt.professional;
-        getEl('apptService').value = appt.service;
+        getEl('apptProfessional').value = appt.professional || 'Dra. Ana';
+        getEl('apptService').value = appt.service || 'Avaliação';
         getEl('apptDate').value = appt.date;
-        getEl('apptNotes').value = appt.notes || '';
-        getEl('apptStatus').value = appt.status || 'Aguardando';
-        window._editingAppointmentId = id;
+
+        let notesValue = appt.notes || '';
+        try {
+            const parsed = JSON.parse(notesValue);
+            if (parsed && typeof parsed === 'object' && parsed.notes !== undefined) {
+                notesValue = parsed.notes || '';
+            }
+        } catch (e) { /* não é JSON */ }
+        getEl('apptNotes').value = notesValue;
+
+        const statusInput = getEl('apptStatus');
+        if (statusInput) statusInput.value = appt.status || 'Aguardando';
+
+        window._editingAppointmentId = eventId;
         setModalMode('edit');
     }
 
@@ -794,7 +889,6 @@
         const saveBtn = getEl('modalSave');
         if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Salvando...'; }
 
-        // Simula delay de API
         await new Promise(resolve => setTimeout(resolve, 300));
 
         if (isEditing) {
@@ -805,17 +899,9 @@
         } else {
             const newAppt = {
                 id: Date.now(),
-                patient,
-                phone,
-                professional,
-                service,
-                date,
-                time,
-                notes,
-                status
+                patient, phone, professional, service, date, time, notes, status
             };
             state.appointments.push(newAppt);
-            // Adiciona também como paciente se não existir
             if (!state.patients.some(p => p.name.toLowerCase() === patient.toLowerCase())) {
                 state.patients.push({
                     _row: Date.now(),
@@ -837,7 +923,7 @@
     }
 
     window.deleteAppointment = function(id) {
-        if (!confirm('Excluir este agendamento?')) return;
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
         state.appointments = state.appointments.filter(a => a.id != id);
         renderPage();
         showToast('Agendamento excluído.');
@@ -869,14 +955,13 @@
         getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
         getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
 
-        // Tabs da agenda
         document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 state.agendaTab = tab.dataset.tab;
                 renderPage();
             });
         });
-        // Navegação de dia
+
         getEl('agendaPrevDay')?.addEventListener('click', () => {
             const d = new Date(state.agendaDate + 'T00:00:00');
             d.setDate(d.getDate() - 1);
@@ -889,7 +974,7 @@
             state.agendaDate = toDateStr(d);
             renderPage();
         });
-        // Navegação de mês
+
         getEl('agendaPrevMonth')?.addEventListener('click', () => {
             state.agendaMonth.month--;
             if (state.agendaMonth.month < 0) { state.agendaMonth.month = 11; state.agendaMonth.year--; }
@@ -901,23 +986,22 @@
             renderPage();
         });
 
-        // KPIs clicáveis
         document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
             card.addEventListener('click', () => navigateTo(card.dataset.link));
         });
-        // Links internos
+
         document.querySelectorAll('.js-nav').forEach(el => {
             el.addEventListener('click', (e) => { e.preventDefault(); navigateTo(el.dataset.page); });
         });
-        // Conversas
+
         document.querySelectorAll('[data-conversation-id]').forEach(el => {
             el.addEventListener('click', () => openConversation(parseInt(el.dataset.conversationId)));
         });
-        // Pacientes
+
         document.querySelectorAll('[data-patient-row]').forEach(el => {
             el.addEventListener('click', () => openPatient(parseInt(el.dataset.patientRow)));
         });
-        // Busca
+
         getEl('patientSearch')?.addEventListener('input', (e) => {
             const q = e.target.value.toLowerCase();
             document.querySelectorAll('#patientTableBody tr').forEach(row => {
@@ -948,7 +1032,6 @@
             });
         });
 
-        // Fechar menu lateral ao clicar no overlay (mobile)
         getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
         renderPage();
