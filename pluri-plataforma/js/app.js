@@ -899,17 +899,239 @@ function loadState() {
     // MODAL & APPOINTMENT ACTIONS
     // ======================================================
     function openModal(time = null, patientName = null, patientPhone = null) {
-        getEl('modalOverlay').classList.add('show');
-        window._editingAppointmentId = null;
-        setModalMode('create');
-        getEl('apptDate').value = toDateStr(new Date());
-        getEl('apptTime').value = time || '09:00';
-        getEl('apptPatient').value = patientName || '';
-        getEl('apptPhone').value = patientPhone || '';
-        getEl('apptNotes').value = '';
-        getEl('apptStatus').value = 'Aguardando';
-        refreshIcons();
+
+    const overlay = getEl('modalOverlay');
+
+    if (!overlay) return;
+
+    overlay.classList.add('show');
+
+    const dateInput = getEl('apptDate');
+
+    if (dateInput) {
+        dateInput.value =
+            new Date().toISOString().split('T')[0];
     }
+
+    const timeInput = getEl('apptTime');
+
+    if (timeInput) {
+        timeInput.value = time || '09:00';
+    }
+
+    const patientInput = getEl('apptPatient');
+
+    if (patientInput) {
+
+        patientInput.value = patientName || '';
+
+        patientInput.oninput = () => {
+
+            const term =
+                patientInput.value
+                    .trim()
+                    .toLowerCase();
+
+            const results =
+                getEl('patientSearchResults');
+
+            if (!results) return;
+
+            if (!term) {
+
+                results.style.display = 'none';
+                results.innerHTML = '';
+
+                return;
+            }
+
+            const patients =
+                (state.patients || []).filter(p =>
+
+                    String(p.name || '')
+                        .toLowerCase()
+                        .includes(term)
+
+                    ||
+
+                    String(p.phone || '')
+                        .toLowerCase()
+                        .includes(term)
+
+                );
+
+            if (!patients.length) {
+
+                results.innerHTML = `
+                    <div style="
+                        padding:12px;
+                        color:var(--text-secondary);
+                        font-size:13px;
+                    ">
+                        Nenhum paciente encontrado.
+                    </div>
+                `;
+
+                results.style.display = 'block';
+
+                return;
+            }
+
+            results.innerHTML = patients
+                .slice(0, 8)
+                .map(p => `
+
+                    <div
+                        class="patient-search-result"
+                        data-patient-row="${p._row}"
+                        style="
+                            padding:10px 12px;
+                            cursor:pointer;
+                            border-bottom:1px solid var(--border);
+                        "
+                    >
+
+                        <div style="
+                            font-weight:600;
+                            font-size:13px;
+                        ">
+                            ${p.name || '-'}
+                        </div>
+
+                        <div style="
+                            font-size:11px;
+                            color:var(--text-secondary);
+                            margin-top:2px;
+                        ">
+                            ${p.phone || 'Sem telefone'}
+                        </div>
+
+                    </div>
+
+                `)
+                .join('');
+
+            results.style.display = 'block';
+
+            results
+                .querySelectorAll('.patient-search-result')
+                .forEach(item => {
+
+                    item.addEventListener('click', () => {
+
+                        const row =
+                            item.dataset.patientRow;
+
+                        const patient =
+                            state.patients.find(
+                                p =>
+                                    String(p._row) ===
+                                    String(row)
+                            );
+
+                        if (!patient) return;
+
+                        patientInput.value =
+                            patient.name || '';
+
+                        const phoneInput =
+                            getEl('apptPhone');
+
+                        if (phoneInput) {
+                            phoneInput.value =
+                                patient.phone || '';
+                        }
+
+                        results.style.display = 'none';
+                        results.innerHTML = '';
+
+                    });
+
+                });
+        };
+    }
+
+    const phoneInput =
+        getEl('apptPhone');
+
+    if (phoneInput) {
+        phoneInput.value =
+            patientPhone || '';
+    }
+
+    const notesInput =
+        getEl('apptNotes');
+
+    if (notesInput) {
+        notesInput.value = '';
+    }
+
+    const statusInput =
+        getEl('apptStatus');
+
+    if (statusInput) {
+        statusInput.value = 'Aguardando';
+    }
+
+    const results =
+        getEl('patientSearchResults');
+
+    if (results) {
+        results.style.display = 'none';
+        results.innerHTML = '';
+    }
+
+    // ============================================
+    // CADASTRAR NOVO PACIENTE PELO AGENDAMENTO
+    // ============================================
+
+    const newPatientBtn =
+        getEl('newPatientFromAppointment');
+
+    if (newPatientBtn) {
+
+        newPatientBtn.onclick = () => {
+
+            const currentName =
+                getEl('apptPatient')
+                    ?.value
+                    ?.trim() || '';
+
+            const currentPhone =
+                getEl('apptPhone')
+                    ?.value
+                    ?.trim() || '';
+
+            window._returnToAppointment = true;
+
+            closeModal();
+
+            openNewPatient();
+
+            setTimeout(() => {
+
+                const nameInput =
+                    getEl('newPatientName');
+
+                const phoneInput =
+                    getEl('newPatientPhone');
+
+                if (nameInput) {
+                    nameInput.value =
+                        currentName;
+                }
+
+                if (phoneInput) {
+                    phoneInput.value =
+                        currentPhone;
+                }
+
+            }, 50);
+        };
+    }
+
+    refreshIcons();
+}
 
     function openEditAppointment(eventId) {
         const appt = state.appointments.find(a => String(a.id) === String(eventId));
@@ -1105,22 +1327,25 @@ renderPage();
 
         getEl('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
-        renderPage();
+// API pública (mesma do pluri-os)
+// Criar ANTES de renderizar a agenda,
+// porque os botões "Agendar" já são criados durante o renderPage().
+window.pluri = window.pluri || {};
 
-        // API pública (mesma do pluri-os)
-        window.pluri = window.pluri || {};
-        Object.assign(window.pluri, {
-            navigateTo,
-            openConversation,
-            openPatient,
-            openModal,
-            openStaff,
-            showToast,
-            editAppointment: openEditAppointment,
-            deleteAppointment: window.deleteAppointment,
-            openDayFromMonth: window.openDayFromMonth,
-            confirmAppointment: function() {} // pausada
-        });
+Object.assign(window.pluri, {
+    navigateTo,
+    openConversation,
+    openPatient,
+    openModal,
+    openStaff,
+    showToast,
+    editAppointment: openEditAppointment,
+    deleteAppointment: window.deleteAppointment,
+    openDayFromMonth: window.openDayFromMonth,
+    confirmAppointment: function() {}
+});
+
+renderPage();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
