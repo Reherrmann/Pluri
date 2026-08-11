@@ -3,6 +3,53 @@ function getEl(id) {
     return document.getElementById(id);
 }
 
+// =====================================================
+// LOADING GLOBAL
+// =====================================================
+
+let _loadingCount = 0;
+
+function showLoading(message = 'Carregando...') {
+
+    const loading =
+        document.getElementById('globalLoading');
+
+    const text =
+        document.getElementById('globalLoadingText');
+
+    if (!loading) return;
+
+    _loadingCount++;
+
+    if (text) {
+        text.textContent = message;
+    }
+
+    loading.classList.add('show');
+}
+
+
+function hideLoading() {
+
+    _loadingCount--;
+
+    if (_loadingCount < 0) {
+        _loadingCount = 0;
+    }
+
+    // Só fecha quando todas as operações terminaram
+    if (_loadingCount > 0) {
+        return;
+    }
+
+    const loading =
+        document.getElementById('globalLoading');
+
+    if (loading) {
+        loading.classList.remove('show');
+    }
+}
+
 function getInitials(name) {
     const parts = String(name || '').split(' ');
     return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
