@@ -440,18 +440,53 @@ function openPatient(row) {
 
                 try {
 
-                    state.patients =
-                        await window.pluriAPI.getPatients();
+    state.patients =
+        await window.pluriAPI.getPatients();
 
-                    closeSlidePanel();
 
-                    showToast(
-                        'Paciente atualizado com sucesso!'
-                    );
+    // Se o cadastro foi iniciado pelo agendamento,
+    // volta automaticamente para o agendamento.
 
-                    renderPage();
+    if (window._returnToAppointment) {
 
-                } catch (e) {
+        window._returnToAppointment = false;
+
+        const newPatient =
+            state.patients.find(
+                p => String(p._row) === String(newRow)
+            );
+
+        closeSlidePanel();
+
+
+        if (newPatient) {
+
+            setTimeout(() => {
+
+                openModal(
+                    null,
+                    newPatient.name,
+                    newPatient.phone
+                );
+
+            }, 150);
+
+            return;
+        }
+    }
+
+
+    // Cadastro normal pela aba Pacientes
+
+    closeSlidePanel();
+
+    showToast(
+        'Paciente criado com sucesso!'
+    );
+
+    renderPage();
+
+} catch (e) {
 
                     console.error(e);
 
