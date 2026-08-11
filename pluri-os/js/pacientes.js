@@ -133,19 +133,33 @@ function openNewPatient() {
                 gap:8px;
             ">
 
-            <button
-                class="btn btn-outline btn-sm"
-                id="cancelNewPatient">
-                Cancelar
-            </button>
+            <div
+    style="
+        margin-top:16px;
+        display:flex;
+        gap:8px;
+    ">
 
-            <button
-                class="btn btn-primary btn-sm"
-                id="saveNewPatient">
-                Criar paciente
-            </button>
+    <button
+        class="btn btn-outline btn-sm"
+        id="cancelPatientEdit">
+        Cancelar
+    </button>
 
-        </div>
+    <button
+        class="btn btn-primary btn-sm"
+        id="savePatientEdit">
+        Salvar alterações
+    </button>
+
+    <button
+        class="btn btn-outline btn-sm"
+        id="deletePatientBtn"
+        style="color:#dc3545;border-color:#dc3545;">
+        Excluir paciente
+    </button>
+
+</div>
 
         <p
             style="
@@ -162,6 +176,75 @@ function openNewPatient() {
             'click',
             closeSlidePanel
         );
+
+    getEl('deletePatientBtn')
+    ?.addEventListener(
+        'click',
+        async () => {
+
+            const confirmed =
+                window.confirm(
+                    `Tem certeza que deseja excluir o paciente "${p.name}"?`
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+            const deleteBtn =
+                getEl('deletePatientBtn');
+
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = 'Excluindo...';
+            }
+
+            try {
+
+                const result =
+                    await window.pluriAPI.deletePatient(
+                        p._row
+                    );
+
+                if (!result?.success) {
+
+                    throw new Error(
+                        result?.error ||
+                        'Não foi possível excluir o paciente.'
+                    );
+                }
+
+                state.patients =
+                    await window.pluriAPI.getPatients();
+
+                closeSlidePanel();
+
+                showToast(
+                    'Paciente excluído com sucesso!'
+                );
+
+                renderPage();
+
+            } catch (e) {
+
+                console.error(
+                    'Erro ao excluir paciente:',
+                    e
+                );
+
+                showToast(
+                    e.message ||
+                    'Não foi possível excluir o paciente.'
+                );
+
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent =
+                        'Excluir paciente';
+                }
+            }
+        }
+    );
 
     getEl('saveNewPatient')
         ?.addEventListener(
