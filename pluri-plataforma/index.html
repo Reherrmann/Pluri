@@ -6,6 +6,95 @@
     <title>PLURI OS</title>
     <base href="/pluri-plataforma/">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+    /* Botão flutuante de feedback */
+    .feedback-fab {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #002C47; /* cor primária */
+        color: #fff;
+        border: none;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 500;
+        transition: transform 0.2s;
+    }
+    .feedback-fab:hover {
+        transform: scale(1.1);
+    }
+    .feedback-fab svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Modal de feedback */
+    .feedback-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 600;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    .feedback-modal-overlay.show {
+        display: flex;
+    }
+    .feedback-modal {
+        background: #fff;
+        border: 2px solid #ddd;
+        border-radius: 14px;
+        width: 90%;
+        max-width: 480px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        padding: 24px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .feedback-modal h3 {
+        margin-bottom: 16px;
+        font-size: 18px;
+        color: #101828;
+    }
+    .feedback-modal .form-group {
+        margin-bottom: 14px;
+    }
+    .feedback-modal .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #5b6a7e;
+        margin-bottom: 5px;
+    }
+    .feedback-modal .form-group input,
+    .feedback-modal .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        background: #fff;
+        color: #101828;
+        outline: none;
+    }
+    .feedback-modal .form-group input:focus,
+    .feedback-modal .form-group textarea:focus {
+        border-color: #002C47;
+    }
+    .feedback-modal .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+</style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,450;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
