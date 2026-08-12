@@ -205,5 +205,38 @@
             }
         })();
     </script>
+
+    <!-- Botão flutuante de feedback -->
+<button class="feedback-fab" id="feedbackFab" title="Deixe seu comentário">
+    <i data-lucide="message-circle"></i>
+</button>
+
+<!-- Modal de feedback -->
+<div class="feedback-modal-overlay" id="feedbackModalOverlay">
+    <div class="feedback-modal">
+        <h3>💬 Deixe seu comentário</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+            Sua opinião é muito importante para melhorar a plataforma.
+        </p>
+        <form id="feedbackForm">
+            <div class="form-group">
+                <label>Seu nome</label>
+                <input type="text" name="nome" id="feedbackName" placeholder="Como podemos te chamar?">
+            </div>
+            <div class="form-group">
+                <label>Seu e-mail</label>
+                <input type="email" name="email" id="feedbackEmail" placeholder="Para podermos responder (opcional)">
+            </div>
+            <div class="form-group">
+                <label>O que achou da plataforma?</label>
+                <textarea name="comentario" id="feedbackMessage" rows="4" placeholder="Conte sua experiência, sugestões ou problemas..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" id="feedbackCancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Enviar comentário</button>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>
