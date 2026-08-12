@@ -466,9 +466,6 @@
     <div class="card-placeholder">Espaço adaptável para a clínica</div>
     <div class="card-placeholder">Espaço adaptável para a clínica</div>
 </div>`;
-            <div class="card-placeholder">Espaço adaptável para a clínica</div>
-            <div class="card-placeholder">Espaço adaptável para a clínica</div>
-        </div>`;
     }
 
     // ======================================================
