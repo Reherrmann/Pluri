@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Entrar | PLURI OS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #002C47;
+            --accent: #FFBE46;
+            --background: #F6F8FB;
+            --white: #FFFFFF;
+            --text: #101828;
+            --text-secondary: #667085;
+            --border: #E5E7EB;
+            --error: #B42318;
+            --error-bg: #FEF3F2;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--background);
+            color: var(--text);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 24px;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            margin-bottom: 28px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+
+        .login-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            padding: 32px;
+
+            box-shadow:
+                0 1px 4px rgba(0, 0, 0, 0.04),
+                0 0 0 1px rgba(0, 0, 0, 0.01);
+        }
+
+        .login-header {
+            margin-bottom: 26px;
+        }
+
+        .login-header h1 {
+            color: var(--primary);
+            font-size: 23px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+
+            margin-bottom: 7px;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            line-height: 1.5;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 17px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            color: var(--text-secondary);
+            font-size: 12.5px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+
+            padding: 11px 12px;
+
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--text);
+
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+
+            outline: none;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 44, 71, 0.08);
+        }
+
+        .form-group input::placeholder {
+            color: #98A2B3;
+        }
+
+        .login-button {
+            width: 100%;
+
+            margin-top: 3px;
+            padding: 11px 16px;
+
+            border: 1px solid var(--primary);
+            border-radius: 22px;
+
+            background: var(--primary);
+            color: var(--white);
+
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        .login-button:hover {
+            background: #003D5C;
+        }
+
+        .login-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .login-error {
+            display: none;
+
+            padding: 10px 12px;
+
+            background: var(--error-bg);
+            color: var(--error);
+
+            border-radius: 7px;
+
+            font-size: 12.5px;
+            line-height: 1.4;
+        }
+
+        .login-error.show {
+            display: block;
+        }
+
+        .login-footer {
+            margin-top: 20px;
+
+            text-align: center;
+
+            color: var(--text-secondary);
+            font-size: 11.5px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            .login-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="login-wrapper">
+
+        <div class="brand">
+
+            <img
+        src="../PLURI-azul.png"
+        alt="PLURI"
+        class="logo-img"
+        width="32"
+        height="32"
+    >
+
+            <span class="brand-name">PLURI OS</span>
+
+        </div>
+
+
+        <section class="login-card">
+
+            <div class="login-header">
+                <h1>Bem-vindo de volta.</h1>
+                <p>
+                    Entre com seus dados para acessar sua clínica.
+                </p>
+            </div>
+
+
+            <form class="form" id="loginForm">
+
+                <div
+                    class="login-error"
+                    id="loginError"
+                    role="alert"
+                ></div>
+
+
+                <div class="form-group">
+
+                    <label for="email">
+                        E-mail
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="seu@email.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Senha
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Digite sua senha"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="login-button"
+                    id="loginButton"
+                >
+                    Entrar
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <div class="login-footer">
+            PLURI OS · Gestão inteligente para clínicas
+        </div>
+
+    </main>
+
+
+    <script>
+        /*
+         * IMPORTANTE:
+         * Esta é a URL do Apps Script CENTRAL da PLURI.
+         * Não é o Apps Script individual da clínica.
+         */
+        const PLURI_AUTH_API =
+            'https://script.google.com/macros/s/AKfycbzYGzXwZ4QIwGkBK9TUmTsvhmtpGtA4Wrfu1ifW9lspm1G1YiEoAOFVSnuLKinyOT7kgg/exec';
+
+
+        /*
+         * Se já existir uma sessão,
+         * não precisamos mostrar o login novamente.
+         */
+        const existingSession =
+            localStorage.getItem('pluri_session');
+
+        if (existingSession) {
+            window.location.replace('index.html');
+        }
+
+
+        const form =
+            document.getElementById('loginForm');
+
+        const emailInput =
+            document.getElementById('email');
+
+        const passwordInput =
+            document.getElementById('password');
+
+        const loginButton =
+            document.getElementById('loginButton');
+
+        const loginError =
+            document.getElementById('loginError');
+
+
+        function showError(message) {
+            loginError.textContent = message;
+            loginError.classList.add('show');
+        }
+
+
+        function clearError() {
+            loginError.textContent = '';
+            loginError.classList.remove('show');
+        }
+
+
+        form.addEventListener('submit', async function(event) {
+
+            event.preventDefault();
+
+            clearError();
+
+            const email =
+                emailInput.value.trim();
+
+            const password =
+                passwordInput.value;
+
+
+            if (!email || !password) {
+                showError('Preencha seu e-mail e sua senha.');
+                return;
+            }
+
+
+            loginButton.disabled = true;
+            loginButton.textContent = 'Entrando...';
+
+
+            try {
+
+                const params =
+                    new URLSearchParams({
+                        action: 'login',
+                        email: email,
+                        senha: password
+                    });
+
+
+                const response =
+                    await fetch(
+                        `${PLURI_AUTH_API}?${params.toString()}`
+                    );
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        'Não foi possível acessar o servidor.'
+                    );
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.success || !data.user) {
+
+                    showError(
+                        data.error ||
+                        'E-mail ou senha inválidos.'
+                    );
+
+                    return;
+                }
+
+if (!data.token) {
+
+    showError(
+        'Não foi possível criar uma sessão segura.'
+    );
+
+    return;
+}
+
+
+/*
+ * Guardamos o token criado pelo backend.
+ * A senha nunca é armazenada no navegador.
+ */
+                const session = {
+    token: data.token,
+    expiraEm: data.expiraEm,
+    user: data.user,
+    loggedAt: new Date().toISOString()
+};
+
+
+                localStorage.setItem(
+                    'pluri_session',
+                    JSON.stringify(session)
+                );
+
+
+                window.location.replace('index.html');
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erro no login:',
+                    error
+                );
+
+                showError(
+                    'Não foi possível entrar. Tente novamente.'
+                );
+
+
+            } finally {
+
+                loginButton.disabled = false;
+                loginButton.textContent = 'Entrar';
+
+            }
+
+        });
+    </script>
+
+</body>
+</html>
