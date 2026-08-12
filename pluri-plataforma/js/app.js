@@ -366,116 +366,65 @@
 
     // --- Dashboard ---
     function buildDashboard() {
-        const today = new Date();
-        const todayStr = toDateStr(today);
-        const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
-        const confirmed = appointmentsToday.filter(a => a.status === 'Confirmado').length;
-        const pending = appointmentsToday.filter(a => a.status === 'Pendente' || a.status === 'Aguardando').length;
-        const cancelled = appointmentsToday.filter(a => a.status === 'Cancelado').length;
-        const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
+    const today = new Date();
+    const todayStr = toDateStr(today);
+    const appointmentsToday = state.appointments.filter(a => a.date === todayStr);
+    const confirmed = appointmentsToday.filter(a => a.status === 'Confirmado').length;
+    const pending = appointmentsToday.filter(a => a.status === 'Pendente' || a.status === 'Aguardando').length;
+    const cancelled = appointmentsToday.filter(a => a.status === 'Cancelado').length;
+    const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
 
-        // Dados fake para o gráfico de atendimentos da semana
-        const fakeCounts = [3, 7, 2, 8, 5, 1]; // seg a sáb
-        const dayOfWeek = today.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(today);
-        monday.setDate(today.getDate() + mondayOffset);
-        monday.setHours(0, 0, 0, 0);
-        const weekDays = [];
-        for (let i = 0; i < 6; i++) {
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + i);
-            const dateStr = toDateStr(date);
-            weekDays.push({ date: dateStr, count: fakeCounts[i] });
-        }
-
-        return `
-        <div class="kpi-row">
-            <div class="kpi-card" data-link="agenda">
-                <div class="kpi-value">${appointmentsToday.length}</div>
-                <div class="kpi-label">Atendimentos hoje</div>
-                <div class="kpi-sub">${confirmed} confirmados</div>
-            </div>
-            <div class="kpi-card" data-link="atendimentos">
-                <div class="kpi-value">${conversationsWaiting}</div>
-                <div class="kpi-label">Conversas aguardando</div>
-                <div class="kpi-sub">Precisam da equipe</div>
-            </div>
-            <div class="kpi-card" data-link="agenda">
-                <div class="kpi-value">${pending}</div>
-                <div class="kpi-label">Confirmações pendentes</div>
-                <div class="kpi-sub amber">Precisam de atenção</div>
-            </div>
-            <div class="kpi-card" data-link="agenda">
-                <div class="kpi-value">${cancelled}</div>
-                <div class="kpi-label">Cancelamentos hoje</div>
-                <div class="kpi-sub">${cancelled > 0 ? 'Precisam de atenção' : 'Nenhum'}</div>
-            </div>
-        </div>
-        <div class="grid-2">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Agenda de hoje</h3>
-                    <a class="btn btn-sm btn-outline js-nav" data-page="agenda">Ver agenda →</a>
-                </div>
-                <div class="card-body no-padding">
-                    <ul class="agenda-list">${[...appointmentsToday].sort((a,b) => a.time.localeCompare(b.time)).slice(0,6).map(a => `
-                        <li class="agenda-item" onclick="window.pluri.editAppointment('${a.id}')" style="cursor:pointer;">
-                            <span class="agenda-time">${a.time}</span>
-                            <div class="agenda-info">
-                                <div class="agenda-name">${a.patient}</div>
-                                <div class="agenda-detail">${a.service} · ${a.professional}</div>
-                            </div>
-                            ${statusBadge(a.status)}
-                        </li>`).join('')}
-                    </ul>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header"><h3>Precisa da sua atenção</h3></div>
-                <div class="card-body">
-                    <div style="display:flex;flex-direction:column;gap:14px;">
-                        <div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;">
-                            <strong style="font-size:13px;">${pending} confirmações pendentes</strong>
-                            <p style="font-size:12px;color:var(--text-secondary);">Pacientes ainda não confirmaram.</p>
-                            <a class="btn btn-sm btn-outline js-nav" data-page="agenda">Ver agenda</a>
-                        </div>
-                        <div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;">
-                            <strong style="font-size:13px;">${conversationsWaiting} conversas precisam da equipe</strong>
-                            <p style="font-size:12px;color:var(--text-secondary);">Solicitações aguardando atendimento.</p>
-                            <a class="btn btn-sm btn-outline js-nav" data-page="atendimentos">Ver conversas</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-      <div class="grid-4">
-    <div class="card">
-        <div class="card-header"><h3>Atendimentos da semana</h3></div>
-        <div class="card-body">
-            <div class="chart-container">${renderBarChart(weekDays.map(d => d.count), weekDays.map(d => {
-                const date = new Date(d.date + 'T00:00:00');
-                const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-                return `${dayName} ${date.getDate()}`;
-            }), weekDays.findIndex(d => d.date === todayStr))}</div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-header"><h3>Atividade recente</h3></div>
-        <div class="card-body">
-            <div class="timeline">${state.activities.slice(0,5).map(a => `
-                <div class="timeline-item">
-                    <span class="timeline-time">${a.time || '--:--'}</span>
-                    <div class="timeline-dot"></div>
-                    <span class="timeline-text">${a.text || ''}</span>
-                </div>`).join('')}
-            </div>
-        </div>
-    </div>
-    <div class="card-placeholder">Espaço adaptável para a clínica</div>
-    <div class="card-placeholder">Espaço adaptável para a clínica</div>
-</div>`;
+    const fakeCounts = [3, 7, 2, 8, 5, 1];
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    const weekDays = [];
+    for (let i = 0; i < 6; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        const dateStr = toDateStr(date);
+        weekDays.push({ date: dateStr, count: fakeCounts[i] });
     }
+
+    let html = '';
+    html += '<div class="kpi-row">';
+    html += '<div class="kpi-card" data-link="agenda"><div class="kpi-value">' + appointmentsToday.length + '</div><div class="kpi-label">Atendimentos hoje</div><div class="kpi-sub">' + confirmed + ' confirmados</div></div>';
+    html += '<div class="kpi-card" data-link="atendimentos"><div class="kpi-value">' + conversationsWaiting + '</div><div class="kpi-label">Conversas aguardando</div><div class="kpi-sub">Precisam da equipe</div></div>';
+    html += '<div class="kpi-card" data-link="agenda"><div class="kpi-value">' + pending + '</div><div class="kpi-label">Confirmações pendentes</div><div class="kpi-sub amber">Precisam de atenção</div></div>';
+    html += '<div class="kpi-card" data-link="agenda"><div class="kpi-value">' + cancelled + '</div><div class="kpi-label">Cancelamentos hoje</div><div class="kpi-sub">' + (cancelled > 0 ? 'Precisam de atenção' : 'Nenhum') + '</div></div>';
+    html += '</div>';
+
+    html += '<div class="grid-2">';
+    html += '<div class="card"><div class="card-header"><h3>Agenda de hoje</h3><a class="btn btn-sm btn-outline js-nav" data-page="agenda">Ver agenda →</a></div><div class="card-body no-padding"><ul class="agenda-list">';
+    html += [...appointmentsToday].sort((a,b) => a.time.localeCompare(b.time)).slice(0,6).map(a => '<li class="agenda-item" onclick="window.pluri.editAppointment(\'' + a.id + '\')" style="cursor:pointer;"><span class="agenda-time">' + a.time + '</span><div class="agenda-info"><div class="agenda-name">' + a.patient + '</div><div class="agenda-detail">' + a.service + ' · ' + a.professional + '</div></div>' + statusBadge(a.status) + '</li>').join('');
+    html += '</ul></div></div>';
+
+    html += '<div class="card"><div class="card-header"><h3>Precisa da sua atenção</h3></div><div class="card-body"><div style="display:flex;flex-direction:column;gap:14px;">';
+    html += '<div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;"><strong style="font-size:13px;">' + pending + ' confirmações pendentes</strong><p style="font-size:12px;color:var(--text-secondary);">Pacientes ainda não confirmaram.</p><a class="btn btn-sm btn-outline js-nav" data-page="agenda">Ver agenda</a></div>';
+    html += '<div style="padding:12px 14px;background:var(--hover-bg);border-radius:8px;"><strong style="font-size:13px;">' + conversationsWaiting + ' conversas precisam da equipe</strong><p style="font-size:12px;color:var(--text-secondary);">Solicitações aguardando atendimento.</p><a class="btn btn-sm btn-outline js-nav" data-page="atendimentos">Ver conversas</a></div>';
+    html += '</div></div></div></div>';
+
+    html += '<div class="grid-4">';
+    html += '<div class="card"><div class="card-header"><h3>Atendimentos da semana</h3></div><div class="card-body"><div class="chart-container">';
+    html += renderBarChart(weekDays.map(d => d.count), weekDays.map(d => {
+        const date = new Date(d.date + 'T00:00:00');
+        const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+        return dayName + ' ' + date.getDate();
+    }), weekDays.findIndex(d => d.date === todayStr));
+    html += '</div></div></div>';
+
+    html += '<div class="card"><div class="card-header"><h3>Atividade recente</h3></div><div class="card-body"><div class="timeline">';
+    html += state.activities.slice(0,5).map(a => '<div class="timeline-item"><span class="timeline-time">' + (a.time || '--:--') + '</span><div class="timeline-dot"></div><span class="timeline-text">' + (a.text || '') + '</span></div>').join('');
+    html += '</div></div></div>';
+
+    html += '<div class="card-placeholder">Espaço adaptável para a clínica</div>';
+    html += '<div class="card-placeholder">Espaço adaptável para a clínica</div>';
+    html += '</div>';
+
+    return html;
+}
     // ======================================================
     // AGENDA – idêntica ao agenda.js original
     // ======================================================
