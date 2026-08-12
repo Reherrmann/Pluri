@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Política de Privacidade – PLURI</title>
+</head>
+<body>
+    <h1>Política de Privacidade</h1>
+    <p><strong>Última atualização:</strong> 12/08/2026</p>
+
+    <h2>1. Introdução</h2>
+    <p>Esta Política de Privacidade descreve como a PLURI ("nós", "nosso") coleta, usa e protege as informações obtidas através da integração com o Google Calendar.</p>
+
+    <h2>2. Dados que acessamos</h2>
+    <p>Quando você conecta sua conta Google Calendar, acessamos apenas os dados necessários para sincronizar sua agenda com a plataforma PLURI, incluindo eventos, títulos, horários e descrições.</p>
+
+    <h2>3. Como usamos esses dados</h2>
+    <p>Os dados são usados exclusivamente para exibir seus eventos na agenda da clínica, permitir a criação/edição/exclusão de agendamentos e enviar lembretes. Não utilizamos seus dados para qualquer outra finalidade.</p>
+
+    <h2>4. Armazenamento e segurança</h2>
+    <p>Os tokens de acesso são armazenados de forma segura no ambiente Google Apps Script (PropertiesService). Não armazenamos suas informações pessoais em servidores próprios.</p>
+
+    <h2>5. Compartilhamento</h2>
+    <p>Não vendemos, alugamos ou compartilhamos seus dados com terceiros, exceto quando exigido por lei ou necessário para o funcionamento do serviço (Google).</p>
+
+    <h2>6. Seus direitos</h2>
+    <p>Você pode revogar o acesso a qualquer momento através das configurações da sua conta Google. Para solicitar a exclusão de dados residuais, entre em contato conosco.</p>
+
+    <h2>7. Contato</h2>
+    <p>Dúvidas sobre esta política: <a href="mailto:contato@pluri.app.br">contato@pluri.app.br</a></p>
+</body>
+</html>
