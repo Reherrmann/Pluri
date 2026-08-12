@@ -1365,6 +1365,81 @@ if (professionalFilter) {
     }
 
     // ======================================================
+    // FEEDBACK FORM
+    // ======================================================
+    function openFeedbackModal() {
+        getEl('feedbackModalOverlay')?.classList.add('show');
+    }
+
+    function closeFeedbackModal() {
+        getEl('feedbackModalOverlay')?.classList.remove('show');
+    }
+
+    async function submitFeedback(event) {
+        event.preventDefault();
+
+        const name = getEl('feedbackName')?.value?.trim() || 'Anônimo';
+        const email = getEl('feedbackEmail')?.value?.trim() || '';
+        const message = getEl('feedbackMessage')?.value?.trim() || '';
+
+        if (!message) {
+            showToast('Por favor, escreva um comentário antes de enviar.');
+            return;
+        }
+
+        const submitBtn = event.submitter;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+        }
+
+        try {
+            const response = await fetch('https://formsubmit.co/ajax/pluridata4@gmail.com', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    _subject: 'Novo feedback da Plataforma Pluri',
+                    nome: name,
+                    email: email,
+                    mensagem: message,
+                    _captcha: 'false'  // desabilita captcha (não recomendado para produção)
+                })
+            });
+
+            if (!response.ok) throw new Error('Erro na requisição');
+
+            const result = await response.json();
+            if (result.success === 'false') throw new Error(result.message);
+
+            showToast('Feedback enviado com sucesso! Obrigado por participar.');
+            getEl('feedbackForm')?.reset();
+            closeFeedbackModal();
+
+        } catch (error) {
+            console.error('Erro ao enviar feedback:', error);
+            showToast('Não foi possível enviar. Tente novamente mais tarde.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar comentário';
+            }
+        }
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        getEl('feedbackFab')?.addEventListener('click', openFeedbackModal);
+        getEl('feedbackCancel')?.addEventListener('click', closeFeedbackModal);
+        getEl('feedbackModalOverlay')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeFeedbackModal();
+        });
+        getEl('feedbackForm')?.addEventListener('submit', submitFeedback);
+    });
+    
+    // ======================================================
     // INIT
     // ======================================================
     function init() {
