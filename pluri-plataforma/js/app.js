@@ -254,52 +254,49 @@
         // ======================================================
     // CARDS INSTRUÇÕES
     // ======================================================
-    function getFirstVisitTip(page) {
-        const tips = {
-            dashboard: {
-                title: 'Bem-vindo à Visão Geral',
-                text: 'Aqui você acompanha rapidamente o que está acontecendo na clínica hoje.'
-            },
-            agenda: {
-                title: 'Como usar a Agenda',
-                text: 'Consulte os horários, filtre por profissional e clique em um horário livre para criar um novo agendamento.'
-            },
-            atendimentos: {
-                title: 'Conversas',
-                text: 'Acompanhe os contatos e atendimentos realizados pela clínica.'
-            },
-            pacientes: {
-                title: 'Pacientes',
-                text: 'Pesquise, cadastre e gerencie os pacientes da clínica.'
-            },
-            indicadores: {
-                title: 'Indicadores',
-                text: 'Acompanhe os principais números e o desempenho da clínica.'
-            },
-            configuracoes: {
-                title: 'Configurações',
-                text: 'Gerencie as informações e preferências da clínica.'
-            }
-        };
+   function getFirstVisitTip(page) {
+    const tips = {
+        dashboard: {
+            title: 'Bem-vindo à Visão Geral',
+            text: 'Aqui você acompanha rapidamente o que está acontecendo na clínica hoje.'
+        },
+        agenda: {
+            title: 'Como usar a Agenda',
+            text: 'Consulte os horários, filtre por profissional e clique em um horário livre para criar um novo agendamento.'
+        },
+        atendimentos: {
+            title: 'Conversas',
+            text: 'Acompanhe os contatos e atendimentos realizados pela clínica.'
+        },
+        pacientes: {
+            title: 'Pacientes',
+            text: 'Pesquise, cadastre e gerencie os pacientes da clínica.'
+        },
+        indicadores: {
+            title: 'Indicadores',
+            text: 'Acompanhe os principais números e o desempenho da clínica.'
+        },
+        configuracoes: {
+            title: 'Configurações',
+            text: 'Gerencie as informações e preferências da clínica.'
+        }
+    };
 
-        const tip = tips[page];
-        if (!tip) return '';
+    const tip = tips[page];
+    if (!tip) return '';
 
-        const storageKey = `pluri-demo-tip-${page}`;
-        if (localStorage.getItem(storageKey) === 'seen') return '';
-
-        return `
-            <div class="card" id="firstVisitTip" style="margin-bottom:16px;border-left:3px solid var(--primary-color);">
-                <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
-                    <div>
-                        <div style="font-weight:600;margin-bottom:4px;">${tip.title}</div>
-                        <div style="font-size:13px;color:var(--text-secondary);">${tip.text}</div>
-                    </div>
-                    <button class="btn btn-outline btn-sm" id="dismissFirstVisitTip">Entendi</button>
+    // ⚠️ Sempre retorna o card, independente de já ter sido visto
+    return `
+        <div class="card" id="firstVisitTip" style="margin-bottom:16px;border-left:3px solid var(--primary-color);">
+            <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                <div>
+                    <div style="font-weight:600;margin-bottom:4px;">${tip.title}</div>
+                    <div style="font-size:13px;color:var(--text-secondary);">${tip.text}</div>
                 </div>
-            </div>`;
-    }
-
+                <button class="btn btn-outline btn-sm" id="dismissFirstVisitTip">Entendi</button>
+            </div>
+        </div>`;
+}
     // ======================================================
     // RENDER ENGINE
     // ======================================================
@@ -331,8 +328,7 @@
         refreshIcons();
         updateTitleAndSubtitle(title, subtitle);
 
-        getEl('dismissFirstVisitTip')?.addEventListener('click', () => {
-            localStorage.setItem(`pluri-demo-tip-${state.currentPage}`, 'seen');
+                getEl('dismissFirstVisitTip')?.addEventListener('click', () => {
             getEl('firstVisitTip')?.remove();
         });
         attachPageEvents();
