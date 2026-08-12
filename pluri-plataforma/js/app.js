@@ -190,7 +190,7 @@
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-        state.appointments = [ 
+                state.appointments = [ 
             { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' }, 
             { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' }, 
             { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' }, 
@@ -199,6 +199,42 @@
             { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' }, 
             { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' }, 
         ];
+
+        // ----- NOVOS AGENDAMENTOS PARA OUTROS DIAS (MÊS ATUAL) -----
+        const addDays = (date, days) => {
+            const d = new Date(date);
+            d.setDate(d.getDate() + days);
+            return toDateStr(d);
+        };
+
+        const extraPatients = [
+            { name: 'Alice Mendes', phone: '(11) 98888-1111' },
+            { name: 'Bruno Costa', phone: '(21) 97777-2222' },
+            { name: 'Carla Dias', phone: '(31) 96666-3333' },
+            { name: 'Daniel Peres', phone: '(41) 95555-4444' },
+        ];
+        const extraPros = ['Dra. Ana', 'Dr. Carlos', 'Dra. Fernanda'];
+        const extraServices = ['Avaliação', 'Retorno', 'Limpeza'];
+        const extraStatus = ['Confirmado', 'Aguardando', 'Pendente'];
+
+        // Adiciona 2 agendamentos em cada um dos próximos 7 dias (amanhã até dia +7)
+        for (let i = 1; i <= 7; i++) {
+            const dateStr = addDays(today, i);
+            for (let j = 0; j < 2; j++) {
+                const patient = extraPatients[(i + j) % extraPatients.length];
+                state.appointments.push({
+                    id: 100 + i * 10 + j,
+                    time: `${8 + j * 2}:00`,
+                    patient: patient.name,
+                    professional: extraPros[j % extraPros.length],
+                    service: extraServices[(i + j) % extraServices.length],
+                    status: extraStatus[(i + j) % extraStatus.length],
+                    date: dateStr,
+                    phone: patient.phone,
+                    notes: ''
+                });
+            }
+        }
 
         state.staff = [
             { _row: 1, id: 1, name: 'Recepção', role: 'Atendimento', status: 'Ativo', email: 'recepcao@bemestar.com', phone: '(11) 3000-1234' },
