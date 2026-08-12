@@ -1,6 +1,6 @@
 (function () {
     // ======================================================
-    // STATE
+    // STATE (dados mockados em memória)
     // ======================================================
     const state = {
         clinic: {
@@ -50,7 +50,7 @@
     };
 
     // ======================================================
-    // PERSISTÊNCIA LOCAL
+    // PERSISTÊNCIA LOCAL — DEMO
     // ======================================================
     const STORAGE_KEY = 'pluri-os-demo-v1';
 
@@ -89,7 +89,7 @@
     }
 
     // ======================================================
-    // STATUS HELPERS
+    // STATUS HELPERS (mesma assinatura do pluri-os original)
     // ======================================================
     window.getStatusClass = function(status) {
         switch (String(status || '').trim()) {
@@ -115,6 +115,7 @@
         return `<span class="appointment-status ${cls}">${normalizedStatus}</span>`;
     };
 
+    // badge usado fora da agenda (ex.: dashboard, pacientes)
     const statusBadge = (status) => {
         let cls = '';
         if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') cls = 'confirmed';
@@ -189,14 +190,14 @@
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-        state.appointments = [
-            { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
-            { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
-            { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' },
-            { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' },
-            { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' },
-            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
-            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
+        state.appointments = [ 
+            { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' }, 
+            { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' }, 
+            { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' }, 
+            { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' }, 
+            { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' }, 
+            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' }, 
+            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' }, 
         ];
 
         state.staff = [
@@ -228,55 +229,6 @@
     }
 
     // ======================================================
-    // CARDS INSTRUÇÕES
-    // ======================================================
-    function getFirstVisitTip(page) {
-        const tips = {
-            dashboard: {
-                title: 'Bem-vindo à Visão Geral',
-                text: 'Aqui você acompanha rapidamente o que está acontecendo na clínica hoje.'
-            },
-            agenda: {
-                title: 'Como usar a Agenda',
-                text: 'Consulte os horários, filtre por profissional e clique em um horário livre para criar um novo agendamento.'
-            },
-            atendimentos: {
-                title: 'Conversas',
-                text: 'Acompanhe os contatos e atendimentos realizados pela clínica.'
-            },
-            pacientes: {
-                title: 'Pacientes',
-                text: 'Pesquise, cadastre e gerencie os pacientes da clínica.'
-            },
-            indicadores: {
-                title: 'Indicadores',
-                text: 'Acompanhe os principais números e o desempenho da clínica.'
-            },
-            configuracoes: {
-                title: 'Configurações',
-                text: 'Gerencie as informações e preferências da clínica.'
-            }
-        };
-
-        const tip = tips[page];
-        if (!tip) return '';
-
-        const storageKey = `pluri-demo-tip-${page}`;
-        if (localStorage.getItem(storageKey) === 'seen') return '';
-
-        return `
-            <div class="card" id="firstVisitTip" style="margin-bottom:16px;border-left:3px solid var(--primary-color);">
-                <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
-                    <div>
-                        <div style="font-weight:600;margin-bottom:4px;">${tip.title}</div>
-                        <div style="font-size:13px;color:var(--text-secondary);">${tip.text}</div>
-                    </div>
-                    <button class="btn btn-outline btn-sm" id="dismissFirstVisitTip">Entendi</button>
-                </div>
-            </div>`;
-    }
-
-    // ======================================================
     // RENDER ENGINE
     // ======================================================
     function renderPage() {
@@ -302,15 +254,10 @@
             html = `<div style="padding:40px;text-align:center;color:#B91C1C;">Erro ao carregar a página.</div>`;
         }
 
-        container.innerHTML = getFirstVisitTip(state.currentPage) + html;
+        container.innerHTML = html;
         attachPageEvents();
         refreshIcons();
         updateTitleAndSubtitle(title, subtitle);
-
-        getEl('dismissFirstVisitTip')?.addEventListener('click', () => {
-            localStorage.setItem(`pluri-demo-tip-${state.currentPage}`, 'seen');
-            getEl('firstVisitTip')?.remove();
-        });
     }
 
     function updateTitleAndSubtitle(title, subtitle) {
@@ -331,6 +278,8 @@
     // ======================================================
     // PAGE BUILDERS
     // ======================================================
+
+    // --- Dashboard ---
     function buildDashboard() {
         const today = new Date();
         const todayStr = toDateStr(today);
@@ -340,7 +289,8 @@
         const cancelled = appointmentsToday.filter(a => a.status === 'Cancelado').length;
         const conversationsWaiting = state.conversations.filter(c => c.status === 'Aguardando').length;
 
-        const fakeCounts = [3, 7, 2, 8, 5, 1];
+        // Dados fake para o gráfico de atendimentos da semana
+        const fakeCounts = [3, 7, 2, 8, 5, 1]; // seg a sáb
         const dayOfWeek = today.getDay();
         const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         const monday = new Date(today);
@@ -442,6 +392,9 @@
         </div>`;
     }
 
+    // ======================================================
+    // AGENDA – idêntica ao agenda.js original
+    // ======================================================
     function buildAgenda() {
         if (!state || !state.appointments) {
             return `<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>`;
@@ -456,7 +409,9 @@
 
         const currentDate = state.agendaDate;
         const isToday = state.agendaTab === 'today';
-        const selectedProfessional = state.agendaProfessionalFilter || '';
+
+        const selectedProfessional =
+    state.agendaProfessionalFilter || '';
 
         const allSlots = [];
         for (let h = 8; h < 18; h++) {
@@ -466,10 +421,12 @@
         }
 
         const appointmentsToday = state.appointments.filter(a =>
-            a.date === currentDate &&
-            (!selectedProfessional || a.professional === selectedProfessional)
-        );
-
+    a.date === currentDate &&
+    (
+        !selectedProfessional ||
+        a.professional === selectedProfessional
+    )
+);
         const grouped = {};
         appointmentsToday.forEach(appt => {
             const time = String(appt.time || '').trim();
@@ -492,61 +449,86 @@
                     <button class="tab ${isToday ? 'active' : ''}" data-tab="today">Hoje</button>
                     <button class="tab ${!isToday ? 'active' : ''}" data-tab="month">Mês</button>
                 </div>
+
                 <div class="agenda-date-navigator" id="agendaDayNav" style="display:${isToday ? 'flex' : 'none'};align-items:center;gap:8px;margin-left:20px;">
                     <button class="btn-icon btn-sm" id="agendaPrevDay"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
                     <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${dataFormatada}</span>
                     <button class="btn-icon btn-sm" id="agendaNextDay"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
+
                 <div class="agenda-date-navigator" id="agendaMonthNav" style="display:${isToday ? 'none' : 'flex'};align-items:center;gap:8px;margin-left:20px;">
                     <button class="btn-icon btn-sm" id="agendaPrevMonth"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
                     <span style="font-size:13px;font-weight:500;min-width:150px;text-align:center;display:inline-block;">${monthLabel}</span>
                     <button class="btn-icon btn-sm" id="agendaNextMonth"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
                 </div>
+
                 <div class="agenda-google-calendar">
                     <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
                     <span>Sincronizado com Google Calendar</span>
                 </div>
             </div>
+
             <div class="agenda-toolbar-right">
-                <select id="agendaProfessionalFilter" class="form-control" style="min-width:210px;">
-                    <option value="">Todos os profissionais</option>
-                    ${(state.staff || []).map(staff => `
-                        <option value="${staff.name}" ${state.agendaProfessionalFilter === staff.name ? 'selected' : ''}>${staff.name}</option>
-                    `).join('')}
-                </select>
+            
+            <select
+    id="agendaProfessionalFilter"
+    class="form-control"
+    style="min-width:210px;"
+>
+    <option value="">
+        Todos os profissionais
+    </option>
+
+    ${(state.staff || []).map(staff => `
+        <option
+            value="${staff.name}"
+            ${state.agendaProfessionalFilter === staff.name ? 'selected' : ''}
+        >
+            ${staff.name}
+        </option>
+    `).join('')}
+</select>
+
+
                 <button class="btn btn-primary" id="openModalBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo agendamento</button>
                 <button class="btn btn-outline" id="btnConnectCalendar" style="display:none;">🔗 Conectar Google Calendar</button>
             </div>
         </div>
+
         <div id="agendaDayView" class="card" style="display:${isToday ? 'block' : 'none'};">
             <div class="card-body no-padding">
-                <ul class="agenda-list">${allSlots.map(time => {
-                    const events = grouped[time] || [];
-                    if (events.length === 0) {
-                        return `<li class="agenda-item free-slot">
-                            <span class="agenda-time">${time}</span>
-                            <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
-                            <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
-                            <button class="btn btn-sm btn-outline" onclick="openModal('${time}')">Agendar</button>
-                        </li>`;
-                    }
-                    return events.map((appt, index) => {
-                        const status = String(appt.status || '').trim() || 'Aguardando';
-                        return `<li class="agenda-item" data-id="${appt.id}" style="cursor:pointer;position:relative;${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
-                            <span class="agenda-time">${time}</span>
-                            <div class="agenda-avatar">${getInitials(appt.patient)}</div>
-                            <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
-                                <div class="agenda-name">${appt.patient}</div>
-                                <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
-                                <div style="margin-top:6px;">${window.statusBadge(status)}</div>
-                            </div>
-                            <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation();window.pluri.editAppointment('${appt.id}')"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
-                            <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation();window.pluri.deleteAppointment('${appt.id}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
-                        </li>`;
-                    }).join('');
-                }).join('')}</ul>
+                <ul class="agenda-list">
+                    ${allSlots.map(time => {
+                        const events = grouped[time] || [];
+                        if (events.length === 0) {
+                            return `
+                                <li class="agenda-item free-slot">
+                                    <span class="agenda-time">${time}</span>
+                                    <div class="agenda-avatar" style="background:var(--hover-bg);color:var(--text-secondary);">—</div>
+                                    <div class="agenda-info"><div class="agenda-name" style="color:var(--text-secondary);">Horário livre</div></div>
+                                    <button class="btn btn-sm btn-outline" onclick="openModal('${time}')">Agendar</button>
+                                </li>`;
+                        }
+                        return events.map((appt, index) => {
+                            const status = String(appt.status || '').trim() || 'Aguardando';
+                            return `
+                                <li class="agenda-item" data-id="${appt.id}" style="cursor:pointer;position:relative;${index > 0 ? 'border-top:1px dashed var(--border);' : ''}">
+                                    <span class="agenda-time">${time}</span>
+                                    <div class="agenda-avatar">${getInitials(appt.patient)}</div>
+                                    <div class="agenda-info" onclick="window.pluri.editAppointment('${appt.id}')">
+                                        <div class="agenda-name">${appt.patient}</div>
+                                        <div class="agenda-detail">${appt.service} · ${appt.professional}</div>
+                                        <div style="margin-top:6px;">${window.statusBadge(status)}</div>
+                                    </div>
+                                    <button class="btn-icon-sm" title="Editar" onclick="event.stopPropagation();window.pluri.editAppointment('${appt.id}')"><i data-lucide="edit-2" style="width:14px;height:14px;"></i></button>
+                                    <button class="btn-icon-sm" title="Excluir" onclick="event.stopPropagation();window.pluri.deleteAppointment('${appt.id}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+                                </li>`;
+                        }).join('');
+                    }).join('')}
+                </ul>
             </div>
         </div>
+
         <div id="agendaMonthView" style="display:${isToday ? 'none' : 'block'};">
             ${buildAgendaMonthHTML()}
         </div>`;
@@ -569,44 +551,61 @@
         const weekdayHeaders = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
             .map(d => `<div class="agenda-month-weekday">${d}</div>`).join('');
 
-        const selectedProfessional = state.agendaProfessionalFilter || '';
         const maxShow = 3;
         const cellsHtml = cells.map(day => {
             if (day === null) return '<div class="agenda-month-cell empty"></div>';
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            const dayAppts = state.appointments
-                .filter(a => a.date === dateStr && (!selectedProfessional || a.professional === selectedProfessional))
-                .sort((a, b) => a.time.localeCompare(b.time));
+            const selectedProfessional =
+    state.agendaProfessionalFilter || '';
+
+const dayAppts = state.appointments
+    .filter(a =>
+        a.date === dateStr &&
+        (
+            !selectedProfessional ||
+            a.professional === selectedProfessional
+        )
+    )
+    .sort((a, b) =>
+        a.time.localeCompare(b.time)
+    );
             const shown = dayAppts.slice(0, maxShow);
             const extra = dayAppts.length - shown.length;
             const isToday = dateStr === todayStr;
 
             return `
-            <div class="agenda-month-cell ${isToday ? 'is-today' : ''}" data-date="${dateStr}" onclick="window.openNewAppointmentForDate('${dateStr}')" style="cursor:pointer;">
-                <div class="agenda-month-daynum">${day}</div>
-                <div class="agenda-month-events">
-                    ${shown.map(appt => {
-                        const status = String(appt.status || '').trim() || 'Aguardando';
-                        return `<div class="agenda-month-event" title="${appt.patient} · ${status}" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
-                            <span class="agenda-month-dot" style="background:${window.statusColor(status)}"></span>
-                            <span class="agenda-month-event-time">${appt.time}</span>
-                            <span class="agenda-month-event-name">${appt.patient}</span>
-                        </div>`;
-                    }).join('')}
-                    ${extra > 0 ? `<div class="agenda-month-more" onclick="event.stopPropagation(); openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
-                </div>
-            </div>`;
+               <div
+    class="agenda-month-cell ${isToday ? 'is-today' : ''}"
+    data-date="${dateStr}"
+    onclick="window.openNewAppointmentForDate('${dateStr}')"
+    style="cursor:pointer;"
+>
+                    <div class="agenda-month-daynum">${day}</div>
+                    <div class="agenda-month-events">
+                        ${shown.map(appt => {
+                            const status = String(appt.status || '').trim() || 'Aguardando';
+                            return `
+                                <div class="agenda-month-event" title="${appt.patient} · ${status}" onclick="event.stopPropagation(); window.pluri.editAppointment('${appt.id}')">
+                                    <span class="agenda-month-dot" style="background:${window.statusColor(status)}"></span>
+                                    <span class="agenda-month-event-time">${appt.time}</span>
+                                    <span class="agenda-month-event-name">${appt.patient}</span>
+                                </div>`;
+                        }).join('')}
+                        ${extra > 0 ? `<div class="agenda-month-more" onclick="event.stopPropagation(); openDayFromMonth('${dateStr}')">+${extra} mais</div>` : ''}
+                    </div>
+                </div>`;
         }).join('');
 
         return `
-        <div class="card">
-            <div class="card-body no-padding">
-                <div class="agenda-month-grid-header">${weekdayHeaders}</div>
-                <div class="agenda-month-grid">${cellsHtml}</div>
-            </div>
-        </div>`;
+            <div class="card">
+                <div class="card-body no-padding">
+                    <div class="agenda-month-grid-header">${weekdayHeaders}</div>
+                    <div class="agenda-month-grid">${cellsHtml}</div>
+                </div>
+            </div>`;
     }
 
+    // Função global usada no clique dos eventos do mês
     window.openDayFromMonth = function(dateStr) {
         state.agendaDate = dateStr;
         state.agendaTab = 'today';
@@ -721,7 +720,9 @@
             if (window._returnToAppointment === true) {
                 window._returnToAppointment = false;
                 closeSlidePanel();
-                setTimeout(() => openModal(null, name, phone), 150);
+                setTimeout(() => {
+                    openModal(null, name, phone);
+                }, 150);
                 return;
             }
             closeSlidePanel();
@@ -1088,7 +1089,6 @@
         localStorage.setItem('pluri-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
         refreshIcons();
     }
-
     function loadTheme() {
         if (localStorage.getItem('pluri-theme') === 'dark') {
             document.body.classList.add('dark');
@@ -1112,14 +1112,26 @@
             });
         });
 
-        const professionalFilter = getEl('agendaProfessionalFilter');
-        if (professionalFilter) {
-            professionalFilter.addEventListener('change', () => {
-                state.agendaProfessionalFilter = professionalFilter.value;
-                renderPage();
-            });
-        }
 
+const professionalFilter =
+    getEl('agendaProfessionalFilter');
+
+if (professionalFilter) {
+
+    professionalFilter.addEventListener(
+        'change',
+        () => {
+
+            state.agendaProfessionalFilter =
+                professionalFilter.value;
+
+            renderPage();
+
+        }
+    );
+
+}
+        
         getEl('agendaPrevDay')?.addEventListener('click', () => {
             const d = new Date(state.agendaDate + 'T00:00:00');
             d.setDate(d.getDate() - 1);
