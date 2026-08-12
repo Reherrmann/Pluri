@@ -478,7 +478,27 @@
 
     function updateTitleAndSubtitle(title, subtitle) {
         const titles = {
-            dashboard: [state.clinic.name ? `Bom dia, ${state.clinic.name}.` : 'Bem-vindo à PLURI.', 'Veja o que está acontecendo na clínica hoje.'],
+            dashboard: [
+    (() => {
+
+        const hour = new Date().getHours();
+
+        let greeting = 'Boa noite';
+
+        if (hour >= 5 && hour < 12) {
+            greeting = 'Bom dia';
+        } else if (hour >= 12 && hour < 18) {
+            greeting = 'Boa tarde';
+        }
+
+        return state.clinic.name
+            ? `${greeting}, ${state.clinic.name}.`
+            : `${greeting}!`;
+
+    })(),
+
+    'Veja o que está acontecendo na clínica hoje.'
+],
             agenda: ['Agenda', 'Gerencie os horários da clínica.'],
             atendimentos: ['Conversas', 'Central de conversas com pacientes.'],
             pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
