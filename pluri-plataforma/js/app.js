@@ -1377,6 +1377,7 @@ if (professionalFilter) {
 
     document.addEventListener('DOMContentLoaded', function() {
         getEl('feedbackFab')?.addEventListener('click', openFeedbackModal);
+        getEl('feedbackCloseBtn')?.addEventListener('click', closeFeedbackModal);
         getEl('feedbackModalOverlay')?.addEventListener('click', (e) => {
             if (e.target === e.currentTarget) closeFeedbackModal();
         });
