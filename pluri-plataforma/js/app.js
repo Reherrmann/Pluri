@@ -1364,16 +1364,22 @@ if (professionalFilter) {
         });
     }
 
-       // ======================================================
-    // FEEDBACK VIA GOOGLE FORMS
+        // ======================================================
+    // FEEDBACK FORM (via Google Forms embutido)
     // ======================================================
-    function openFeedbackForm() {
-        const url = 'hhttps://docs.google.com/forms/d/e/1FAIpQLSfmJq0S8UYayxE0SXk6GCkl0XYwH0Yl2PH4ug0_YFwjVG7NiQ/viewform?usp=sharing&ouid=111597605562917334292';
-        window.open(url, '_blank', 'noopener');
+    function openFeedbackModal() {
+        getEl('feedbackModalOverlay')?.classList.add('show');
+    }
+
+    function closeFeedbackModal() {
+        getEl('feedbackModalOverlay')?.classList.remove('show');
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        getEl('feedbackFab')?.addEventListener('click', openFeedbackForm);
+        getEl('feedbackFab')?.addEventListener('click', openFeedbackModal);
+        getEl('feedbackModalOverlay')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeFeedbackModal();
+        });
     });
     
     // ======================================================
