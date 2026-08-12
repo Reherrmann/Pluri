@@ -230,6 +230,15 @@
             { _row: 4, id: 4, name: 'Dra. Fernanda', role: 'Ortodontista', status: 'Ativo', email: 'fernanda@bemestar.com', phone: '(11) 98765-3333' },
         ];
 
+                // --- CONVERSAS MOCK ---
+        state.conversations = [
+            { id: 1, _row: 1, patient: 'Maria Silva', channel: 'WhatsApp', lastMsg: 'Gostaria de remarcar minha consulta.', time: '10:15', status: 'Aguardando', phone: '(11) 98765-4321', summary: '' },
+            { id: 2, _row: 2, patient: 'Fernanda Lima', channel: 'WhatsApp', lastMsg: 'Qual o horário disponível para amanhã?', time: '09:42', status: 'Aguardando', phone: '(41) 99876-1111', summary: '' },
+            { id: 3, _row: 3, patient: 'Carlos Souza', channel: 'E-mail', lastMsg: 'Preciso de um atestado.', time: '08:30', status: 'Em andamento', phone: '(31) 98765-1234', summary: '' },
+            { id: 4, _row: 4, patient: 'Novo contato', channel: 'WhatsApp', lastMsg: 'Olá, gostaria de agendar uma avaliação.', time: '11:02', status: 'Aguardando', phone: '', summary: '' },
+            { id: 5, _row: 5, patient: 'Rafael Alves', channel: 'Telefone', lastMsg: 'Confirmar horário de amanhã.', time: '07:50', status: 'Resolvido', phone: '(91) 98765-6666', summary: '' },
+        ];
+
         state.activities = [
             { time: '10:42', text: 'Maria confirmou consulta.' },
             { time: '10:38', text: 'Novo paciente cadastrado.' },
@@ -440,7 +449,7 @@
                 </div>
             </div>
         </div>
-       <div class="grid-4">
+      <div class="grid-4">
     <div class="card">
         <div class="card-header"><h3>Atendimentos da semana</h3></div>
         <div class="card-body">
@@ -466,7 +475,6 @@
     <div class="card-placeholder">Espaço adaptável para a clínica</div>
     <div class="card-placeholder">Espaço adaptável para a clínica</div>
 </div>`;
-    
 
     // ======================================================
     // AGENDA – idêntica ao agenda.js original
