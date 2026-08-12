@@ -1,6 +1,6 @@
 (function () {
     // ======================================================
-    // STATE (dados mockados em memória)
+    // STATE
     // ======================================================
     const state = {
         clinic: {
@@ -50,7 +50,7 @@
     };
 
     // ======================================================
-    // PERSISTÊNCIA LOCAL — DEMO
+    // PERSISTÊNCIA LOCAL
     // ======================================================
     const STORAGE_KEY = 'pluri-os-demo-v1';
 
@@ -89,7 +89,7 @@
     }
 
     // ======================================================
-    // STATUS HELPERS (mesma assinatura do pluri-os original)
+    // STATUS HELPERS
     // ======================================================
     window.getStatusClass = function(status) {
         switch (String(status || '').trim()) {
@@ -189,14 +189,14 @@
             { _row: 9, id: 9, name: 'Rafael Alves', phone: '(91) 98765-6666', email: 'rafael@email.com', created: '10/07/2026', lastVisit: '-', nextAppt: '29/07/2026', status: 'Novo', notes: '' },
         ];
 
-        state.appointments = [ 
-            { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' }, 
-            { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' }, 
-            { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' }, 
-            { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' }, 
-            { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' }, 
-            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' }, 
-            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' }, 
+        state.appointments = [
+            { id: 1, time: '09:00', patient: 'Mariana Costa', professional: 'Dra. Ana', service: 'Avaliação', status: 'Aguardando', date: todayStr, phone: '(51) 91234-9999', notes: '' },
+            { id: 2, time: '10:30', patient: 'João Almeida', professional: 'Dr. Carlos', service: 'Retorno', status: 'Confirmado', date: todayStr, phone: '(11) 91234-5678', notes: '' },
+            { id: 3, time: '11:30', patient: 'Ana Martins', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Pendente', date: todayStr, phone: '(21) 99876-5432', notes: '' },
+            { id: 4, time: '14:00', patient: 'Lucas Ferreira', professional: 'Dra. Ana', service: 'Procedimento', status: 'Confirmado', date: todayStr, phone: '(61) 98765-0000', notes: '' },
+            { id: 5, time: '15:30', patient: 'Camila Santos', professional: 'Dr. Carlos', service: 'Retorno', status: 'Pendente', date: todayStr, phone: '(71) 91234-8888', notes: '' },
+            { id: 6, time: '17:00', patient: 'Beatriz Lima', professional: 'Dra. Fernanda', service: 'Avaliação', status: 'Confirmado', date: todayStr, phone: '(81) 99876-7777', notes: '' },
+            { id: 7, time: '08:30', patient: 'Pedro Rocha', professional: 'Dra. Ana', service: 'Retorno', status: 'Concluído', date: todayStr, phone: '(11) 3000-1234', notes: '' },
         ];
 
         state.staff = [
@@ -331,8 +331,6 @@
     // ======================================================
     // PAGE BUILDERS
     // ======================================================
-
-    // --- Dashboard ---
     function buildDashboard() {
         const today = new Date();
         const todayStr = toDateStr(today);
@@ -444,7 +442,6 @@
         </div>`;
     }
 
-    // --- Agenda com filtro ---
     function buildAgenda() {
         if (!state || !state.appointments) {
             return `<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>`;
@@ -621,9 +618,555 @@
         if (dateInput) dateInput.value = dateStr;
     };
 
-    // --- As demais funções (atendimentos, pacientes, etc.) permanecem iguais às que você já tinha ---
-    // (coloquei apenas as seções alteradas; o restante do seu código está mantido)
-    // ... (todo o restante do código original, como buildAtendimentos, openConversation, etc., continua igual)
+    // -- Atendimentos --
+    function buildAtendimentos() {
+        return `<div class="card"><div class="card-body no-padding">
+            ${state.conversations.map(c => `
+                <div class="agenda-item" style="cursor:pointer;" data-conversation-id="${c.id}">
+                    <div class="agenda-avatar">${getInitials(c.patient)}</div>
+                    <div class="agenda-info">
+                        <div class="agenda-name">${c.patient} <span style="font-weight:400;font-size:11px;color:var(--text-secondary);"><i data-lucide="message-circle" style="width:12px;height:12px;vertical-align:middle;"></i> ${c.channel}</span></div>
+                        <div class="agenda-detail">${c.summary || c.lastMsg}</div>
+                    </div>
+                    ${statusBadge(c.status)}
+                </div>`).join('')}
+        </div></div>`;
+    }
+
+    function openConversation(id) {
+        const conv = state.conversations.find(c => c.id === id);
+        if (!conv) return;
+        const content = getEl('slideContent');
+        content.innerHTML = `
+            <h3 style="margin-bottom:12px;">${conv.patient}</h3>
+            <p style="font-size:13px;color:var(--text-secondary);">Canal: ${conv.channel}</p>
+            <p>Resumo:<br><br>${conv.summary || conv.lastMsg}</p>
+            <p style="font-size:13px;color:var(--text-secondary);">Horário: ${conv.time}</p>
+            <div style="margin-top:16px;">
+                <div class="form-group">
+                    <label>Status da conversa</label>
+                    <select id="conversationStatus">
+                        <option value="Aguardando" ${conv.status==='Aguardando'?'selected':''}>Aguardando</option>
+                        <option value="Em andamento" ${conv.status==='Em andamento'?'selected':''}>Em andamento</option>
+                        <option value="Resolvido" ${conv.status==='Resolvido'?'selected':''}>Resolvido</option>
+                        <option value="Cancelado" ${conv.status==='Cancelado'?'selected':''}>Cancelado</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:16px;">
+                    <button class="btn btn-sm btn-outline js-nav" data-page="pacientes">Ver paciente</button>
+                    <button class="btn btn-sm btn-outline" id="scheduleFromConversation">Agendar</button>
+                    <button class="btn btn-sm btn-primary" id="saveConversationStatus">Salvar</button>
+                </div>
+            </div>`;
+        getEl('saveConversationStatus').onclick = () => {
+            conv.status = getEl('conversationStatus').value;
+            closeSlidePanel();
+            showToast('Status atualizado.');
+            renderPage();
+        };
+        getEl('scheduleFromConversation').onclick = () => {
+            closeSlidePanel();
+            navigateTo('agenda');
+            setTimeout(() => openModal(null, conv.patient, conv.phone), 100);
+        };
+        openSlidePanel();
+    }
+
+    // -- Pacientes --
+    function buildPacientes() {
+        return `
+            <div class="search-bar" style="display:flex;gap:8px;">
+                <input type="text" id="patientSearch" placeholder="Buscar por nome ou telefone..." style="flex:1;">
+                <button class="btn btn-primary" id="newPatientBtn"><i data-lucide="plus" style="width:16px;height:16px;"></i> Novo paciente</button>
+            </div>
+            <div class="card"><div class="card-body no-padding" style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead><tr><th>Paciente</th><th>Telefone</th><th>Último atendimento</th><th>Próxima consulta</th><th>Status</th></tr></thead>
+                    <tbody id="patientTableBody">${state.patients.map(p => `
+                        <tr style="cursor:pointer;" data-patient-row="${p._row}">
+                            <td style="font-weight:500;">${p.name}</td><td>${p.phone}</td><td>${p.lastVisit}</td><td>${p.nextAppt}</td>
+                            <td>${statusBadge(p.status)}</td>
+                        </tr>`).join('')}</tbody>
+                </table>
+            </div></div>`;
+    }
+
+    function openNewPatient() {
+        const content = getEl('slideContent');
+        content.innerHTML = `
+            <h3 style="margin-bottom:16px;">Novo paciente</h3>
+            <div class="form-group"><label>Nome</label><input type="text" id="newPatientName"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" id="newPatientPhone"></div>
+            <div class="form-group"><label>E-mail</label><input type="email" id="newPatientEmail"></div>
+            <div class="form-group"><label>Observações</label><textarea id="newPatientNotes" rows="3"></textarea></div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+                <button class="btn btn-outline btn-sm" id="cancelNewPatient">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="saveNewPatient">Criar paciente</button>
+            </div>`;
+        getEl('cancelNewPatient').onclick = closeSlidePanel;
+        getEl('saveNewPatient').onclick = () => {
+            const name = getEl('newPatientName').value.trim();
+            const phone = getEl('newPatientPhone').value.trim();
+            if (!name || !phone) { showToast('Preencha nome e telefone.'); return; }
+            const newPatient = {
+                _row: Date.now(), id: Date.now(),
+                name, phone,
+                email: getEl('newPatientEmail').value.trim(),
+                notes: getEl('newPatientNotes').value.trim(),
+                created: new Date().toLocaleDateString('pt-BR'),
+                lastVisit: '-', nextAppt: '-', status: 'Novo'
+            };
+            state.patients.push(newPatient);
+            saveState();
+            if (window._returnToAppointment === true) {
+                window._returnToAppointment = false;
+                closeSlidePanel();
+                setTimeout(() => openModal(null, name, phone), 150);
+                return;
+            }
+            closeSlidePanel();
+            showToast('Paciente criado!');
+            renderPage();
+        };
+        openSlidePanel();
+    }
+
+    function openPatient(row) {
+        const p = state.patients.find(pt => pt._row == row);
+        if (!p) return;
+        const content = getEl('slideContent');
+        content.innerHTML = `
+            <h3 style="margin-bottom:16px;">Editar paciente</h3>
+            <div class="form-group"><label>Nome</label><input type="text" id="editPatientName" value="${p.name}"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" id="editPatientPhone" value="${p.phone}"></div>
+            <div class="form-group"><label>E-mail</label><input type="email" id="editPatientEmail" value="${p.email || ''}"></div>
+            <div class="form-group"><label>Observações</label><textarea id="editPatientNotes" rows="3">${p.notes || ''}</textarea></div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+                <button class="btn btn-outline btn-sm" id="cancelPatientEdit">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="savePatientEdit">Salvar</button>
+            </div>`;
+        getEl('cancelPatientEdit').onclick = closeSlidePanel;
+        getEl('savePatientEdit').onclick = () => {
+            p.name = getEl('editPatientName').value.trim() || p.name;
+            p.phone = getEl('editPatientPhone').value.trim() || p.phone;
+            p.email = getEl('editPatientEmail').value.trim() || p.email;
+            p.notes = getEl('editPatientNotes').value.trim() || p.notes;
+            closeSlidePanel();
+            showToast('Paciente atualizado.');
+            renderPage();
+        };
+        openSlidePanel();
+    }
+
+    // -- Configurações --
+    function buildConfiguracoes() {
+        return `
+            <div class="card">
+                <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <h3>Clínica</h3>
+                    <button class="btn btn-primary" onclick="saveClinicSettings()">Salvar</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group"><label>Nome</label><input id="clinicName" value="${state.clinic.name}"></div>
+                        <div class="form-group"><label>Telefone</label><input id="clinicPhone" value="${state.clinic.phone}"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>E-mail</label><input id="clinicEmail" value="${state.clinic.email}"></div>
+                        <div class="form-group"><label>Horário</label><input id="clinicSchedule" value="${state.clinic.hours}"></div>
+                    </div>
+                    <div class="form-group"><label>Endereço</label><input id="clinicAddress" value="${state.clinic.address}"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <h3>Equipe</h3>
+                    <button class="btn btn-primary btn-sm" id="newStaffBtn"><i data-lucide="plus" style="width:14px;height:14px;"></i> Novo membro</button>
+                </div>
+                <div class="card-body no-padding">
+                    <table class="data-table">
+                        <thead><tr><th>Nome</th><th>Função</th><th>Status</th></tr></thead>
+                        <tbody>${state.staff.map(s => `
+                            <tr onclick="openStaff(${s._row})" style="cursor:pointer">
+                                <td>${s.name}</td><td>${s.role}</td><td>${statusBadge(s.status)}</td>
+                            </tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Integrações</h3></div>
+                <div class="card-body">
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;"><span>Google Calendar</span><span style="color:#f59e0b;">Simulado</span></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;"><span>WhatsApp</span>${statusBadge('Desconectado')}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;"><span>E-mail</span>${statusBadge('Em breve...')}</div>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function openNewStaff() {
+        const content = getEl('slideContent');
+        content.innerHTML = `
+            <h3 style="margin-bottom:16px;">Novo membro</h3>
+            <div class="form-group"><label>Nome</label><input type="text" id="newStaffName"></div>
+            <div class="form-group"><label>Função</label><input type="text" id="newStaffRole"></div>
+            <div class="form-group"><label>E-mail</label><input type="email" id="newStaffEmail"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" id="newStaffPhone"></div>
+            <div class="form-group"><label>Status</label><select id="newStaffStatus"><option>Ativo</option><option>Inativo</option></select></div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+                <button class="btn btn-outline btn-sm" id="cancelNewStaff">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="saveNewStaff">Adicionar</button>
+            </div>`;
+        getEl('cancelNewStaff').onclick = closeSlidePanel;
+        getEl('saveNewStaff').onclick = () => {
+            const name = getEl('newStaffName').value.trim();
+            const role = getEl('newStaffRole').value.trim();
+            if (!name || !role) { showToast('Preencha nome e função.'); return; }
+            const newStaff = {
+                _row: Date.now(), name, role,
+                email: getEl('newStaffEmail').value.trim(),
+                phone: getEl('newStaffPhone').value.trim(),
+                status: getEl('newStaffStatus').value
+            };
+            state.staff.push(newStaff);
+            closeSlidePanel();
+            showToast('Membro adicionado!');
+            renderPage();
+        };
+        openSlidePanel();
+    }
+
+    function openStaff(row) {
+        const member = state.staff.find(s => s._row == row);
+        if (!member) return;
+        const content = getEl('slideContent');
+        content.innerHTML = `
+            <h3 style="margin-bottom:16px;">Editar membro</h3>
+            <div class="form-group"><label>Nome</label><input type="text" id="editStaffName" value="${member.name}"></div>
+            <div class="form-group"><label>Função</label><input type="text" id="editStaffRole" value="${member.role}"></div>
+            <div class="form-group"><label>E-mail</label><input type="email" id="editStaffEmail" value="${member.email || ''}"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" id="editStaffPhone" value="${member.phone || ''}"></div>
+            <div class="form-group"><label>Status</label><select id="editStaffStatus"><option ${member.status==='Ativo'?'selected':''}>Ativo</option><option ${member.status==='Inativo'?'selected':''}>Inativo</option></select></div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+                <button class="btn btn-outline btn-sm" id="cancelStaffEdit">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="saveStaffEdit">Salvar</button>
+                <button class="btn btn-outline btn-sm" id="deleteStaffBtn" style="color:#B91C1C;border-color:#FCA5A5;">Excluir</button>
+            </div>`;
+        getEl('cancelStaffEdit').onclick = closeSlidePanel;
+        getEl('saveStaffEdit').onclick = () => {
+            member.name = getEl('editStaffName').value.trim() || member.name;
+            member.role = getEl('editStaffRole').value.trim() || member.role;
+            member.email = getEl('editStaffEmail').value.trim() || member.email;
+            member.phone = getEl('editStaffPhone').value.trim() || member.phone;
+            member.status = getEl('editStaffStatus').value;
+            closeSlidePanel();
+            showToast('Membro atualizado.');
+            renderPage();
+        };
+        getEl('deleteStaffBtn').onclick = () => {
+            if (!confirm(`Excluir ${member.name}?`)) return;
+            state.staff = state.staff.filter(s => s._row !== member._row);
+            closeSlidePanel();
+            showToast('Membro excluído.');
+            renderPage();
+        };
+        openSlidePanel();
+    }
+
+    window.saveClinicSettings = function() {
+        state.clinic.name = getEl('clinicName').value;
+        state.clinic.phone = getEl('clinicPhone').value;
+        state.clinic.email = getEl('clinicEmail').value;
+        state.clinic.address = getEl('clinicAddress').value;
+        state.clinic.hours = getEl('clinicSchedule').value;
+        showToast('Dados da clínica salvos.');
+        renderPage();
+    };
+
+    function buildAutomacoes() {
+        const autos = [
+            {name:'Atendimento inicial',desc:'Responde automaticamente novos contatos.',status:'Ativo'},
+            {name:'Confirmação de consulta',desc:'Solicita confirmação 48h antes.',status:'Ativo'},
+            {name:'Lembrete de consulta',desc:'Envia lembrete 24h antes.',status:'Ativo'},
+            {name:'Follow-up',desc:'Acompanha pacientes após atendimento.',status:'Pausado'}
+        ];
+        return `<div class="automation-grid">${autos.map(a => `
+            <div class="automation-card">
+                <h4>${a.name}</h4><p>${a.desc}</p>
+                <div class="automation-meta">${statusBadge(a.status)}</div>
+            </div>`).join('')}</div>`;
+    }
+
+    function buildIndicadores() {
+        return `
+            <div class="grid-2">
+                <div class="card"><div class="card-header"><h3>Agendamentos por dia (semana)</h3></div><div class="card-body"><div class="chart-container">${renderBarChart([18,22,26,21,28,12],['Seg','Ter','Qua','Qui','Sex','Sáb'],2)}</div></div></div>
+                <div class="card"><div class="card-header"><h3>Confirmados x Cancelados</h3></div><div class="card-body"><div class="chart-container">${renderBarChart([45,8],['Confirmados','Cancelados'],0)}</div></div></div>
+            </div>
+            <div class="grid-2">
+                <div class="kpi-card"><div class="kpi-value">156</div><div class="kpi-label">Agendamentos no mês</div></div>
+                <div class="kpi-card"><div class="kpi-value">89%</div><div class="kpi-label">Taxa de confirmação</div></div>
+            </div>`;
+    }
+
+    // ======================================================
+    // MODAL & APPOINTMENT ACTIONS
+    // ======================================================
+    function openModal(time = null, patientName = null, patientPhone = null) {
+        const overlay = getEl('modalOverlay');
+        if (!overlay) return;
+        overlay.classList.add('show');
+
+        const dateInput = getEl('apptDate');
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+        const timeInput = getEl('apptTime');
+        if (timeInput) timeInput.value = time || '09:00';
+
+        const patientInput = getEl('apptPatient');
+        if (patientInput) {
+            patientInput.value = patientName || '';
+            patientInput.oninput = () => {
+                const term = patientInput.value.trim().toLowerCase();
+                const results = getEl('patientSearchResults');
+                if (!results) return;
+                if (!term) {
+                    results.style.display = 'none';
+                    results.innerHTML = '';
+                    return;
+                }
+                const patients = (state.patients || []).filter(p =>
+                    String(p.name || '').toLowerCase().includes(term) ||
+                    String(p.phone || '').toLowerCase().includes(term)
+                );
+                if (!patients.length) {
+                    results.innerHTML = `<div style="padding:12px;color:var(--text-secondary);font-size:13px;">Nenhum paciente encontrado.</div>`;
+                    results.style.display = 'block';
+                    return;
+                }
+                results.innerHTML = patients.slice(0, 8).map(p => `
+                    <div class="patient-search-result" data-patient-row="${p._row}" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);">
+                        <div style="font-weight:600;font-size:13px;">${p.name || '-'}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${p.phone || 'Sem telefone'}</div>
+                    </div>`).join('');
+                results.style.display = 'block';
+                results.querySelectorAll('.patient-search-result').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const row = item.dataset.patientRow;
+                        const patient = state.patients.find(p => String(p._row) === String(row));
+                        if (!patient) return;
+                        patientInput.value = patient.name || '';
+                        const phoneInput = getEl('apptPhone');
+                        if (phoneInput) phoneInput.value = patient.phone || '';
+                        results.style.display = 'none';
+                        results.innerHTML = '';
+                    });
+                });
+            };
+        }
+
+        const phoneInput = getEl('apptPhone');
+        if (phoneInput) phoneInput.value = patientPhone || '';
+
+        const notesInput = getEl('apptNotes');
+        if (notesInput) notesInput.value = '';
+
+        const statusInput = getEl('apptStatus');
+        if (statusInput) statusInput.value = 'Aguardando';
+
+        const results = getEl('patientSearchResults');
+        if (results) { results.style.display = 'none'; results.innerHTML = ''; }
+
+        const newPatientBtn = getEl('newPatientFromAppointment');
+        if (newPatientBtn) {
+            newPatientBtn.onclick = () => {
+                const currentName = getEl('apptPatient')?.value?.trim() || '';
+                const currentPhone = getEl('apptPhone')?.value?.trim() || '';
+                window._returnToAppointment = true;
+                closeModal();
+                openNewPatient();
+                setTimeout(() => {
+                    const nameInput = getEl('newPatientName');
+                    const phoneInput = getEl('newPatientPhone');
+                    if (nameInput) nameInput.value = currentName;
+                    if (phoneInput) phoneInput.value = currentPhone;
+                }, 50);
+            };
+        }
+
+        refreshIcons();
+    }
+
+    function openEditAppointment(eventId) {
+        const appt = state.appointments.find(a => String(a.id) === String(eventId));
+        if (!appt) return;
+        openModal(appt.time, appt.patient, appt.phone);
+        getEl('apptProfessional').value = appt.professional || 'Dra. Ana';
+        getEl('apptService').value = appt.service || 'Avaliação';
+        getEl('apptDate').value = appt.date;
+
+        let notesValue = appt.notes || '';
+        try {
+            const parsed = JSON.parse(notesValue);
+            if (parsed && typeof parsed === 'object' && parsed.notes !== undefined) {
+                notesValue = parsed.notes || '';
+            }
+        } catch (e) {}
+        getEl('apptNotes').value = notesValue;
+
+        getEl('apptStatus').value = appt.status || 'Aguardando';
+        window._editingAppointmentId = eventId;
+        setModalMode('edit');
+    }
+
+    async function saveAppointment() {
+        const patient = getEl('apptPatient').value.trim();
+        const phone = getEl('apptPhone').value.trim();
+        const professional = getEl('apptProfessional').value;
+        const service = getEl('apptService').value;
+        const date = getEl('apptDate').value;
+        const time = getEl('apptTime').value;
+        const notes = getEl('apptNotes').value.trim();
+        const status = getEl('apptStatus').value;
+
+        if (!patient || !date || !time) { showToast('Preencha paciente, data e horário.'); return; }
+
+        const isEditing = !!window._editingAppointmentId;
+        const saveBtn = getEl('modalSave');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Salvando...'; }
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        if (isEditing) {
+            const appt = state.appointments.find(a => a.id == window._editingAppointmentId);
+            if (appt) {
+                Object.assign(appt, { patient, phone, professional, service, date, time, notes, status });
+            }
+        } else {
+            const newAppt = {
+                id: Date.now(),
+                patient, phone, professional, service, date, time, notes, status
+            };
+            state.appointments.push(newAppt);
+            if (!state.patients.some(p => p.name.toLowerCase() === patient.toLowerCase())) {
+                state.patients.push({
+                    _row: Date.now(),
+                    name: patient,
+                    phone: phone || '-',
+                    email: '',
+                    created: new Date().toLocaleDateString('pt-BR'),
+                    lastVisit: '-',
+                    nextAppt: date.split('-').reverse().join('/'),
+                    status: 'Novo',
+                    notes
+                });
+            }
+        }
+
+        closeModal();
+        saveState();
+        showToast(isEditing ? 'Agendamento atualizado.' : 'Agendamento criado.');
+        renderPage();
+    }
+
+    window.deleteAppointment = function(id) {
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+        state.appointments = state.appointments.filter(a => a.id != id);
+        saveState();
+        renderPage();
+        showToast('Agendamento excluído.');
+    };
+
+    // ======================================================
+    // THEME
+    // ======================================================
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+        const icon = document.querySelector('#themeToggle i');
+        if (icon) icon.setAttribute('data-lucide', document.body.classList.contains('dark') ? 'moon' : 'sun');
+        localStorage.setItem('pluri-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        refreshIcons();
+    }
+
+    function loadTheme() {
+        if (localStorage.getItem('pluri-theme') === 'dark') {
+            document.body.classList.add('dark');
+            const icon = document.querySelector('#themeToggle i');
+            if (icon) icon.setAttribute('data-lucide', 'moon');
+        }
+    }
+
+    // ======================================================
+    // ATTACH EVENTS
+    // ======================================================
+    function attachPageEvents() {
+        getEl('openModalBtn')?.addEventListener('click', () => openModal());
+        getEl('newPatientBtn')?.addEventListener('click', () => openNewPatient());
+        getEl('newStaffBtn')?.addEventListener('click', () => openNewStaff());
+
+        document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                state.agendaTab = tab.dataset.tab;
+                renderPage();
+            });
+        });
+
+        const professionalFilter = getEl('agendaProfessionalFilter');
+        if (professionalFilter) {
+            professionalFilter.addEventListener('change', () => {
+                state.agendaProfessionalFilter = professionalFilter.value;
+                renderPage();
+            });
+        }
+
+        getEl('agendaPrevDay')?.addEventListener('click', () => {
+            const d = new Date(state.agendaDate + 'T00:00:00');
+            d.setDate(d.getDate() - 1);
+            state.agendaDate = toDateStr(d);
+            renderPage();
+        });
+        getEl('agendaNextDay')?.addEventListener('click', () => {
+            const d = new Date(state.agendaDate + 'T00:00:00');
+            d.setDate(d.getDate() + 1);
+            state.agendaDate = toDateStr(d);
+            renderPage();
+        });
+
+        getEl('agendaPrevMonth')?.addEventListener('click', () => {
+            state.agendaMonth.month--;
+            if (state.agendaMonth.month < 0) { state.agendaMonth.month = 11; state.agendaMonth.year--; }
+            renderPage();
+        });
+        getEl('agendaNextMonth')?.addEventListener('click', () => {
+            state.agendaMonth.month++;
+            if (state.agendaMonth.month > 11) { state.agendaMonth.month = 0; state.agendaMonth.year++; }
+            renderPage();
+        });
+
+        document.querySelectorAll('.kpi-card[data-link]').forEach(card => {
+            card.addEventListener('click', () => navigateTo(card.dataset.link));
+        });
+
+        document.querySelectorAll('.js-nav').forEach(el => {
+            el.addEventListener('click', (e) => { e.preventDefault(); navigateTo(el.dataset.page); });
+        });
+
+        document.querySelectorAll('[data-conversation-id]').forEach(el => {
+            el.addEventListener('click', () => openConversation(parseInt(el.dataset.conversationId)));
+        });
+
+        document.querySelectorAll('[data-patient-row]').forEach(el => {
+            el.addEventListener('click', () => openPatient(parseInt(el.dataset.patientRow)));
+        });
+
+        getEl('patientSearch')?.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('#patientTableBody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    }
 
     // ======================================================
     // INIT
