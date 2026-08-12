@@ -299,7 +299,7 @@ for (let i = 0; i < 6; i++) {
                                     color:var(--text-secondary);
                                 ">
 
-                                Pacientes ainda não confirmaram.
+                                Clientes ainda não confirmaram.
 
                             </p>
 
