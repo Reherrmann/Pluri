@@ -59,14 +59,14 @@ function updateTitleAndSubtitle(title, subtitle) {
 
     })(),
 
-    'Veja o que está acontecendo na clínica hoje.'
+    'Veja o que está acontecendo no Studio hoje.'
 ],
-        agenda: ['Agenda', 'Gerencie os horários da clínica.'],
-        atendimentos: ['Atendimentos', 'Central de conversas com pacientes.'],
-        pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
+        agenda: ['Agenda', 'Gerencie os horários do Studio.'],
+        atendimentos: ['Conversas', 'Central de conversas com clientes.'],
+        pacientes: ['Pacientes', 'Base de pacientes do Studio.'],
         automacoes: ['Automações', 'Camada operacional inteligente.'],
-        indicadores: ['Indicadores', 'Visão operacional da clínica.'],
-        configuracoes: ['Configurações', 'Gerencie sua clínica.'],
+        indicadores: ['Indicadores', 'Visão operacional do Studio.'],
+        configuracoes: ['Configurações', 'Gerencie seu Studio.'],
     };
     const [t, s] = titles[state.currentPage] || titles.dashboard;
     if (title) title.textContent = t;

@@ -498,11 +498,11 @@ for (let i = 0; i < 6; i++) {
             -->
 
             <div class="card-placeholder">
-                Espaço adaptável para a clínica
+                Espaço adaptável para Studio
             </div>
 
             <div class="card-placeholder">
-                Espaço adaptável para a clínica
+                Espaço adaptável para a Studio
             </div>
 
         </div>
