@@ -452,17 +452,17 @@
                 </div>
             </div>
             <div class="card">
-                <div class="card-header"><h3>Atividade recente</h3></div>
-                <div class="card-body">
-                    <div class="timeline">${state.conversations.slice(0,5).map(c => `
-                        <div class="timeline-item">
-                            <span class="timeline-time">${c.time || '--:--'}</span>
-                            <div class="timeline-dot"></div>
-                            <span class="timeline-text">${c.summary || c.lastMsg}</span>
-                        </div>`).join('')}
-                    </div>
-                </div>
-            </div>
+    <div class="card-header"><h3>Atividade recente</h3></div>
+    <div class="card-body">
+        <div class="timeline">${state.activities.slice(0,5).map(a => `
+            <div class="timeline-item">
+                <span class="timeline-time">${a.time || '--:--'}</span>
+                <div class="timeline-dot"></div>
+                <span class="timeline-text">${a.text || ''}</span>
+            </div>`).join('')}
+        </div>
+    </div>
+</div>
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
         </div>`;
