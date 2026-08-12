@@ -22,7 +22,7 @@
 
         // Sem sessão no navegador
         if (!sessionRaw) {
-            window.location.replace('login.html');
+            window.location.replace('/pluri-os/login.html');
             return;
         }
 
@@ -41,7 +41,7 @@
                 !session.user.id
             ) {
                 localStorage.removeItem('pluri_session');
-                window.location.replace('login.html');
+                window.location.replace('/pluri-os/login.html');
                 return;
             }
 
@@ -57,7 +57,7 @@
                     expiration <= Date.now()
                 ) {
                     localStorage.removeItem('pluri_session');
-                    window.location.replace('login.html');
+                    window.location.replace('/pluri-os/login.html');
                     return;
                 }
             }
@@ -95,7 +95,7 @@
 
                 localStorage.removeItem('pluri_session');
 
-                window.location.replace('login.html');
+                window.location.replace('/pluri-os/login.html');
 
                 return;
             }
@@ -113,7 +113,7 @@
 
                 localStorage.removeItem('pluri_session');
 
-                window.location.replace('login.html');
+                window.location.replace('/pluri-os/login.html');
 
                 return;
             }
@@ -134,7 +134,7 @@
 
             localStorage.removeItem('pluri_session');
 
-            window.location.replace('login.html');
+            window.location.replace('/pluri-os/login.html');
 
         }
 
@@ -539,7 +539,7 @@
         window.PLURI_USER = null;
         window.PLURI_SESSION_VALIDATED = false;
 
-        window.location.replace('login.html');
+        window.location.replace('/pluri-os/login.html');
     }
 
 });
