@@ -1,20 +1,20 @@
 // js/config.js
 const PLURI_CONFIG = {
     appsScript: {
-        baseUrl: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec',
+        baseUrl: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec',
 
-        pacientes: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec?action=read&sheet=Pacientes',
+        pacientes: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec?action=read&sheet=Pacientes',
 
-        agendamentos: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec?action=read&sheet=Agendamentos',
+        agendamentos: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec?action=read&sheet=Agendamentos',
 
-        equipe: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec?action=read&sheet=Equipe',
+        equipe: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec?action=read&sheet=Equipe',
 
-        conversas: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec?action=read&sheet=Contatos_e_Agendamentos',
+        conversas: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec?action=read&sheet=Contatos_e_Agendamentos',
 
-        salvarAgendamento: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec',
+        salvarAgendamento: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec',
 
-        calendarEvents: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec?action=calendar',
+        calendarEvents: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec?action=calendar',
 
-        calendarEventsDate: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec?action=calendar&date=',
+        calendarEventsDate: 'https://script.google.com/macros/s/AKfycbzeslH7Pa1gnUnt4UNwkvGcpYRJ5gIQ-qImWozPxkQOZQhs9L8kxtea2kVlfGjr6f51/exec/exec?action=calendar&date=',
     },
 };
