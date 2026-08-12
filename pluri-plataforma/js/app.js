@@ -71,22 +71,153 @@
     }
 
     function loadState() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return false;
-            const data = JSON.parse(raw);
-            if (data.clinic) state.clinic = { ...state.clinic, ...data.clinic };
-            state.appointments = Array.isArray(data.appointments) ? data.appointments : [];
-            state.patients = Array.isArray(data.patients) ? data.patients : [];
-            state.conversations = Array.isArray(data.conversations) ? data.conversations : [];
-            state.staff = Array.isArray(data.staff) ? data.staff : [];
-            state.activities = Array.isArray(data.activities) ? data.activities : [];
-            return true;
-        } catch (error) {
-            console.error('Erro ao carregar dados da demo:', error);
+    try {
+
+        const raw =
+            localStorage.getItem(STORAGE_KEY);
+
+        if (!raw) {
             return false;
         }
+
+        const data =
+            JSON.parse(raw);
+
+
+        if (data.clinic) {
+
+            state.clinic = {
+                ...state.clinic,
+                ...data.clinic
+            };
+
+        }
+
+
+        state.appointments =
+            Array.isArray(data.appointments)
+                ? data.appointments
+                : [];
+
+
+        state.patients =
+            Array.isArray(data.patients)
+                ? data.patients
+                : [];
+
+
+        state.conversations =
+            Array.isArray(data.conversations) &&
+            data.conversations.length
+                ? data.conversations
+                : null;
+
+
+        state.staff =
+            Array.isArray(data.staff)
+                ? data.staff
+                : [];
+
+
+        state.activities =
+            Array.isArray(data.activities)
+                ? data.activities
+                : [];
+
+
+        /*
+         * Se não existirem conversas salvas,
+         * cria as conversas de demonstração.
+         */
+
+        if (!state.conversations) {
+
+            state.conversations = [
+
+                {
+                    id: 1,
+                    _row: 1,
+                    patient: 'Maria Silva',
+                    channel: 'WhatsApp',
+                    lastMsg:
+                        'Gostaria de remarcar minha consulta.',
+                    time: '10:15',
+                    status: 'Aguardando',
+                    phone: '(11) 98765-4321',
+                    summary: ''
+                },
+
+                {
+                    id: 2,
+                    _row: 2,
+                    patient: 'Fernanda Lima',
+                    channel: 'WhatsApp',
+                    lastMsg:
+                        'Qual o horário disponível para amanhã?',
+                    time: '09:42',
+                    status: 'Aguardando',
+                    phone: '(41) 99876-1111',
+                    summary: ''
+                },
+
+                {
+                    id: 3,
+                    _row: 3,
+                    patient: 'Carlos Souza',
+                    channel: 'E-mail',
+                    lastMsg:
+                        'Preciso de um atestado.',
+                    time: '08:30',
+                    status: 'Em andamento',
+                    phone: '(31) 98765-1234',
+                    summary: ''
+                },
+
+                {
+                    id: 4,
+                    _row: 4,
+                    patient: 'Novo contato',
+                    channel: 'WhatsApp',
+                    lastMsg:
+                        'Olá, gostaria de agendar uma avaliação.',
+                    time: '11:02',
+                    status: 'Aguardando',
+                    phone: '',
+                    summary: ''
+                },
+
+                {
+                    id: 5,
+                    _row: 5,
+                    patient: 'Rafael Alves',
+                    channel: 'Telefone',
+                    lastMsg:
+                        'Confirmar horário de amanhã.',
+                    time: '07:50',
+                    status: 'Resolvido',
+                    phone: '(91) 98765-6666',
+                    summary: ''
+                }
+
+            ];
+
+            saveState();
+        }
+
+
+        return true;
+
+
+    } catch (error) {
+
+        console.error(
+            'Erro ao carregar dados da demo:',
+            error
+        );
+
+        return false;
     }
+}
 
     // ======================================================
     // STATUS HELPERS (mesma assinatura do pluri-os original)
