@@ -9,30 +9,35 @@
     <style>
     /* Botão flutuante de feedback */
     .feedback-fab {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: #002C47; /* cor primária */
-        color: #fff;
-        border: none;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 500;
-        transition: transform 0.2s;
-    }
-    .feedback-fab:hover {
-        transform: scale(1.1);
-    }
-    .feedback-fab svg {
-        width: 24px;
-        height: 24px;
-    }
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    height: 52px;
+    padding: 0 20px 0 16px;
+    border-radius: 26px;
+    background: #002C47;
+    color: #fff;
+    border: none;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+.feedback-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+}
+.feedback-fab svg {
+    width: 20px;
+    height: 20px;
+}
 
     /* Modal de feedback */
     .feedback-modal-overlay {
@@ -297,7 +302,8 @@
 
     <!-- Botão flutuante de feedback -->
 <button class="feedback-fab" id="feedbackFab" title="Deixe seu comentário">
-    <i data-lucide="message-circle">Deixe seu comentário!</i>
+    <i data-lucide="message-circle"></i>
+    <span>Deixe seu comentário</span>
 </button>
 
 <!-- Modal de feedback -->
