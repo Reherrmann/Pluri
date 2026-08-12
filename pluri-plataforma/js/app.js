@@ -440,30 +440,32 @@
                 </div>
             </div>
         </div>
-        <div class="grid-4">
-            <div class="card">
-                <div class="card-header"><h3>Atendimentos da semana</h3></div>
-                <div class="card-body">
-                    <div class="chart-container">${renderBarChart(weekDays.map(d => d.count), weekDays.map(d => {
-                        const date = new Date(d.date + 'T00:00:00');
-                        const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-                        return `${dayName} ${date.getDate()}`;
-                    }), weekDays.findIndex(d => d.date === todayStr))}</div>
-                </div>
-            </div>
-            <div class="card">
+       <div class="grid-4">
     <div class="card">
-    <div class="card-header"><h3>Atividade recente</h3></div>
-    <div class="card-body">
-        <div class="timeline">${state.activities.slice(0,5).map(c => `
-            <div class="timeline-item">
-                <span class="timeline-time">${c.time || '--:--'}</span>
-                <div class="timeline-dot"></div>
-                <span class="timeline-text">${c.summary || c.lastMsg}</span>
-            </div>`).join('')}
+        <div class="card-header"><h3>Atendimentos da semana</h3></div>
+        <div class="card-body">
+            <div class="chart-container">${renderBarChart(weekDays.map(d => d.count), weekDays.map(d => {
+                const date = new Date(d.date + 'T00:00:00');
+                const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+                return `${dayName} ${date.getDate()}`;
+            }), weekDays.findIndex(d => d.date === todayStr))}</div>
         </div>
     </div>
-</div>
+    <div class="card">
+        <div class="card-header"><h3>Atividade recente</h3></div>
+        <div class="card-body">
+            <div class="timeline">${state.activities.slice(0,5).map(a => `
+                <div class="timeline-item">
+                    <span class="timeline-time">${a.time || '--:--'}</span>
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-text">${a.text || ''}</span>
+                </div>`).join('')}
+            </div>
+        </div>
+    </div>
+    <div class="card-placeholder">Espaço adaptável para a clínica</div>
+    <div class="card-placeholder">Espaço adaptável para a clínica</div>
+</div>`;
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
             <div class="card-placeholder">Espaço adaptável para a clínica</div>
         </div>`;
