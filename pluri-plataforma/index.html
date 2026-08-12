@@ -53,20 +53,22 @@
         display: flex;
     }
     .feedback-modal {
-        background: #fff;
-        border: 2px solid #ddd;
-        border-radius: 14px;
-        width: 90%;
-        max-width: 480px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-        padding: 24px;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    .feedback-modal h3 {
-        margin-bottom: 16px;
-        font-size: 18px;
-        color: #101828;
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 14px;
+    width: 90%;
+    max-width: 640px;  /* aumente se necessário */
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    padding: 0;        /* remova o padding interno para o iframe ocupar todo o espaço */
+    overflow: hidden;  /* esconde barra dupla */
+    height: 80vh;      /* altura relativa à tela */
+    display: flex;
+    flex-direction: column;
+}
+.feedback-modal iframe {
+    flex: 1;
+    border: none;
+}
     }
     .feedback-modal .form-group {
         margin-bottom: 14px;
@@ -306,6 +308,15 @@
     <span>Deixe seu comentário</span>
 </button>
 
+    <!-- Modal de feedback com Google Forms -->
+<div class="feedback-modal-overlay" id="feedbackModalOverlay">
+    <div class="feedback-modal">
+        <!-- Substitua o SRC pelo do seu Google Forms -->
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfmJq0S8UYayxE0SXk6GCkl0XYwH0Yl2PH4ug0_YFwjVG7NiQ/viewform?embedded=true" width="640" height="647" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
+            Carregando…
+        </iframe>
+    </div>
+</div>
 
 </body>
 </html>
