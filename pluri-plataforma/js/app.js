@@ -882,7 +882,7 @@ const dayAppts = state.appointments
             <div class="form-group"><label>Data de nascimento</label><input type="text" id="newPatientDate"></div>
             <div class="form-group"><label>Sexo</label><input type="text" id="newPatientSex"></div>
             <div class="form-group"><label>CPF</label><input type="text" id="newPatientCpf"></div>
-            <div class="form-group"><label>CPF/<label><input type="text" id="newPatientCpf"></div>
+            
             <div class="form-group"><label>Estado Civil</label><input type="text" id="newPatientRelation"></div>
             <div class="form-group"><label>Telefone</label><input type="text" id="newPatientPhone"></div>
             <div class="form-group"><label>E-mail</label><input type="email" id="newPatientEmail"></div>
