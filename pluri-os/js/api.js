@@ -119,55 +119,55 @@ class PluriAPI {
     }
 
     mapPatient(p) {
-        const birthDate: = this.formatDate(p['Nascimento']) 
-    ? this.formatDate(p['Nascimento']).split('-').reverse().join('/') 
-    : '';
-        const age = birthDate ? calculateAge(birthDate) : '';
+    const birthDate = this.formatDate(p['Nascimento']) 
+        ? this.formatDate(p['Nascimento']).split('-').reverse().join('/') 
+        : '';
+    const age = birthDate ? calculateAge(birthDate) : '';
 
-        return {
-            _row: p._row,
-            id: p._row,
+    return {
+        _row: p._row,
+        id: p._row,
 
-            // Campos básicos (mantidos)
-            name: p['Nome'] || '',
-            phone: p['Telefone'] || '',
-            email: p['E-mail'] || '',
-            created: this.formatDate(p['Data de cadastro']),
-            lastVisit: this.formatDate(p['Último atendimento']),
-            nextAppt: this.formatDate(p['Próxima consulta']),
-            status: this.normalizeStatus(p['Status']),
-            notes: p['Observações'] || '',
+        // Campos básicos (mantidos)
+        name: p['Nome'] || '',
+        phone: p['Telefone'] || '',
+        email: p['E-mail'] || '',
+        created: this.formatDate(p['Data de cadastro']),
+        lastVisit: this.formatDate(p['Último atendimento']),
+        nextAppt: this.formatDate(p['Próxima consulta']),
+        status: this.normalizeStatus(p['Status']),
+        notes: p['Observações'] || '',
 
-            // ========== NOVOS CAMPOS ==========
-            birthDate: birthDate,
-            age: age,
-            gender: p['Sexo'] || '',
-            maritalStatus: p['Estado civil'] || p['Estado Civil'] || '',
-            profession: p['Profissão'] || '',
-            cpf: p['CPF'] || '',
-            rg: p['RG'] || '',
-            mobile: p['Celular'] || '',
-            sendReminders: p['Enviar lembretes'] || p['Enviar Lembretes'] || 'Não',
-            zipCode: p['CEP'] || '',
-            address: p['Endereço'] || '',
-            number: p['Número'] || '',
-            complement: p['Complemento'] || '',
-            neighborhood: p['Bairro'] || '',
-            city: p['Cidade'] || '',
-            state: p['UF'] || p['Estado'] || '',
-            motherName: p['Nome da Mãe'] || p['Nome da mãe'] || '',
-            fatherName: p['Nome do Pai'] || p['Nome do pai'] || '',
-            familyContactName: p['Contato Familiar'] || p['Contato familiar'] || '',
-            familyContactRelationship: p['Grau de Parentesco'] || p['Grau de parentesco'] || '',
-            familyContactPhone: p['Telefone Familiar'] || p['Telefone familiar'] || '',
-            hasInsurance: p['Possui Convênio'] || p['Possui convenio'] || 'Não',
-            insuranceName: p['Convênio'] || p['Convenio'] || '',
-            insuranceCard: p['Carteirinha'] || '',
-            insurancePlan: p['Plano'] || '',
-            insuranceExpiration: p['Validade'] || '',
-            professional: p['Profissional'] || '' // caso venha de outra tabela
-        };
-    }
+        // ========== NOVOS CAMPOS ==========
+        birthDate: birthDate,
+        age: age,
+        gender: p['Sexo'] || '',
+        maritalStatus: p['Estado civil'] || p['Estado Civil'] || '',
+        profession: p['Profissão'] || '',
+        cpf: p['CPF'] || '',
+        rg: p['RG'] || '',
+        mobile: p['Celular'] || '',
+        sendReminders: p['Enviar lembretes'] || p['Enviar Lembretes'] || 'Não',
+        zipCode: p['CEP'] || '',
+        address: p['Endereço'] || '',
+        number: p['Número'] || '',
+        complement: p['Complemento'] || '',
+        neighborhood: p['Bairro'] || '',
+        city: p['Cidade'] || '',
+        state: p['UF'] || p['Estado'] || '',
+        motherName: p['Nome da Mãe'] || p['Nome da mãe'] || '',
+        fatherName: p['Nome do Pai'] || p['Nome do pai'] || '',
+        familyContactName: p['Contato Familiar'] || p['Contato familiar'] || '',
+        familyContactRelationship: p['Grau de Parentesco'] || p['Grau de parentesco'] || '',
+        familyContactPhone: p['Telefone Familiar'] || p['Telefone familiar'] || '',
+        hasInsurance: p['Possui Convênio'] || p['Possui convenio'] || 'Não',
+        insuranceName: p['Convênio'] || p['Convenio'] || '',
+        insuranceCard: p['Carteirinha'] || '',
+        insurancePlan: p['Plano'] || '',
+        insuranceExpiration: p['Validade'] || '',
+        professional: p['Profissional'] || '' // caso venha de outra tabela
+    };
+}
 
     async createPatient(patient) {
         const values = {
