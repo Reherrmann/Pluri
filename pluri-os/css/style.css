@@ -515,20 +515,23 @@ body{
 .search-bar input{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:13px;outline:none;font-weight:500;background:var(--input-bg);color:var(--text);min-width:0;}
 .search-bar input:focus{border-color:var(--primary);}
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE (corrigido) ===== */
 @media(max-width:1200px){
-   @media(max-width:1200px){
     .grid-2{
-        grid-template-columns:3fr 1fr;}
+        grid-template-columns:3fr 1fr;
+    }
     .grid-3{
-        grid-template-columns:repeat(2,1fr);}
+        grid-template-columns:repeat(2,1fr);
+    }
     .grid-4{
-        grid-template-columns:repeat(4,1fr);}
+        grid-template-columns:repeat(4,1fr);
+    }
     .kpi-row{
-        grid-template-columns:repeat(2,1fr); }
+        grid-template-columns:repeat(2,1fr);
+    }
     .automation-grid{
-        grid-template-columns:1fr;}
-}
+        grid-template-columns:1fr;
+    }
 }
 @media(max-width:1023px){
     .topbar{padding:0 16px;}
@@ -568,24 +571,24 @@ body{
         width:60px;
     }
     /* Configurações / formulários no mobile */
-.form-row{
-    flex-direction:column;
-    gap:12px;
-    width:100%;
-}
+    .form-row{
+        flex-direction:column;
+        gap:12px;
+        width:100%;
+    }
 
-.form-group{
-    width:100%;
-    min-width:0;
-}
+    .form-group{
+        width:100%;
+        min-width:0;
+    }
 
-.form-group input,
-.form-group select,
-.form-group textarea{
-    width:100%;
-    max-width:100%;
-    min-width:0;
- }
+    .form-group input,
+    .form-group select,
+    .form-group textarea{
+        width:100%;
+        max-width:100%;
+        min-width:0;
+    }
 }
 
 @media (max-width: 767px) {
@@ -1137,6 +1140,56 @@ body{
     background: #c0392b;
 }
 
+/* ========== SEÇÕES COLAPSÁVEIS ========== */
+.form-collapsible {
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.form-collapsible summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 1.2rem;
+    cursor: pointer;
+    background: var(--bg);
+    transition: background 0.2s;
+}
+
+.form-collapsible summary::-webkit-details-marker {
+    display: none;
+}
+
+.form-collapsible summary:hover {
+    background: var(--border-light);
+}
+
+.form-collapsible summary h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text);
+}
+
+.collapsible-arrow {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s;
+    color: var(--text-secondary);
+}
+
+.form-collapsible[open] .collapsible-arrow {
+    transform: rotate(180deg);
+}
+
+.form-collapsible .form-grid {
+    padding: 1rem 1.2rem;
+}
+
 /* ========== RESPONSIVIDADE ========== */
 
 @media (max-width: 992px) {
@@ -1161,19 +1214,89 @@ body{
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .patient-profile-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
     }
+
     .patient-profile-actions {
         width: 100%;
         justify-content: flex-start;
     }
+
+    .patient-profile-main {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .patient-profile-sidebar {
+        width: 100%;
+    }
+
+    .patient-profile-nav ul {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        border-radius: 8px;
+    }
+
+    .patient-profile-nav li {
+        border-bottom: none;
+        border-right: 1px solid var(--border-light);
+        flex-shrink: 0;
+        padding: 0.7rem 1rem;
+    }
+
+    .patient-info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .patient-info-item.full-width {
+        grid-column: auto;
+    }
+
+    .patient-info-card {
+        padding: 1rem;
+    }
+
+    .patient-section h2 {
+        font-size: 1.2rem;
+    }
+
     .form-grid {
         grid-template-columns: 1fr;
     }
-    .patient-info-grid {
-        grid-template-columns: 1fr;
+
+    .form-collapsible summary {
+        padding: 0.7rem 1rem;
+    }
+
+    .form-collapsible .form-grid {
+        padding: 0.8rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .patient-profile-avatar {
+        width: 56px;
+        height: 56px;
+        font-size: 1.4rem;
+    }
+
+    .patient-profile-info h2 {
+        font-size: 1.3rem;
+    }
+
+    .patient-profile-bio,
+    .patient-profile-contact,
+    .patient-profile-id {
+        font-size: 0.85rem;
+    }
+
+    .patient-profile-actions {
+        flex-wrap: wrap;
     }
 }

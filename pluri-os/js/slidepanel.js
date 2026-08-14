@@ -128,8 +128,9 @@ function openPatientForm(patient) {
                 <!-- Endereço (colapsável) -->
                 <details class="form-collapsible" ${p.address || p.zipCode || p.number || p.neighborhood || p.city || p.state ? 'open' : ''}>
                     <summary>
+                    <i class="collapsible-arrow" data-lucide="chevron-down"></i>
                         <h4>Endereço</h4>
-                        <i class="collapsible-arrow" data-lucide="chevron-down"></i>
+                        
                     </summary>
                     <div class="form-grid">
                         <div class="form-field">
@@ -167,8 +168,9 @@ function openPatientForm(patient) {
                 <!-- Família (colapsável) -->
                 <details class="form-collapsible" ${p.motherName || p.fatherName || p.familyContactName || p.familyContactPhone ? 'open' : ''}>
                     <summary>
+                    <i class="collapsible-arrow" data-lucide="chevron-down"></i>
                         <h4>Família</h4>
-                        <i class="collapsible-arrow" data-lucide="chevron-down"></i>
+                        
                     </summary>
                     <div class="form-grid">
                         <div class="form-field">
