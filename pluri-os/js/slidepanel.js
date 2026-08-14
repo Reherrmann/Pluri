@@ -37,7 +37,6 @@ function openPatientForm(patient) {
         <div class="slide-panel-content">
             <div class="slide-panel-header">
                 <h3>${isEdit ? 'Editar paciente' : 'Novo paciente'}</h3>
-                <button class="btn-close" onclick="closeSlidePanel()">&times;</button>
             </div>
             <form id="patient-form" data-id="${isEdit ? escapeHtml(p._row || '') : ''}" 
                   onsubmit="handlePatientSubmit(event)">
@@ -126,9 +125,12 @@ function openPatientForm(patient) {
                     </div>
                 </div>
 
-                <!-- Endereço -->
-                <div class="form-section">
-                    <h4>Endereço</h4>
+                <!-- Endereço (colapsável) -->
+                <details class="form-collapsible" ${p.address || p.zipCode || p.number || p.neighborhood || p.city || p.state ? 'open' : ''}>
+                    <summary>
+                        <h4>Endereço</h4>
+                        <i class="collapsible-arrow" data-lucide="chevron-down"></i>
+                    </summary>
                     <div class="form-grid">
                         <div class="form-field">
                             <label>CEP</label>
@@ -160,11 +162,14 @@ function openPatientForm(patient) {
                             <input type="text" name="state" value="${escapeHtml(p.state || '')}" maxlength="2">
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <!-- Família -->
-                <div class="form-section">
-                    <h4>Família</h4>
+                <!-- Família (colapsável) -->
+                <details class="form-collapsible" ${p.motherName || p.fatherName || p.familyContactName || p.familyContactPhone ? 'open' : ''}>
+                    <summary>
+                        <h4>Família</h4>
+                        <i class="collapsible-arrow" data-lucide="chevron-down"></i>
+                    </summary>
                     <div class="form-grid">
                         <div class="form-field">
                             <label>Nome da mãe</label>
@@ -188,7 +193,7 @@ function openPatientForm(patient) {
                                    value="${escapeHtml(p.familyContactPhone || '')}">
                         </div>
                     </div>
-                </div>
+                </details>
 
                 <!-- Convênio -->
                 <div class="form-section">

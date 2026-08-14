@@ -259,23 +259,7 @@ function renderDadosPessoais(p) {
                     </div>
                 </div>
             </div>
-            <div class="patient-info-card">
-                <h3>Documentação</h3>
-                <div class="patient-info-grid">
-                    <div class="patient-info-item">
-                        <span class="patient-info-label">CPF</span>
-                        <span class="patient-info-value">${escapeHtml(p.cpf || '—')}</span>
-                    </div>
-                    <div class="patient-info-item">
-                        <span class="patient-info-label">RG</span>
-                        <span class="patient-info-value">${escapeHtml(p.rg || '—')}</span>
-                    </div>
-                    <div class="patient-info-item">
-                        <span class="patient-info-label">Profissão</span>
-                        <span class="patient-info-value">${escapeHtml(p.profession || '—')}</span>
-                    </div>
-                </div>
-            </div>
+            
             <div class="patient-info-card">
                 <h3>Dados de contato</h3>
                 <div class="patient-info-grid">
@@ -323,6 +307,23 @@ function renderDadosPessoais(p) {
                     <div class="patient-info-item">
                         <span class="patient-info-label">Estado</span>
                         <span class="patient-info-value">${escapeHtml(p.state || '—')}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="patient-info-card">
+                <h3>Documentação</h3>
+                <div class="patient-info-grid">
+                    <div class="patient-info-item">
+                        <span class="patient-info-label">CPF</span>
+                        <span class="patient-info-value">${escapeHtml(p.cpf || '—')}</span>
+                    </div>
+                    <div class="patient-info-item">
+                        <span class="patient-info-label">RG</span>
+                        <span class="patient-info-value">${escapeHtml(p.rg || '—')}</span>
+                    </div>
+                    <div class="patient-info-item">
+                        <span class="patient-info-label">Profissão</span>
+                        <span class="patient-info-value">${escapeHtml(p.profession || '—')}</span>
                     </div>
                 </div>
             </div>
