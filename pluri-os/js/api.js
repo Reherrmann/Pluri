@@ -121,7 +121,7 @@ class PluriAPI {
     mapPatient(p) {
         const birthDate: this.formatDate(p['Nascimento']) 
     ? this.formatDate(p['Nascimento']).split('-').reverse().join('/') 
-    : ''
+    : '';
         const age = birthDate ? calculateAge(birthDate) : '';
 
         return {
