@@ -184,24 +184,15 @@ function getSessionToken() {
 }
 
 async function init() {
-
-// Saudação automática conforme o horário
+    // Saudação automática conforme o horário
     const hour = new Date().getHours();
-
     let greeting = 'Boa noite';
-
-    if (hour >= 5 && hour < 12) {
-        greeting = 'Bom dia';
-    } else if (hour >= 12 && hour < 18) {
-        greeting = 'Boa tarde';
-    }
+    if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+    else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
 
     const pageTitle = getEl('pageTitle');
+    if (pageTitle) pageTitle.textContent = `${greeting}!`;
 
-    if (pageTitle) {
-        pageTitle.textContent = `${greeting}!`;
-    }
-    
     if (!window.pluriAPI) {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
@@ -215,38 +206,55 @@ async function init() {
         window._calendarNotConnected = true;
     });
 
+    // Exibe um único loading
+    showLoading('Carregando dados...');
+
     try {
-        console.log('🔄 Carregando pacientes...');
-        const patients = await window.pluriAPI.getPatients();
+        console.log('🔄 Carregando dados...');
+
+        // 1. Verifica se o calendário está conectado (não bloqueia as demais)
+        const calendarConnectedPromise = window.pluriAPI.isCalendarConnected()
+            .catch(() => false);
+
+        // 2. Carrega os dados essenciais em paralelo
+        const [patients, staff, clinic, conversations] = await Promise.all([
+            window.pluriAPI.getPatients(),
+            window.pluriAPI.getStaff(),
+            window.pluriAPI.getClinic(),
+            window.pluriAPI.getConversations()
+        ]);
+
         state.patients = Array.isArray(patients) ? patients : [];
+        state.staff = Array.isArray(staff) ? staff : [];
+        state.clinic = clinic || { name: '', phone: '', email: '', address: '', hours: '' };
+        state.conversations = Array.isArray(conversations) ? conversations : [];
+
         console.log('✅ Pacientes:', state.patients.length);
+        console.log('✅ Equipe:', state.staff.length);
+        console.log('✅ Clínica carregada:', state.clinic);
+        console.log('✅ Conversas:', state.conversations.length);
 
-        console.log('🔄 Carregando agenda...');
-        const appointments = await window.pluriAPI.getCalendarAppointments();
-        state.appointments = Array.isArray(appointments) ? appointments : [];
-        console.log('✅ Agenda:', state.appointments.length);
-
-        console.log('🔄 Carregando equipe...');
-const staff = await window.pluriAPI.getStaff();
-state.staff = Array.isArray(staff) ? staff : [];
-console.log('✅ Equipe:', state.staff.length);
-
-console.log('🔄 Carregando clínica...');
-state.clinic = await window.pluriAPI.getClinic();
-console.log('✅ Clínica carregada:', state.clinic);
-
-console.log('🔄 Carregando conversas...');
-const conversations = await window.pluriAPI.getConversations();
-state.conversations = Array.isArray(conversations) ? conversations : [];
-console.log('✅ Conversas:', state.conversations.length);
+        // 3. Busca a agenda somente se o calendário estiver conectado
+        const calendarConnected = await calendarConnectedPromise;
+        if (calendarConnected) {
+            const appointments = await window.pluriAPI.getCalendarAppointments();
+            state.appointments = Array.isArray(appointments) ? appointments : [];
+            console.log('✅ Agenda:', state.appointments.length);
+        } else {
+            state.appointments = [];
+            console.log('ℹ️ Calendário não conectado — agenda vazia.');
+        }
     } catch (e) {
         console.error('❌ Erro ao carregar dados:', e.message);
         state.patients = [];
         state.appointments = [];
         state.staff = [];
         state.conversations = [];
+    } finally {
+        hideLoading();
     }
 
+    // Restante da inicialização (mantido igual)
     loadTheme();
     getEl('themeToggle')?.addEventListener('click', toggleTheme);
 
