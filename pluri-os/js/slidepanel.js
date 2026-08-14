@@ -379,6 +379,13 @@ async function handlePatientSubmit(event) {
     };
 
     // Validações
+    if (data.birthDate) {
+    const parts = data.birthDate.split('/');
+    if (parts.length === 3) {
+        data.birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+}
+
     if (!data.name) {
         showToast('Nome é obrigatório', 'error');
         return;
