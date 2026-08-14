@@ -829,3 +829,351 @@ body{
     }
 
 }
+
+/* ========== NOVA FICHA DE PACIENTE ========== */
+
+.patient-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.back-link {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    align-self: flex-start;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: opacity 0.2s;
+}
+.back-link:hover {
+    opacity: 0.8;
+}
+
+.patient-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.patient-profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.patient-profile-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.patient-profile-info h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text);
+}
+
+.patient-profile-bio {
+    color: var(--text-secondary);
+    margin: 0.25rem 0;
+}
+
+.patient-profile-contact,
+.patient-profile-id {
+    margin: 0.2rem 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.patient-profile-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.patient-profile-main {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.patient-profile-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+}
+
+.patient-profile-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.patient-profile-nav li {
+    padding: 0.9rem 1.2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-light);
+    font-size: 0.95rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+.patient-profile-nav li:hover {
+    background: var(--bg);
+}
+
+.patient-profile-nav li.active {
+    background: var(--bg);
+    color: var(--primary);
+    font-weight: 500;
+    border-left: 3px solid var(--primary);
+}
+
+.patient-profile-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.patient-section h2 {
+    margin-top: 0;
+    color: var(--text);
+    font-size: 1.3rem;
+}
+
+.patient-info-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.patient-info-card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--text);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.patient-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.patient-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.patient-info-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.patient-info-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.patient-info-value {
+    font-size: 0.95rem;
+    color: var(--text);
+    word-break: break-word;
+}
+
+.patient-empty-state {
+    background: var(--card-bg);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.patient-empty-state h3 {
+    margin-top: 0;
+    color: var(--text);
+}
+
+/* ========== LISTA DE PACIENTES (melhorias) ========== */
+
+/* Avatar pequeno na tabela */
+.patient-avatar-list {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+/* ========== FORMULÁRIO NO SLIDE-PANEL ========== */
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section h4 {
+    margin-bottom: 0.75rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem 1rem;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.form-field label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.checkbox-field {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.danger-zone {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+    justify-content: flex-start;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+/* ========== RESPONSIVIDADE ========== */
+
+@media (max-width: 992px) {
+    .patient-profile-main {
+        flex-direction: column;
+    }
+    .patient-profile-sidebar {
+        width: 100%;
+    }
+    .patient-profile-nav ul {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .patient-profile-nav li {
+        border-bottom: none;
+        border-right: 1px solid var(--border-light);
+        flex-shrink: 0;
+    }
+    .patient-info-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .patient-profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .patient-profile-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .patient-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
