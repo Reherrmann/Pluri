@@ -574,8 +574,11 @@ function openNewMedicalRecord() {
 }
 
 function openEditMedicalRecord(row) {
+    console.log('🔵 openEditMedicalRecord chamado com row:', row);
+    console.log('📊 state.medicalRecords:', state.medicalRecords);
     const record = state.medicalRecords.find(r => r._row === row);
     if (!record) {
+        console.error('❌ Registro não encontrado!');
         showToast('Registro não encontrado.');
         return;
     }
@@ -821,12 +824,17 @@ async function deleteMedicalRecord(row) {
 // ============================================================
 
 function showVersionHistory(row) {
+    console.log('🔵 showVersionHistory chamado com row:', row);
+    console.log('📊 state.medicalRecords:', state.medicalRecords);
     const allVersions = [];
     let current = state.medicalRecords.find(r => r._row === row);
     if (!current) {
+        console.error('❌ Registro não encontrado!');
         showToast('Registro não encontrado.');
         return;
     }
+    
+}
 
     // Vai para a raiz
     while (current.versaoAnterior) {
