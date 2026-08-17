@@ -29,9 +29,7 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
                     <div>
                         <h2 style="margin-bottom:4px;">Documentos</h2>
-                        <p style="margin:0;color:var(--text-secondary);font-size:13px;">
-                            Arquivos armazenados no Google Drive da clínica.
-                        </p>
+                        <p style="margin:0;color:var(--text-secondary);font-size:13px;">Arquivos armazenados no Google Drive da clínica.</p>
                     </div>
                     <button class="btn btn-primary" type="button" id="patientAddDocumentBtn">
                         <i data-lucide="upload" style="width:16px;height:16px;"></i>
@@ -39,50 +37,52 @@
                     </button>
                     <input type="file" id="patientDocumentInput" hidden>
                 </div>
-
                 <div id="patientDocumentsList" class="patient-info-card">
-                    <div style="padding:28px;text-align:center;color:var(--text-secondary);">
-                        Carregando documentos...
-                    </div>
+                    <div style="padding:28px;text-align:center;color:var(--text-secondary);">Carregando documentos...</div>
                 </div>
             </div>
         `;
     }
 
-    function replaceLegacyDocumentsButton() {
-        if (!window.state || state.patientSection !== 'documentos') return;
-        if (!state.selectedPatient) return;
+    function bindButton(button, patient) {
+        if (!button || !patient || button.dataset.documentsBound === 'true') return;
 
-        const buttons = Array.from(document.querySelectorAll('.patient-empty-state button'));
-        const legacyButton = buttons.find(button =>
-            String(button.textContent || '').trim() === 'Adicionar documento'
-        );
+        button.dataset.documentsBound = 'true';
+        button.removeAttribute('disabled');
 
-        if (!legacyButton) return;
+        let input = document.getElementById('patientDocumentInput');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'file';
+            input.id = 'patientDocumentInput';
+            input.hidden = true;
+            document.body.appendChild(input);
+        }
 
-        const replacement = document.createElement('button');
-        replacement.type = 'button';
-        replacement.className = 'btn btn-primary';
-        replacement.id = 'patientAddDocumentBtn';
-        replacement.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            input.click();
+        });
 
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.id = 'patientDocumentInput';
-        input.hidden = true;
-
-        legacyButton.replaceWith(replacement);
-        replacement.parentElement?.appendChild(input);
-
-        replacement.addEventListener('click', () => input.click());
-        input.addEventListener('change', async () => {
+        input.addEventListener('change', async function () {
             const file = input.files && input.files[0];
             input.value = '';
             if (!file) return;
-            await uploadFile(state.selectedPatient, file, replacement);
+            await uploadFile(patient, file, button);
         });
+    }
 
-        if (typeof refreshIcons === 'function') refreshIcons();
+    function replaceLegacyDocumentsButton() {
+        if (!window.state || state.patientSection !== 'documentos' || !state.selectedPatient) return;
+
+        const legacyButton = Array.from(document.querySelectorAll('.patient-empty-state button'))
+            .find(button => String(button.textContent || '').trim() === 'Adicionar documento');
+
+        if (!legacyButton) return;
+
+        legacyButton.removeAttribute('disabled');
+        bindButton(legacyButton, state.selectedPatient);
     }
 
     async function uploadFile(patient, file, addButton) {
@@ -101,16 +101,10 @@
         if (typeof refreshIcons === 'function') refreshIcons();
 
         try {
-            const result = await window.pluriAPI.uploadPatientDocument(
-                patient._row,
-                patient.name,
-                file
-            );
-
+            const result = await window.pluriAPI.uploadPatientDocument(patient._row, patient.name, file);
             if (!result || !result.success) {
                 throw new Error(result && result.error ? result.error : 'Não foi possível enviar o documento.');
             }
-
             showToast('Documento enviado com sucesso!');
             await loadPatientDocuments(patient);
         } catch (error) {
@@ -124,49 +118,36 @@
     }
 
     async function loadPatientDocuments(patient) {
+        if (!patient) return;
+
         const container = document.getElementById('patientDocumentsList');
         const addButton = document.getElementById('patientAddDocumentBtn');
-        const input = document.getElementById('patientDocumentInput');
 
-        // Caso a ficha antiga ainda esteja sendo usada, corrige o botão diretamente.
         if (!container) {
             replaceLegacyDocumentsButton();
             return;
         }
 
-        if (!patient) return;
-
-        if (addButton && input && addButton.dataset.documentsBound !== 'true') {
-            addButton.dataset.documentsBound = 'true';
-            addButton.addEventListener('click', () => input.click());
-            input.addEventListener('change', async () => {
-                const file = input.files && input.files[0];
-                input.value = '';
-                if (!file) return;
-                await uploadFile(patient, file, addButton);
-            });
-        }
+        const input = document.getElementById('patientDocumentInput');
+        if (addButton && input) bindButton(addButton, patient);
 
         try {
-            const result = await window.pluriAPI.getPatientDocuments(
-                patient._row,
-                patient.name
-            );
+            const result = await window.pluriAPI.getPatientDocuments(patient._row, patient.name);
+            const documents = result && result.documents ? result.documents : result;
+            const files = documents && Array.isArray(documents.files) ? documents.files : [];
 
-            if (!result || !Array.isArray(result.files)) {
+            if (!documents || !Array.isArray(documents.files)) {
                 throw new Error('Resposta inválida ao carregar documentos.');
             }
 
-            if (!result.files.length) {
+            if (!files.length) {
                 container.innerHTML = `
                     <div style="padding:42px 24px;text-align:center;">
                         <div style="width:48px;height:48px;margin:0 auto 14px;border-radius:12px;background:var(--background-secondary,#f2f4f7);display:flex;align-items:center;justify-content:center;">
                             <i data-lucide="folder-open" style="width:22px;height:22px;color:var(--text-secondary);"></i>
                         </div>
                         <h3 style="margin:0 0 6px;">Nenhum documento</h3>
-                        <p style="margin:0;color:var(--text-secondary);font-size:13px;">
-                            Adicione exames, documentos e outros arquivos deste paciente.
-                        </p>
+                        <p style="margin:0;color:var(--text-secondary);font-size:13px;">Adicione exames, documentos e outros arquivos deste paciente.</p>
                     </div>
                 `;
                 if (typeof refreshIcons === 'function') refreshIcons();
@@ -175,28 +156,18 @@
 
             container.innerHTML = `
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    ${result.files.map(file => `
+                    ${files.map(file => `
                         <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border-color,#e4e7ec);border-radius:10px;">
                             <div style="width:38px;height:38px;border-radius:9px;background:var(--background-secondary,#f2f4f7);display:flex;align-items:center;justify-content:center;flex:0 0 auto;">
                                 <i data-lucide="${fileIcon(file.mimeType, file.name)}" style="width:18px;height:18px;color:var(--text-secondary);"></i>
                             </div>
                             <div style="min-width:0;flex:1;">
-                                <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                    ${escapeHtml(file.name || 'Documento')}
-                                </div>
-                                <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">
-                                    ${formatFileSize(file.size)}${file.modifiedTime ? ' · ' + new Date(file.modifiedTime).toLocaleDateString('pt-BR') : ''}
-                                </div>
+                                <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(file.name || 'Documento')}</div>
+                                <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${formatFileSize(file.size)}${file.modifiedTime ? ' · ' + new Date(file.modifiedTime).toLocaleDateString('pt-BR') : ''}</div>
                             </div>
                             <div style="display:flex;align-items:center;gap:4px;flex:0 0 auto;">
-                                ${file.webViewLink ? `
-                                    <a class="btn btn-icon" href="${escapeHtml(file.webViewLink)}" target="_blank" rel="noopener noreferrer" title="Abrir documento">
-                                        <i data-lucide="external-link" style="width:16px;height:16px;"></i>
-                                    </a>
-                                ` : ''}
-                                <button class="btn btn-icon" type="button" data-delete-patient-document="${escapeHtml(file.id)}" title="Excluir documento">
-                                    <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
-                                </button>
+                                ${file.webViewLink ? `<a class="btn btn-icon" href="${escapeHtml(file.webViewLink)}" target="_blank" rel="noopener noreferrer" title="Abrir documento"><i data-lucide="external-link" style="width:16px;height:16px;"></i></a>` : ''}
+                                <button class="btn btn-icon" type="button" data-delete-patient-document="${escapeHtml(file.id)}" title="Excluir documento"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
                             </div>
                         </div>
                     `).join('')}
@@ -206,16 +177,13 @@
             container.querySelectorAll('[data-delete-patient-document]').forEach(button => {
                 button.addEventListener('click', async () => {
                     const fileId = button.dataset.deletePatientDocument;
-                    const file = result.files.find(item => String(item.id) === String(fileId));
-                    if (!file) return;
-                    if (!window.confirm(`Excluir o documento "${file.name}"?`)) return;
+                    const file = files.find(item => String(item.id) === String(fileId));
+                    if (!file || !window.confirm(`Excluir o documento "${file.name}"?`)) return;
 
                     button.disabled = true;
                     try {
                         const response = await window.pluriAPI.deletePatientDocument(fileId);
-                        if (!response || !response.success) {
-                            throw new Error(response && response.error ? response.error : 'Não foi possível excluir o documento.');
-                        }
+                        if (!response || !response.success) throw new Error(response && response.error ? response.error : 'Não foi possível excluir o documento.');
                         showToast('Documento excluído.');
                         await loadPatientDocuments(patient);
                     } catch (error) {
@@ -231,9 +199,7 @@
             console.error('Erro ao carregar documentos:', error);
             container.innerHTML = `
                 <div style="padding:28px;text-align:center;">
-                    <p style="margin:0 0 12px;color:var(--text-secondary);">
-                        Não foi possível carregar os documentos.
-                    </p>
+                    <p style="margin:0 0 12px;color:var(--text-secondary);">Não foi possível carregar os documentos.</p>
                     <button class="btn btn-outline" type="button" id="patientDocumentsRetry">Tentar novamente</button>
                 </div>
             `;
@@ -241,27 +207,33 @@
         }
     }
 
+    function forceDocumentsSection() {
+        if (!window.state || !state.selectedPatient || state.patientSection !== 'documentos') return;
+
+        const content = document.querySelector('.patient-profile-content');
+        if (!content) return;
+
+        // Se a aba ainda estiver usando o estado vazio antigo, troca pelo módulo real.
+        if (!document.getElementById('patientDocumentsList')) {
+            content.innerHTML = renderDocumentos(state.selectedPatient);
+            if (typeof refreshIcons === 'function') refreshIcons();
+        }
+
+        const button = document.getElementById('patientAddDocumentBtn');
+        if (button) bindButton(button, state.selectedPatient);
+        else replaceLegacyDocumentsButton();
+    }
+
     window.renderPatientDocuments = renderDocumentos;
     window.loadPatientDocuments = loadPatientDocuments;
 
-    // A ficha do paciente é renderizada dinamicamente por pacientes.js.
-    // Observamos o container para capturar a aba Documentos assim que ela aparecer.
-    function bindLegacyDocumentsWhenVisible() {
-        try {
-            if (window.state && state.patientSection === 'documentos' && state.selectedPatient) {
-                replaceLegacyDocumentsButton();
-            }
-        } catch (error) {
-            console.warn('PLURI OS: não foi possível vincular o botão de documentos.', error);
-        }
-    }
-
     const pageContainer = document.getElementById('pageContainer');
     if (pageContainer && window.MutationObserver) {
-        const observer = new MutationObserver(() => bindLegacyDocumentsWhenVisible());
+        const observer = new MutationObserver(() => forceDocumentsSection());
         observer.observe(pageContainer, { childList: true, subtree: true });
     }
 
-    setTimeout(bindLegacyDocumentsWhenVisible, 0);
-    setTimeout(bindLegacyDocumentsWhenVisible, 300);
+    setTimeout(forceDocumentsSection, 0);
+    setTimeout(forceDocumentsSection, 300);
+    setTimeout(forceDocumentsSection, 1000);
 })();
