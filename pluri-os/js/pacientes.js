@@ -94,7 +94,7 @@ function renderPatientProfile() {
 
     const initials = getInitials(p.name);
     const section = state.patientSection;
-  const sectionContent = await renderPatientSectionContent(section);
+  const sectionContent = renderPatientSectionContent(se  ction);
 
     const html = `
         <div class="patient-profile">
