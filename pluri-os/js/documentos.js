@@ -244,8 +244,24 @@
     window.renderPatientDocuments = renderDocumentos;
     window.loadPatientDocuments = loadPatientDocuments;
 
-    // Corrige também o estado vazio antigo, caso pacientes.js tenha renderizado
-    // a aba antes de este módulo terminar de carregar.
-    setTimeout(replaceLegacyDocumentsButton, 0);
-    setTimeout(replaceLegacyDocumentsButton, 300);
+    // A ficha do paciente é renderizada dinamicamente por pacientes.js.
+    // Observamos o container para capturar a aba Documentos assim que ela aparecer.
+    function bindLegacyDocumentsWhenVisible() {
+        try {
+            if (window.state && state.patientSection === 'documentos' && state.selectedPatient) {
+                replaceLegacyDocumentsButton();
+            }
+        } catch (error) {
+            console.warn('PLURI OS: não foi possível vincular o botão de documentos.', error);
+        }
+    }
+
+    const pageContainer = document.getElementById('pageContainer');
+    if (pageContainer && window.MutationObserver) {
+        const observer = new MutationObserver(() => bindLegacyDocumentsWhenVisible());
+        observer.observe(pageContainer, { childList: true, subtree: true });
+    }
+
+    setTimeout(bindLegacyDocumentsWhenVisible, 0);
+    setTimeout(bindLegacyDocumentsWhenVisible, 300);
 })();
