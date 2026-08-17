@@ -402,10 +402,7 @@ function openPatientMenu() {
     console.log('Menu de ações do paciente (futuro)');
 }
 
-// ============================================================
-// EXPOSIÇÃO GLOBAL
-// ============================================================
-
+// Expor funções globalmente
 window.buildPacientes = buildPacientes;
 window.getInitials = getInitials;
 window.openPatient = openPatient;
@@ -434,9 +431,6 @@ window.clearFilters = clearFilters;
 // PRONTUÁRIO ELETRÔNICO – FUNÇÕES
 // ============================================================
 
-/**
- * Renderiza a aba "Prontuário eletrônico" dentro do perfil do paciente.
- */
 async function renderProntuario(p) {
     if (!state.medicalRecords || state.medicalRecords.length === 0) {
         state.medicalRecords = await window.pluriAPI.getMedicalRecords();
@@ -484,9 +478,6 @@ async function renderProntuario(p) {
     `;
 }
 
-/**
- * Agrupa registros por cadeia de versões e retorna apenas a última versão de cada cadeia.
- */
 function getLatestVersions(records) {
     const chains = [];
     records.forEach(r => {
@@ -496,24 +487,24 @@ function getLatestVersions(records) {
     });
     chains.forEach(chain => {
         let current = chain.root;
-        let next = records.find(r => String(r.versaoAnterior) === String(current._row));
+        let next = records.find(r => r.versaoAnterior === current._row);
         while (next) {
             chain.versions.push(next);
             current = next;
-            next = records.find(r => String(r.versaoAnterior) === String(current._row));
+            next = records.find(r => r.versaoAnterior === current._row);
         }
     });
     return chains.map(chain => chain.versions[chain.versions.length - 1]);
 }
 
-/**
- * Renderiza um card de registro de prontuário.
- */
 function renderRecordCard(record) {
     const versionBadge = record.versaoAnterior ? '<span class="badge" style="background:#4f46e5; color:#fff; padding:2px 10px; border-radius:20px; font-size:0.75rem;">Última versão</span>' : '';
 
+    // Garantir que _row seja passado corretamente
+    const rowId = record._row || 0;
+
     return `
-        <div class="record-card" data-row="${record._row}" style="background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: box-shadow 0.2s;">
+        <div class="record-card" data-row="${rowId}" style="background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: box-shadow 0.2s;">
             <div class="record-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <strong>${record.data || 'Data não informada'} ${record.hora ? '· ' + record.hora : ''}</strong>
@@ -521,9 +512,9 @@ function renderRecordCard(record) {
                     ${versionBadge}
                 </div>
                 <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                    <button class="btn btn-sm btn-outline" onclick="openEditMedicalRecord(${record._row})" style="padding:4px 10px; font-size:0.85rem;">✏️ Revisar</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteMedicalRecord(${record._row})" style="padding:4px 10px; font-size:0.85rem;">🗑️</button>
-                    <button class="btn btn-sm btn-outline" onclick="showVersionHistory(${record._row})" style="padding:4px 10px; font-size:0.85rem;">📜 Histórico</button>
+                    <button class="btn btn-sm btn-outline" onclick="openEditMedicalRecord(${rowId})" style="padding:4px 10px; font-size:0.85rem;">✏️ Revisar</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteMedicalRecord(${rowId})" style="padding:4px 10px; font-size:0.85rem;">🗑️</button>
+                    <button class="btn btn-sm btn-outline" onclick="showVersionHistory(${rowId})" style="padding:4px 10px; font-size:0.85rem;">📜 Histórico</button>
                 </div>
             </div>
             <div class="record-body" style="margin-top:8px;">
@@ -722,20 +713,12 @@ function openMedicalRecordForm(record, isRevision) {
     }
 }
 
-// ============================================================
-// FECHAR MODAL DO PRONTUÁRIO
-// ============================================================
-
 function closeProntuarioModal() {
     const modal = getEl('prontuarioModal');
     if (modal) {
         modal.style.display = 'none';
     }
 }
-
-// ============================================================
-// SALVAR REGISTRO
-// ============================================================
 
 async function saveMedicalRecord(isRevision) {
     console.log('🔵 saveMedicalRecord chamado', { isRevision });
@@ -787,10 +770,6 @@ async function saveMedicalRecord(isRevision) {
         showToast(result?.error || 'Erro ao salvar registro.');
     }
 }
-
-// ============================================================
-// EXCLUIR REGISTRO
-// ============================================================
 
 async function deleteMedicalRecord(row) {
     if (!confirm('Excluir este registro do prontuário? Esta ação é irreversível.')) return;
@@ -865,10 +844,6 @@ function showVersionHistory(row) {
     modal.style.display = 'flex';
 }
 
-// ============================================================
-// VISUALIZAR VERSÃO
-// ============================================================
-
 function viewRecordVersion(row) {
     const record = state.medicalRecords.find(r => String(r._row) === String(row));
     if (!record) {
@@ -914,7 +889,8 @@ function applyFilters() {
     const profissional = getEl('filterProfissional')?.value?.toLowerCase();
     const tipo = getEl('filterTipo')?.value?.toLowerCase();
 
-    document.querySelectorAll('.record-card').forEach(card => {
+    const cards = document.querySelectorAll('.record-card');
+    cards.forEach(card => {
         const row = parseInt(card.dataset.row, 10);
         const record = state.medicalRecords.find(r => String(r._row) === String(row));
         if (!record) {
