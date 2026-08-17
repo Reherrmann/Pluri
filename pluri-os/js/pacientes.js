@@ -94,7 +94,7 @@ function renderPatientProfile() {
 
     const initials = getInitials(p.name);
     const section = state.patientSection;
-    const sectionContent = renderPatientSectionContent(section);
+  const sectionContent = await renderPatientSectionContent(section);
 
     const html = `
         <div class="patient-profile">
@@ -184,7 +184,7 @@ function renderPatientSectionContent(section) {
         case 'guias-tiss':
             return renderEmptyState('Guias TISS', 'As guias TISS do paciente aparecerão aqui.', null);
         case 'prontuario':
-    return renderProntuario(p);
+            return await renderProntuario(p);
     
     default:
             return '';
