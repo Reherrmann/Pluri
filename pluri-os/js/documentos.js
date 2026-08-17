@@ -56,53 +56,62 @@
 
         if (!container || !patient) return;
 
-        addButton?.addEventListener('click', () => input?.click());
+        // Evita registrar o mesmo listener várias vezes após um reload da lista.
+        if (addButton && addButton.dataset.documentsBound !== 'true') {
+            addButton.dataset.documentsBound = 'true';
+            addButton.addEventListener('click', function () {
+                if (input) input.click();
+            });
+        }
 
-        input?.addEventListener('change', async () => {
-            const file = input.files?.[0];
-            input.value = '';
-            if (!file) return;
+        if (input && input.dataset.documentsBound !== 'true') {
+            input.dataset.documentsBound = 'true';
+            input.addEventListener('change', async function () {
+                const file = input.files && input.files[0];
+                input.value = '';
+                if (!file) return;
 
-            if (file.size > MAX_FILE_SIZE) {
-                showToast('O arquivo deve ter no máximo 10 MB.');
-                return;
-            }
-
-            if (!window.pluriAPI) {
-                showToast('API da plataforma não está disponível.');
-                return;
-            }
-
-            if (addButton) {
-                addButton.disabled = true;
-                addButton.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;"></i> Enviando...';
-                if (typeof refreshIcons === 'function') refreshIcons();
-            }
-
-            try {
-                const result = await window.pluriAPI.uploadPatientDocument(
-                    patient._row,
-                    patient.name,
-                    file
-                );
-
-                if (!result?.success) {
-                    throw new Error(result?.error || 'Não foi possível enviar o documento.');
+                if (file.size > MAX_FILE_SIZE) {
+                    showToast('O arquivo deve ter no máximo 10 MB.');
+                    return;
                 }
 
-                showToast('Documento enviado com sucesso!');
-                await loadPatientDocuments(patient);
-            } catch (error) {
-                console.error('Erro ao enviar documento:', error);
-                showToast(error.message || 'Não foi possível enviar o documento.');
-            } finally {
+                if (!window.pluriAPI) {
+                    showToast('API da plataforma não está disponível.');
+                    return;
+                }
+
                 if (addButton) {
-                    addButton.disabled = false;
-                    addButton.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
+                    addButton.disabled = true;
+                    addButton.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;"></i> Enviando...';
                     if (typeof refreshIcons === 'function') refreshIcons();
                 }
-            }
-        });
+
+                try {
+                    const result = await window.pluriAPI.uploadPatientDocument(
+                        patient._row,
+                        patient.name,
+                        file
+                    );
+
+                    if (!result || !result.success) {
+                        throw new Error(result && result.error ? result.error : 'Não foi possível enviar o documento.');
+                    }
+
+                    showToast('Documento enviado com sucesso!');
+                    await loadPatientDocuments(patient);
+                } catch (error) {
+                    console.error('Erro ao enviar documento:', error);
+                    showToast(error.message || 'Não foi possível enviar o documento.');
+                } finally {
+                    if (addButton) {
+                        addButton.disabled = false;
+                        addButton.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
+                        if (typeof refreshIcons === 'function') refreshIcons();
+                    }
+                }
+            });
+        }
 
         try {
             const result = await window.pluriAPI.getPatientDocuments(
@@ -172,8 +181,8 @@
 
                     try {
                         const response = await window.pluriAPI.deletePatientDocument(fileId);
-                        if (!response?.success) {
-                            throw new Error(response?.error || 'Não foi possível excluir o documento.');
+                        if (!response || !response.success) {
+                            throw new Error(response && response.error ? response.error : 'Não foi possível excluir o documento.');
                         }
                         showToast('Documento excluído.');
                         await loadPatientDocuments(patient);
@@ -204,4 +213,19 @@
 
     window.renderPatientDocuments = renderDocumentos;
     window.loadPatientDocuments = loadPatientDocuments;
+
+    // O módulo é carregado dinamicamente pelo app.js. Se a aba Documentos
+    // já estiver aberta quando o módulo terminar de carregar, re-renderiza
+    // a ficha para substituir o estado vazio pelo módulo real.
+    setTimeout(() => {
+        if (
+            window.state &&
+            state.currentPage === 'pacientes' &&
+            state.patientSection === 'documentos' &&
+            state.selectedPatient &&
+            typeof window.renderPatientProfile === 'function'
+        ) {
+            window.renderPatientProfile();
+        }
+    }, 0);
 })();
