@@ -350,3 +350,29 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
+
+// =====================================================
+// DOCUMENTOS DO PACIENTE — módulo isolado
+// =====================================================
+
+(function loadPatientDocumentsModule() {
+    const script = document.createElement('script');
+    script.src = 'js/documentos.js';
+    script.onload = function () {
+        const originalRenderPatientSectionContent = window.renderPatientSectionContent;
+
+        window.renderPatientSectionContent = function (section) {
+            if (section === 'documentos' && window.state && state.selectedPatient) {
+                return window.renderPatientDocuments(state.selectedPatient);
+            }
+
+            return originalRenderPatientSectionContent
+                ? originalRenderPatientSectionContent(section)
+                : '';
+        };
+    };
+    script.onerror = function () {
+        console.error('Não foi possível carregar o módulo de documentos.');
+    };
+    document.head.appendChild(script);
+})();
