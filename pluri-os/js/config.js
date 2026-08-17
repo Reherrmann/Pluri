@@ -20,3 +20,23 @@ const PLURI_CONFIG = {
         calendarEventsDate: 'https://script.google.com/macros/s/AKfycbwK_grR-wvhEfpuK7Ytas2aFWKHGNzxlj39BdGc4WxbCMP3oM8Af9DjG0R4-Gx2tGZdDQ/exec?action=calendar&date=',
     },
 };
+
+// Carrega o módulo de documentos sem alterar a ordem dos módulos existentes.
+// O módulo só precisa estar disponível quando o usuário abrir a ficha do paciente.
+(function loadPatientDocumentsModule() {
+    function load() {
+        if (window.renderPatientDocuments) return;
+        const script = document.createElement('script');
+        script.src = 'js/documentos.js';
+        script.async = true;
+        script.dataset.pluriDocuments = 'true';
+        script.onerror = () => console.error('PLURI OS: não foi possível carregar js/documentos.js');
+        document.head.appendChild(script);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', load, { once: true });
+    } else {
+        load();
+    }
+})();
