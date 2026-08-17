@@ -576,7 +576,17 @@ function openNewMedicalRecord() {
 function openEditMedicalRecord(row) {
     console.log('🔵 openEditMedicalRecord chamado com row:', row);
     console.log('📊 state.medicalRecords:', state.medicalRecords);
-    const record = state.medicalRecords.find(r => r._row === row);
+    
+    if (!state.medicalRecords || state.medicalRecords.length === 0) {
+        console.log('🔄 state.medicalRecords vazio, recarregando...');
+        window.pluriAPI.getMedicalRecords().then(records => {
+            state.medicalRecords = records;
+            openEditMedicalRecord(row);
+        });
+        return;
+    }
+    
+    const record = state.medicalRecords.find(r => String(r._row) === String(row));
     if (!record) {
         console.error('❌ Registro não encontrado!');
         showToast('Registro não encontrado.');
@@ -795,7 +805,6 @@ async function saveMedicalRecord(isRevision) {
     closeProntuarioModal();
     showToast('Registro salvo com sucesso!');
     state.medicalRecords = await window.pluriAPI.getMedicalRecords();
-    // Mantém a aba "Prontuário" ativa e re-renderiza
     state.patientSection = 'prontuario';
     renderPatientProfile();
 }
@@ -824,7 +833,6 @@ function showVersionHistory(row) {
     console.log('🔵 showVersionHistory chamado com row:', row);
     console.log('📊 state.medicalRecords:', state.medicalRecords);
     
-    // Se o state estiver vazio, recarrega e tenta novamente
     if (!state.medicalRecords || state.medicalRecords.length === 0) {
         console.log('🔄 state.medicalRecords vazio, recarregando...');
         window.pluriAPI.getMedicalRecords().then(records => {
@@ -835,36 +843,31 @@ function showVersionHistory(row) {
     }
     
     const allVersions = [];
-    let current = state.medicalRecords.find(r => r._row === row);
+    let current = state.medicalRecords.find(r => String(r._row) === String(row));
     if (!current) {
         console.error('❌ Registro não encontrado!');
         showToast('Registro não encontrado.');
         return;
     }
-    
-    // Vai para a raiz (primeira versão)
+
+    // Vai para a raiz
     while (current.versaoAnterior) {
-        const prev = state.medicalRecords.find(r => r._row === current.versaoAnterior);
+        const prev = state.medicalRecords.find(r => String(r._row) === String(current.versaoAnterior));
         if (!prev) break;
         current = prev;
     }
-    
     const root = current;
     allVersions.push(root);
-    let next = state.medicalRecords.find(r => r.versaoAnterior === root._row);
+    let next = state.medicalRecords.find(r => String(r.versaoAnterior) === String(root._row));
     while (next) {
         allVersions.push(next);
-        next = state.medicalRecords.find(r => r.versaoAnterior === next._row);
+        next = state.medicalRecords.find(r => String(r.versaoAnterior) === String(next._row));
     }
-    
-    // Usa o modal de prontuário
+
     const modal = getEl('prontuarioModal');
     const content = getEl('prontuarioContent');
-    if (!modal || !content) {
-        console.error('❌ Modal não encontrado');
-        return;
-    }
-    
+    if (!modal || !content) return;
+
     let html = `<h2>Histórico de versões</h2><div style="max-height:60vh; overflow-y:auto;">`;
     allVersions.forEach((v, index) => {
         html += `
@@ -885,7 +888,7 @@ function showVersionHistory(row) {
 }
 
 function viewRecordVersion(row) {
-    const record = state.medicalRecords.find(r => r._row === row);
+    const record = state.medicalRecords.find(r => String(r._row) === String(row));
     if (!record) {
         showToast('Registro não encontrado.');
         return;
