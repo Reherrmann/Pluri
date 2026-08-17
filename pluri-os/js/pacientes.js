@@ -792,16 +792,13 @@ async function saveMedicalRecord(isRevision) {
     }
 
     if (result && result.success) {
-        closeProntuarioModal();
-        showToast('Registro salvo com sucesso!');
-        // Recarrega os registros e re-renderiza
-        state.medicalRecords = await window.pluriAPI.getMedicalRecords();
-        // Força a re-renderização da aba "Prontuário"
-        renderPatientProfile();
-        // Garante que a aba "Prontuário" continue ativa
-        state.patientSection = 'prontuario';
-        // Re-renderiza novamente para garantir
-        renderPatientProfile();
+    closeProntuarioModal();
+    showToast('Registro salvo com sucesso!');
+    state.medicalRecords = await window.pluriAPI.getMedicalRecords();
+    // Mantém a aba "Prontuário" ativa e re-renderiza
+    state.patientSection = 'prontuario';
+    renderPatientProfile();
+}
     } else {
         showToast(result?.error || 'Erro ao salvar registro.');
     }
@@ -826,6 +823,17 @@ async function deleteMedicalRecord(row) {
 function showVersionHistory(row) {
     console.log('🔵 showVersionHistory chamado com row:', row);
     console.log('📊 state.medicalRecords:', state.medicalRecords);
+    
+    // Se o state estiver vazio, recarrega e tenta novamente
+    if (!state.medicalRecords || state.medicalRecords.length === 0) {
+        console.log('🔄 state.medicalRecords vazio, recarregando...');
+        window.pluriAPI.getMedicalRecords().then(records => {
+            state.medicalRecords = records;
+            showVersionHistory(row);
+        });
+        return;
+    }
+    
     const allVersions = [];
     let current = state.medicalRecords.find(r => r._row === row);
     if (!current) {
@@ -834,14 +842,13 @@ function showVersionHistory(row) {
         return;
     }
     
-}
-
-    // Vai para a raiz
+    // Vai para a raiz (primeira versão)
     while (current.versaoAnterior) {
         const prev = state.medicalRecords.find(r => r._row === current.versaoAnterior);
         if (!prev) break;
         current = prev;
     }
+    
     const root = current;
     allVersions.push(root);
     let next = state.medicalRecords.find(r => r.versaoAnterior === root._row);
@@ -849,12 +856,15 @@ function showVersionHistory(row) {
         allVersions.push(next);
         next = state.medicalRecords.find(r => r.versaoAnterior === next._row);
     }
-
+    
     // Usa o modal de prontuário
     const modal = getEl('prontuarioModal');
     const content = getEl('prontuarioContent');
-    if (!modal || !content) return;
-
+    if (!modal || !content) {
+        console.error('❌ Modal não encontrado');
+        return;
+    }
+    
     let html = `<h2>Histórico de versões</h2><div style="max-height:60vh; overflow-y:auto;">`;
     allVersions.forEach((v, index) => {
         html += `
