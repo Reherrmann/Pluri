@@ -515,6 +515,139 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
+    // PRONTUÁRIO ELETRÔNICO
+    // -------------------------------------------------
+
+    /**
+     * Busca todos os registros de prontuário, opcionalmente filtrando por paciente.
+     * @param {string|number} patientRow - (opcional) ID do paciente para filtrar
+     * @returns {Promise<Array>} Lista de registros mapeados
+     */
+    async getMedicalRecords(patientRow = null) {
+        const url = this.config.appsScript.prontuarios;
+        const params = new URLSearchParams();
+        params.append('action', 'getProntuarios');
+        if (patientRow) params.append('paciente', patientRow);
+        params.append('token', this.token);
+        const fullUrl = `${url}?${params.toString()}`;
+        const data = await this.get(fullUrl);
+        if (data && data.success) {
+            return Array.isArray(data.data) ? data.data.map(r => this.mapMedicalRecord(r)) : [];
+        }
+        return [];
+    }
+
+    /**
+     * Mapeia um registro bruto da planilha para o objeto padronizado.
+     */
+    mapMedicalRecord(record) {
+        return {
+            _row: record._row || '',
+            pacienteRow: record.PacienteRow || '',
+            data: this.formatDate(record.Data),
+            hora: record.Hora || '',
+            profissional: record.Profissional || '',
+            especialidade: record.Especialidade || '',
+            tipoAtendimento: record.TipoAtendimento || 'Consulta',
+            anamnese: record.Anamnese || '',
+            exameFisico: record.ExameFisico || '',
+            hipoteseDiagnostica: record.HipoteseDiagnostica || '',
+            diagnosticoDefinitivo: record.DiagnosticoDefinitivo || '',
+            conduta: record.Conduta || '',
+            prescricao: record.Prescricao || '',
+            examesSolicitados: record.ExamesSolicitados || '',
+            encaminhamentos: record.Encaminhamentos || '',
+            atestado: record.Atestado || 'Não',
+            observacoes: record.Observacoes || '',
+            anexos: record.Anexos ? record.Anexos.split(';').filter(Boolean) : [],
+            status: record.Status || 'Ativo',
+            versaoAnterior: record.VersaoAnterior || null,
+            motivoRevisao: record.MotivoRevisao || '',
+            dataCriacao: record.DataCriacao || '',
+            criadoPor: record.CriadoPor || '',
+            dataModificacao: record.DataModificacao || '',
+            modificadoPor: record.ModificadoPor || '',
+            assinaturaDigital: record.AssinaturaDigital || ''
+        };
+    }
+
+    /**
+     * Cria um novo registro de prontuário.
+     * @param {Object} record - Dados do registro (ver campos em mapMedicalRecord)
+     * @returns {Promise<Object>} Resposta da API
+     */
+    async createMedicalRecord(record) {
+        const payload = {
+            action: 'createProntuario',
+            token: this.token,
+            values: {
+                PacienteRow: record.pacienteRow,
+                Data: record.data,
+                Hora: record.hora,
+                Profissional: record.profissional,
+                Especialidade: record.especialidade,
+                TipoAtendimento: record.tipoAtendimento,
+                Anamnese: record.anamnese,
+                ExameFisico: record.exameFisico,
+                HipoteseDiagnostica: record.hipoteseDiagnostica,
+                DiagnosticoDefinitivo: record.diagnosticoDefinitivo,
+                Conduta: record.conduta,
+                Prescricao: record.prescricao,
+                ExamesSolicitados: record.examesSolicitados,
+                Encaminhamentos: record.encaminhamentos,
+                Atestado: record.atestado,
+                Observacoes: record.observacoes,
+                Anexos: record.anexos ? record.anexos.join(';') : '',
+                VersaoAnterior: record.versaoAnterior || '',
+                MotivoRevisao: record.motivoRevisao || ''
+            }
+        };
+        return this.post(payload);
+    }
+
+    /**
+     * Revisa um registro existente, criando uma nova versão.
+     * @param {string|number} row - ID do registro original
+     * @param {Object} updatedData - Dados atualizados (mesmos campos de create)
+     * @param {string} motivo - Motivo da revisão (obrigatório)
+     * @returns {Promise<Object>} Resposta da API
+     */
+    async reviseMedicalRecord(row, updatedData, motivo) {
+        // Obtém todos os registros para encontrar o atual
+        const allRecords = await this.getMedicalRecords();
+        const current = allRecords.find(r => String(r._row) === String(row));
+        if (!current) throw new Error('Registro não encontrado');
+
+        // Mescla os dados existentes com os novos
+        const revised = { ...current, ...updatedData };
+        // Remove campos que não devem ser enviados na criação
+        delete revised._row;
+        delete revised.pacienteRow; // mantido do original
+        delete revised.dataCriacao;
+        delete revised.criadoPor;
+        // Adiciona campos de revisão
+        revised.versaoAnterior = row;
+        revised.motivoRevisao = motivo;
+        // Chama createMedicalRecord com o objeto revisado
+        return this.createMedicalRecord(revised);
+    }
+
+    /**
+     * Desativa um registro (soft delete).
+     * @param {string|number} row - ID do registro
+     * @returns {Promise<Object>} Resposta da API
+     */
+    async deleteMedicalRecord(row) {
+        const payload = {
+            action: 'deleteProntuario',
+            token: this.token,
+            row: row
+        };
+        return this.post(payload);
+    }
+
+
+    // -------------------------------------------------
     // CONVERSAS
     // -------------------------------------------------
     async getConversations() {
