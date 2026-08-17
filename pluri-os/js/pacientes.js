@@ -81,7 +81,7 @@ function openPatient(row) {
 }
 
 // Função que renderiza a ficha no conteúdo principal
-function renderPatientProfile() {
+async function renderPatientProfile() {
     const container = getMainContainer();
     if (!container) return;
 
@@ -94,7 +94,10 @@ function renderPatientProfile() {
 
     const initials = getInitials(p.name);
     const section = state.patientSection;
-    const sectionContent = renderPatientSectionContent(section);
+    // renderPatientSectionContent pode ser assíncrona (ex: seção "prontuario"
+    // busca dados via API), então é preciso aguardar o resultado antes de
+    // montar o HTML — sem o await, o template imprimia "[object Promise]".
+    const sectionContent = await renderPatientSectionContent(section);
 
     const html = `
         <div class="patient-profile">
@@ -166,7 +169,7 @@ function openPatientSection(section) {
 }
 
 // Renderiza o conteúdo da seção ativa
-function renderPatientSectionContent(section) {
+async function renderPatientSectionContent(section) {
     const p = state.selectedPatient;
     if (!p) return '';
 
@@ -184,9 +187,10 @@ function renderPatientSectionContent(section) {
         case 'guias-tiss':
             return renderEmptyState('Guias TISS', 'As guias TISS do paciente aparecerão aqui.', null);
         case 'prontuario':
-    return renderProntuario(p);
-    
-    default:
+            // renderProntuario é async (busca os registros via API antes de montar o HTML)
+            return await renderProntuario(p);
+
+        default:
             return '';
     }
 }

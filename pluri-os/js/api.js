@@ -524,13 +524,16 @@ class PluriAPI {
      * @returns {Promise<Array>} Lista de registros mapeados
      */
     async getMedicalRecords(patientRow = null) {
-    const baseUrl = this.config.appsScript.prontuarios.split('?')[0];
-    const params = new URLSearchParams();
-    params.append('action', 'getProntuarios');
-    params.append('sheet', 'Prontuarios');
-    if (patientRow) params.append('paciente', patientRow);
-    params.append('token', this.token);
-    const fullUrl = `${baseUrl}?${params.toString()}`;
+        // Usa apenas o caminho base (sem a query string pré-montada em config.js)
+        // para evitar um segundo "?" na URL, que corrompia o parâmetro "sheet"
+        // e causava o erro "Sheet not found" no backend.
+        const baseUrl = this.config.appsScript.prontuarios.split('?')[0];
+        const params = new URLSearchParams();
+        params.append('action', 'getProntuarios');
+        params.append('sheet', 'Prontuarios');
+        if (patientRow) params.append('paciente', patientRow);
+        params.append('token', this.token);
+        const fullUrl = `${baseUrl}?${params.toString()}`;
         const data = await this.get(fullUrl);
         if (data && data.success) {
             return Array.isArray(data.data) ? data.data.map(r => this.mapMedicalRecord(r)) : [];
