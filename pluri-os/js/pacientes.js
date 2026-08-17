@@ -808,7 +808,7 @@ async function saveMedicalRecord(isRevision) {
     state.patientSection = 'prontuario';
     renderPatientProfile();
 }
-    } else {
+     else {
         showToast(result?.error || 'Erro ao salvar registro.');
     }
 }
