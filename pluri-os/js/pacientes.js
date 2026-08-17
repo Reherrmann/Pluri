@@ -94,9 +94,6 @@ async function renderPatientProfile() {
 
     const initials = getInitials(p.name);
     const section = state.patientSection;
-    // renderPatientSectionContent pode ser assíncrona (ex: seção "prontuario"
-    // busca dados via API), então é preciso aguardar o resultado antes de
-    // montar o HTML — sem o await, o template imprimia "[object Promise]".
     const sectionContent = await renderPatientSectionContent(section);
 
     const html = `
@@ -151,7 +148,6 @@ async function renderPatientProfile() {
 
 // Retorna o container principal onde o conteúdo da página é inserido
 function getMainContainer() {
-    // O app.js renderiza o conteúdo dentro de #pageContainer
     return (
         getEl('pageContainer') ||
         getEl('main-content') ||
@@ -187,9 +183,7 @@ async function renderPatientSectionContent(section) {
         case 'guias-tiss':
             return renderEmptyState('Guias TISS', 'As guias TISS do paciente aparecerão aqui.', null);
         case 'prontuario':
-            // renderProntuario é async (busca os registros via API antes de montar o HTML)
             return await renderProntuario(p);
-
         default:
             return '';
     }
@@ -377,18 +371,15 @@ function renderEmptyState(title, subtitle, buttonText) {
 function voltarParaLista() {
     state.selectedPatient = null;
     state.patientSection = 'dados-pessoais';
-    // Re-renderiza a página atual (assumindo que é a listagem de pacientes)
     renderPage();
 }
 
 // ============ AÇÕES DO PAINEL LATERAL ============
 
-// Mantém a função openNewPatient para compatibilidade com listener existente
 function openNewPatient() {
     newPatient();
 }
 
-// Nova função para criar paciente (será usada pelo formulário completo)
 function newPatient() {
     if (typeof openPatientForm === 'function') {
         openPatientForm(null);
@@ -397,7 +388,6 @@ function newPatient() {
     }
 }
 
-// Editar paciente: abre o painel lateral com o formulário completo
 function editPatient(row) {
     const p = state.patients.find(pt => pt._row === row);
     if (!p) return;
@@ -408,13 +398,14 @@ function editPatient(row) {
     }
 }
 
-// Placeholder para menu de ações extras
 function openPatientMenu() {
     console.log('Menu de ações do paciente (futuro)');
 }
 
-// Expor funções globalmente (caso necessário)
-// Expor funções globalmente (caso necessário)
+// ============================================================
+// EXPOSIÇÃO GLOBAL
+// ============================================================
+
 window.buildPacientes = buildPacientes;
 window.getInitials = getInitials;
 window.openPatient = openPatient;
@@ -447,18 +438,14 @@ window.clearFilters = clearFilters;
  * Renderiza a aba "Prontuário eletrônico" dentro do perfil do paciente.
  */
 async function renderProntuario(p) {
-    // Carrega os registros sob demanda, se ainda não carregados
     if (!state.medicalRecords || state.medicalRecords.length === 0) {
         state.medicalRecords = await window.pluriAPI.getMedicalRecords();
     }
     const records = state.medicalRecords.filter(r => String(r.pacienteRow) === String(p._row));
-    // Ordena por data (mais recente primeiro)
     records.sort((a, b) => (a.data > b.data ? -1 : 1));
 
-    // Obtém as versões mais recentes de cada cadeia
     const latestVersions = getLatestVersions(records);
 
-    // Gera HTML da lista
     let listHtml = '';
     if (latestVersions.length === 0) {
         listHtml = `<p class="empty-message">Nenhum registro de prontuário encontrado para este paciente.</p>`;
@@ -466,7 +453,6 @@ async function renderProntuario(p) {
         listHtml = latestVersions.map(r => renderRecordCard(r)).join('');
     }
 
-    // Monta a interface com filtros
     return `
         <div class="patient-section">
             <div class="prontuario-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
@@ -503,23 +489,20 @@ async function renderProntuario(p) {
  */
 function getLatestVersions(records) {
     const chains = [];
-    // Encontra raízes (sem versão anterior)
     records.forEach(r => {
         if (!r.versaoAnterior) {
             chains.push({ root: r, versions: [r] });
         }
     });
-    // Preenche as cadeias com as versões seguintes
     chains.forEach(chain => {
         let current = chain.root;
-        let next = records.find(r => r.versaoAnterior === current._row);
+        let next = records.find(r => String(r.versaoAnterior) === String(current._row));
         while (next) {
             chain.versions.push(next);
             current = next;
-            next = records.find(r => r.versaoAnterior === current._row);
+            next = records.find(r => String(r.versaoAnterior) === String(current._row));
         }
     });
-    // Para cada cadeia, pega a última versão
     return chains.map(chain => chain.versions[chain.versions.length - 1]);
 }
 
@@ -607,7 +590,6 @@ function openMedicalRecordForm(record, isRevision) {
     const title = isRevision ? 'Revisar registro' : 'Novo registro de prontuário';
     const buttonText = isRevision ? 'Salvar revisão' : 'Salvar registro';
 
-    // Preenche os campos com os dados do record ou vazio
     const data = record ? record.data : new Date().toISOString().slice(0,10);
     const hora = record ? record.hora : new Date().toTimeString().slice(0,5);
     const profissional = record ? record.profissional : '';
@@ -626,7 +608,6 @@ function openMedicalRecordForm(record, isRevision) {
     const anexos = record && record.anexos ? record.anexos.join(',') : '';
     const motivoRevisao = record ? record.motivoRevisao : '';
 
-    // Monta HTML do formulário (sem os botões de footer, pois usaremos os do modal)
     content.innerHTML = `
         <form id="medicalRecordForm" style="display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto; padding-right:8px;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -720,23 +701,18 @@ function openMedicalRecordForm(record, isRevision) {
         </form>
     `;
 
-    // Atualiza o título do modal
     const titleEl = getEl('prontuarioModalTitle');
     if (titleEl) titleEl.textContent = title;
 
-    // Exibe o modal
     modal.style.display = 'flex';
 
-    // Evento de fechar pelo X
     const closeBtn = getEl('prontuarioModalClose');
     if (closeBtn) {
         closeBtn.onclick = closeProntuarioModal;
     }
 
-    // Evento de submit
     const form = document.getElementById('medicalRecordForm');
     if (form) {
-        // Remove listeners antigos para evitar duplicação
         const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
         newForm.addEventListener('submit', async (e) => {
@@ -757,16 +733,18 @@ function closeProntuarioModal() {
     }
 }
 
+// ============================================================
+// SALVAR REGISTRO
+// ============================================================
+
 async function saveMedicalRecord(isRevision) {
     console.log('🔵 saveMedicalRecord chamado', { isRevision });
 
-    // Verifica se há um paciente selecionado
     if (!state.selectedPatient || !state.selectedPatient._row) {
         showToast('Erro: paciente não selecionado.');
         return;
     }
 
-    // Captura os dados do formulário
     const formData = {
         pacienteRow: state.selectedPatient._row,
         data: getEl('mrData').value,
@@ -794,24 +772,25 @@ async function saveMedicalRecord(isRevision) {
             showToast('Informe o motivo da revisão.');
             return;
         }
-        // Chama a função de revisão
         result = await window.pluriAPI.reviseMedicalRecord(editingRecordRow, formData, motivo);
     } else {
-        // Cria um novo registro
         result = await window.pluriAPI.createMedicalRecord(formData);
     }
 
     if (result && result.success) {
-    closeProntuarioModal();
-    showToast('Registro salvo com sucesso!');
-    state.medicalRecords = await window.pluriAPI.getMedicalRecords();
-    state.patientSection = 'prontuario';
-    renderPatientProfile();
-}
-     else {
+        closeProntuarioModal();
+        showToast('Registro salvo com sucesso!');
+        state.medicalRecords = await window.pluriAPI.getMedicalRecords();
+        state.patientSection = 'prontuario';
+        renderPatientProfile();
+    } else {
         showToast(result?.error || 'Erro ao salvar registro.');
     }
 }
+
+// ============================================================
+// EXCLUIR REGISTRO
+// ============================================================
 
 async function deleteMedicalRecord(row) {
     if (!confirm('Excluir este registro do prontuário? Esta ação é irreversível.')) return;
@@ -850,7 +829,6 @@ function showVersionHistory(row) {
         return;
     }
 
-    // Vai para a raiz
     while (current.versaoAnterior) {
         const prev = state.medicalRecords.find(r => String(r._row) === String(current.versaoAnterior));
         if (!prev) break;
@@ -886,6 +864,10 @@ function showVersionHistory(row) {
     content.innerHTML = html;
     modal.style.display = 'flex';
 }
+
+// ============================================================
+// VISUALIZAR VERSÃO
+// ============================================================
 
 function viewRecordVersion(row) {
     const record = state.medicalRecords.find(r => String(r._row) === String(row));
@@ -932,10 +914,9 @@ function applyFilters() {
     const profissional = getEl('filterProfissional')?.value?.toLowerCase();
     const tipo = getEl('filterTipo')?.value?.toLowerCase();
 
-    const cards = document.querySelectorAll('.record-card');
-    cards.forEach(card => {
+    document.querySelectorAll('.record-card').forEach(card => {
         const row = parseInt(card.dataset.row, 10);
-        const record = state.medicalRecords.find(r => r._row === row);
+        const record = state.medicalRecords.find(r => String(r._row) === String(row));
         if (!record) {
             card.style.display = 'none';
             return;
