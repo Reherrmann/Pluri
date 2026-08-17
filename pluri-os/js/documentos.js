@@ -49,67 +49,101 @@
         `;
     }
 
+    function replaceLegacyDocumentsButton() {
+        if (!window.state || state.patientSection !== 'documentos') return;
+        if (!state.selectedPatient) return;
+
+        const buttons = Array.from(document.querySelectorAll('.patient-empty-state button'));
+        const legacyButton = buttons.find(button =>
+            String(button.textContent || '').trim() === 'Adicionar documento'
+        );
+
+        if (!legacyButton) return;
+
+        const replacement = document.createElement('button');
+        replacement.type = 'button';
+        replacement.className = 'btn btn-primary';
+        replacement.id = 'patientAddDocumentBtn';
+        replacement.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'patientDocumentInput';
+        input.hidden = true;
+
+        legacyButton.replaceWith(replacement);
+        replacement.parentElement?.appendChild(input);
+
+        replacement.addEventListener('click', () => input.click());
+        input.addEventListener('change', async () => {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+            await uploadFile(state.selectedPatient, file, replacement);
+        });
+
+        if (typeof refreshIcons === 'function') refreshIcons();
+    }
+
+    async function uploadFile(patient, file, addButton) {
+        if (file.size > MAX_FILE_SIZE) {
+            showToast('O arquivo deve ter no máximo 10 MB.');
+            return;
+        }
+
+        if (!window.pluriAPI) {
+            showToast('API da plataforma não está disponível.');
+            return;
+        }
+
+        addButton.disabled = true;
+        addButton.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;"></i> Enviando...';
+        if (typeof refreshIcons === 'function') refreshIcons();
+
+        try {
+            const result = await window.pluriAPI.uploadPatientDocument(
+                patient._row,
+                patient.name,
+                file
+            );
+
+            if (!result || !result.success) {
+                throw new Error(result && result.error ? result.error : 'Não foi possível enviar o documento.');
+            }
+
+            showToast('Documento enviado com sucesso!');
+            await loadPatientDocuments(patient);
+        } catch (error) {
+            console.error('Erro ao enviar documento:', error);
+            showToast(error.message || 'Não foi possível enviar o documento.');
+        } finally {
+            addButton.disabled = false;
+            addButton.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
+            if (typeof refreshIcons === 'function') refreshIcons();
+        }
+    }
+
     async function loadPatientDocuments(patient) {
         const container = document.getElementById('patientDocumentsList');
         const addButton = document.getElementById('patientAddDocumentBtn');
         const input = document.getElementById('patientDocumentInput');
 
-        if (!container || !patient) return;
-
-        // Evita registrar o mesmo listener várias vezes após um reload da lista.
-        if (addButton && addButton.dataset.documentsBound !== 'true') {
-            addButton.dataset.documentsBound = 'true';
-            addButton.addEventListener('click', function () {
-                if (input) input.click();
-            });
+        // Caso a ficha antiga ainda esteja sendo usada, corrige o botão diretamente.
+        if (!container) {
+            replaceLegacyDocumentsButton();
+            return;
         }
 
-        if (input && input.dataset.documentsBound !== 'true') {
-            input.dataset.documentsBound = 'true';
-            input.addEventListener('change', async function () {
+        if (!patient) return;
+
+        if (addButton && input && addButton.dataset.documentsBound !== 'true') {
+            addButton.dataset.documentsBound = 'true';
+            addButton.addEventListener('click', () => input.click());
+            input.addEventListener('change', async () => {
                 const file = input.files && input.files[0];
                 input.value = '';
                 if (!file) return;
-
-                if (file.size > MAX_FILE_SIZE) {
-                    showToast('O arquivo deve ter no máximo 10 MB.');
-                    return;
-                }
-
-                if (!window.pluriAPI) {
-                    showToast('API da plataforma não está disponível.');
-                    return;
-                }
-
-                if (addButton) {
-                    addButton.disabled = true;
-                    addButton.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;"></i> Enviando...';
-                    if (typeof refreshIcons === 'function') refreshIcons();
-                }
-
-                try {
-                    const result = await window.pluriAPI.uploadPatientDocument(
-                        patient._row,
-                        patient.name,
-                        file
-                    );
-
-                    if (!result || !result.success) {
-                        throw new Error(result && result.error ? result.error : 'Não foi possível enviar o documento.');
-                    }
-
-                    showToast('Documento enviado com sucesso!');
-                    await loadPatientDocuments(patient);
-                } catch (error) {
-                    console.error('Erro ao enviar documento:', error);
-                    showToast(error.message || 'Não foi possível enviar o documento.');
-                } finally {
-                    if (addButton) {
-                        addButton.disabled = false;
-                        addButton.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
-                        if (typeof refreshIcons === 'function') refreshIcons();
-                    }
-                }
+                await uploadFile(patient, file, addButton);
             });
         }
 
@@ -174,11 +208,9 @@
                     const fileId = button.dataset.deletePatientDocument;
                     const file = result.files.find(item => String(item.id) === String(fileId));
                     if (!file) return;
-
                     if (!window.confirm(`Excluir o documento "${file.name}"?`)) return;
 
                     button.disabled = true;
-
                     try {
                         const response = await window.pluriAPI.deletePatientDocument(fileId);
                         if (!response || !response.success) {
@@ -202,9 +234,7 @@
                     <p style="margin:0 0 12px;color:var(--text-secondary);">
                         Não foi possível carregar os documentos.
                     </p>
-                    <button class="btn btn-outline" type="button" id="patientDocumentsRetry">
-                        Tentar novamente
-                    </button>
+                    <button class="btn btn-outline" type="button" id="patientDocumentsRetry">Tentar novamente</button>
                 </div>
             `;
             document.getElementById('patientDocumentsRetry')?.addEventListener('click', () => loadPatientDocuments(patient));
@@ -214,18 +244,8 @@
     window.renderPatientDocuments = renderDocumentos;
     window.loadPatientDocuments = loadPatientDocuments;
 
-    // O módulo é carregado dinamicamente pelo app.js. Se a aba Documentos
-    // já estiver aberta quando o módulo terminar de carregar, re-renderiza
-    // a ficha para substituir o estado vazio pelo módulo real.
-    setTimeout(() => {
-        if (
-            window.state &&
-            state.currentPage === 'pacientes' &&
-            state.patientSection === 'documentos' &&
-            state.selectedPatient &&
-            typeof window.renderPatientProfile === 'function'
-        ) {
-            window.renderPatientProfile();
-        }
-    }, 0);
+    // Corrige também o estado vazio antigo, caso pacientes.js tenha renderizado
+    // a aba antes de este módulo terminar de carregar.
+    setTimeout(replaceLegacyDocumentsButton, 0);
+    setTimeout(replaceLegacyDocumentsButton, 300);
 })();
