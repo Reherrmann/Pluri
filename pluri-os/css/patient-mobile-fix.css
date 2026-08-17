@@ -1,0 +1,16 @@
+/* PLURI OS — ajuste mobile da ficha do paciente */
+@media (max-width: 768px) {
+  .patient-profile-nav ul { display:flex; flex-direction:row; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; gap:6px; padding:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .patient-profile-nav ul::-webkit-scrollbar { display:none; }
+  .patient-profile-nav li { flex:0 0 auto; width:auto; min-width:max-content; padding:8px 13px; border-radius:999px; white-space:nowrap; }
+  .patient-profile-nav li.active { background:var(--primary); color:var(--white); border-color:var(--primary); }
+  .patient-info-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+  .patient-info-item.full-width { grid-column:1 / -1; }
+  .patient-info-card { width:100%; max-width:100%; }
+}
+@media (max-width: 420px) {
+  .patient-info-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem; }
+  .patient-info-card { padding:14px; }
+  .patient-info-label { font-size:10px; }
+  .patient-info-value { font-size:14px; }
+}
