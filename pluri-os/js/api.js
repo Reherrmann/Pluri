@@ -524,18 +524,15 @@ class PluriAPI {
      * @returns {Promise<Array>} Lista de registros mapeados
      */
     async getMedicalRecords(patientRow = null) {
-        const url = this.config.appsScript.prontuarios;
-        const params = new URLSearchParams();
-        params.append('action', 'getProntuarios');
-        if (patientRow) params.append('paciente', patientRow);
-        params.append('token', this.token);
-        const fullUrl = `${url}?${params.toString()}`;
-        const data = await this.get(fullUrl);
-        if (data && data.success) {
-            return Array.isArray(data.data) ? data.data.map(r => this.mapMedicalRecord(r)) : [];
-        }
-        return [];
-    }
+    const baseUrl = this.config.appsScript.prontuarios.split('?')[0];
+    const params = new URLSearchParams();
+    params.append('action', 'getProntuarios');
+    params.append('sheet', 'Prontuarios');
+    if (patientRow) params.append('paciente', patientRow);
+    params.append('token', this.token);
+    const fullUrl = `${baseUrl}?${params.toString()}`;
+    ...
+}
 
     /**
      * Mapeia um registro bruto da planilha para o objeto padronizado.
