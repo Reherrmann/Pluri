@@ -531,8 +531,12 @@ class PluriAPI {
     if (patientRow) params.append('paciente', patientRow);
     params.append('token', this.token);
     const fullUrl = `${baseUrl}?${params.toString()}`;
-    ...
-}
+        const data = await this.get(fullUrl);
+        if (data && data.success) {
+            return Array.isArray(data.data) ? data.data.map(r => this.mapMedicalRecord(r)) : [];
+        }
+        return [];
+    }
 
     /**
      * Mapeia um registro bruto da planilha para o objeto padronizado.
