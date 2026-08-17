@@ -236,4 +236,17 @@
     setTimeout(forceDocumentsSection, 0);
     setTimeout(forceDocumentsSection, 300);
     setTimeout(forceDocumentsSection, 1000);
+
+    // Integração direta com pacientes.js:
+    // a seção "documentos" deve renderizar o módulo funcional,
+    // e não o estado vazio com botão disabled.
+    const originalRenderPatientSectionContent = window.renderPatientSectionContent;
+    if (typeof originalRenderPatientSectionContent === 'function') {
+        window.renderPatientSectionContent = function (section) {
+            if (section === 'documentos' && window.state && state.selectedPatient) {
+                return renderDocumentos(state.selectedPatient);
+            }
+            return originalRenderPatientSectionContent(section);
+        };
+    }
 })();
