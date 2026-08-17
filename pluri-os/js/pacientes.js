@@ -184,8 +184,9 @@ function renderPatientSectionContent(section) {
         case 'guias-tiss':
             return renderEmptyState('Guias TISS', 'As guias TISS do paciente aparecerão aqui.', null);
         case 'prontuario':
-            return renderEmptyState('Prontuário eletrônico', 'O prontuário eletrônico estará disponível em breve.', null);
-        default:
+    return renderProntuario(p);
+    
+    default:
             return '';
     }
 }
@@ -419,3 +420,456 @@ window.editPatient = editPatient;
 window.newPatient = newPatient;
 window.openNewPatient = openNewPatient;
 window.openPatientMenu = openPatientMenu;
+
+
+// ============================================================
+// PRONTUÁRIO ELETRÔNICO – FUNÇÕES
+// ============================================================
+
+/**
+ * Renderiza a aba "Prontuário eletrônico" dentro do perfil do paciente.
+ */
+async function renderProntuario(p) {
+    // Carrega os registros sob demanda, se ainda não carregados
+    if (!state.medicalRecords || state.medicalRecords.length === 0) {
+        state.medicalRecords = await window.pluriAPI.getMedicalRecords();
+    }
+    const records = state.medicalRecords.filter(r => String(r.pacienteRow) === String(p._row));
+    // Ordena por data (mais recente primeiro)
+    records.sort((a, b) => (a.data > b.data ? -1 : 1));
+
+    // Obtém as versões mais recentes de cada cadeia
+    const latestVersions = getLatestVersions(records);
+
+    // Gera HTML da lista
+    let listHtml = '';
+    if (latestVersions.length === 0) {
+        listHtml = `<p class="empty-message">Nenhum registro de prontuário encontrado para este paciente.</p>`;
+    } else {
+        listHtml = latestVersions.map(r => renderRecordCard(r)).join('');
+    }
+
+    // Monta a interface com filtros
+    return `
+        <div class="patient-section">
+            <div class="prontuario-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+                <h2 style="margin:0;">Prontuário eletrônico</h2>
+                <button class="btn btn-primary" onclick="openNewMedicalRecord()">+ Novo registro</button>
+            </div>
+            <div class="prontuario-filters" style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+                <input type="date" id="filterDate" style="flex:1; min-width:120px; padding:6px 12px; border:1px solid var(--border-color, #d1d5db); border-radius:6px;">
+                <select id="filterProfissional" style="flex:1; min-width:120px; padding:6px 12px; border:1px solid var(--border-color, #d1d5db); border-radius:6px;">
+                    <option value="">Todos os profissionais</option>
+                    ${state.staff.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('')}
+                </select>
+                <select id="filterTipo" style="flex:1; min-width:120px; padding:6px 12px; border:1px solid var(--border-color, #d1d5db); border-radius:6px;">
+                    <option value="">Todos os tipos</option>
+                    <option value="Consulta">Consulta</option>
+                    <option value="Retorno">Retorno</option>
+                    <option value="Procedimento">Procedimento</option>
+                    <option value="Exame">Exame</option>
+                    <option value="Teleconsulta">Teleconsulta</option>
+                    <option value="Outro">Outro</option>
+                </select>
+                <button class="btn btn-outline" onclick="applyFilters()">Filtrar</button>
+                <button class="btn btn-outline" onclick="clearFilters()">Limpar</button>
+            </div>
+            <div id="medicalRecordsList">
+                ${listHtml}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Agrupa registros por cadeia de versões e retorna apenas a última versão de cada cadeia.
+ */
+function getLatestVersions(records) {
+    const chains = [];
+    // Encontra raízes (sem versão anterior)
+    records.forEach(r => {
+        if (!r.versaoAnterior) {
+            chains.push({ root: r, versions: [r] });
+        }
+    });
+    // Preenche as cadeias com as versões seguintes
+    chains.forEach(chain => {
+        let current = chain.root;
+        let next = records.find(r => r.versaoAnterior === current._row);
+        while (next) {
+            chain.versions.push(next);
+            current = next;
+            next = records.find(r => r.versaoAnterior === current._row);
+        }
+    });
+    // Para cada cadeia, pega a última versão
+    return chains.map(chain => chain.versions[chain.versions.length - 1]);
+}
+
+/**
+ * Renderiza um card de registro de prontuário.
+ */
+function renderRecordCard(record) {
+    const versionBadge = record.versaoAnterior ? '<span class="badge" style="background:#4f46e5; color:#fff; padding:2px 10px; border-radius:20px; font-size:0.75rem;">Última versão</span>' : '';
+
+    return `
+        <div class="record-card" data-row="${record._row}" style="background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: box-shadow 0.2s;">
+            <div class="record-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <strong>${record.data || 'Data não informada'} ${record.hora ? '· ' + record.hora : ''}</strong>
+                    <span class="record-type" style="background: var(--primary-light, #e0e7ff); padding: 2px 10px; border-radius: 20px; font-size: 0.85em; color: var(--primary, #4f46e5);">${escapeHtml(record.tipoAtendimento)}</span>
+                    ${versionBadge}
+                </div>
+                <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-outline" onclick="openEditMedicalRecord(${record._row})" style="padding:4px 10px; font-size:0.85rem;">✏️ Revisar</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteMedicalRecord(${record._row})" style="padding:4px 10px; font-size:0.85rem;">🗑️</button>
+                    <button class="btn btn-sm btn-outline" onclick="showVersionHistory(${record._row})" style="padding:4px 10px; font-size:0.85rem;">📜 Histórico</button>
+                </div>
+            </div>
+            <div class="record-body" style="margin-top:8px;">
+                ${record.profissional ? `<p><strong>Profissional:</strong> ${escapeHtml(record.profissional)}</p>` : ''}
+                ${record.anamnese ? `<p><strong>Anamnese:</strong> ${escapeHtml(record.anamnese)}</p>` : ''}
+                ${record.hipoteseDiagnostica ? `<p><strong>Hipótese diagnóstica:</strong> ${escapeHtml(record.hipoteseDiagnostica)}</p>` : ''}
+                ${record.diagnosticoDefinitivo ? `<p><strong>Diagnóstico definitivo:</strong> ${escapeHtml(record.diagnosticoDefinitivo)}</p>` : ''}
+                ${record.conduta ? `<p><strong>Conduta:</strong> ${escapeHtml(record.conduta)}</p>` : ''}
+                ${record.prescricao ? `<p><strong>Prescrição:</strong> ${escapeHtml(record.prescricao)}</p>` : ''}
+                ${record.examesSolicitados ? `<p><strong>Exames solicitados:</strong> ${escapeHtml(record.examesSolicitados)}</p>` : ''}
+                ${record.encaminhamentos ? `<p><strong>Encaminhamentos:</strong> ${escapeHtml(record.encaminhamentos)}</p>` : ''}
+                ${record.anexos && record.anexos.length ? `<p><strong>Anexos:</strong> ${record.anexos.map(url => `<a href="${url}" target="_blank">📎</a>`).join(' ')}</p>` : ''}
+            </div>
+            <div class="record-footer" style="font-size:0.85em; color:var(--text-secondary); margin-top:8px; display:flex; justify-content:space-between; flex-wrap:wrap;">
+                <span>Criado em ${record.dataCriacao || 'data desconhecida'} por ${escapeHtml(record.criadoPor || '—')}</span>
+                ${record.motivoRevisao ? `<span>Motivo da revisão: ${escapeHtml(record.motivoRevisao)}</span>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+// ============================================================
+// FORMULÁRIO DE CRIAÇÃO/EDIÇÃO (MODAL)
+// ============================================================
+
+let editingRecordRow = null;
+
+function openNewMedicalRecord() {
+    editingRecordRow = null;
+    openMedicalRecordForm(null, false);
+}
+
+function openEditMedicalRecord(row) {
+    const record = state.medicalRecords.find(r => r._row === row);
+    if (!record) {
+        showToast('Registro não encontrado.');
+        return;
+    }
+    editingRecordRow = row;
+    openMedicalRecordForm(record, true);
+}
+
+function openMedicalRecordForm(record, isRevision) {
+    const modal = getEl('modalOverlay');
+    const content = getEl('modalContent');
+    if (!modal || !content) return;
+
+    const title = isRevision ? 'Revisar registro' : 'Novo registro de prontuário';
+    const buttonText = isRevision ? 'Salvar revisão' : 'Salvar registro';
+
+    // Preenche os campos com os dados do record ou vazio
+    const data = record ? record.data : new Date().toISOString().slice(0,10);
+    const hora = record ? record.hora : new Date().toTimeString().slice(0,5);
+    const profissional = record ? record.profissional : '';
+    const especialidade = record ? record.especialidade : '';
+    const tipo = record ? record.tipoAtendimento : 'Consulta';
+    const anamnese = record ? record.anamnese : '';
+    const exameFisico = record ? record.exameFisico : '';
+    const hipotese = record ? record.hipoteseDiagnostica : '';
+    const diagnostico = record ? record.diagnosticoDefinitivo : '';
+    const conduta = record ? record.conduta : '';
+    const prescricao = record ? record.prescricao : '';
+    const exames = record ? record.examesSolicitados : '';
+    const encaminhamentos = record ? record.encaminhamentos : '';
+    const atestado = record ? record.atestado : 'Não';
+    const observacoes = record ? record.observacoes : '';
+    const anexos = record && record.anexos ? record.anexos.join(',') : '';
+    const motivoRevisao = record ? record.motivoRevisao : '';
+
+    // Monta HTML do formulário
+    content.innerHTML = `
+        <h2>${title}</h2>
+        <form id="medicalRecordForm" style="display:flex; flex-direction:column; gap:12px; max-height:70vh; overflow-y:auto; padding-right:8px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Data *</label>
+                    <input type="date" id="mrData" value="${data}" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" id="mrHora" value="${hora}">
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Profissional</label>
+                    <input type="text" id="mrProfissional" value="${escapeHtml(profissional)}" list="staffList">
+                    <datalist id="staffList">${state.staff.map(s => `<option value="${escapeHtml(s.name)}">`).join('')}</datalist>
+                </div>
+                <div class="form-group">
+                    <label>Especialidade</label>
+                    <input type="text" id="mrEspecialidade" value="${escapeHtml(especialidade)}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Tipo de atendimento</label>
+                <select id="mrTipo">
+                    ${['Consulta','Retorno','Procedimento','Exame','Teleconsulta','Outro'].map(t =>
+                        `<option value="${t}" ${tipo === t ? 'selected' : ''}>${t}</option>`
+                    ).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Anamnese</label>
+                <textarea id="mrAnamnese" rows="3">${escapeHtml(anamnese)}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Exame físico</label>
+                <textarea id="mrExameFisico" rows="3">${escapeHtml(exameFisico)}</textarea>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Hipótese diagnóstica</label>
+                    <input type="text" id="mrHipotese" value="${escapeHtml(hipotese)}">
+                </div>
+                <div class="form-group">
+                    <label>Diagnóstico definitivo</label>
+                    <input type="text" id="mrDiagnostico" value="${escapeHtml(diagnostico)}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Conduta</label>
+                <textarea id="mrConduta" rows="3">${escapeHtml(conduta)}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Prescrição</label>
+                <textarea id="mrPrescricao" rows="4">${escapeHtml(prescricao)}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Exames solicitados</label>
+                <textarea id="mrExames" rows="2">${escapeHtml(exames)}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Encaminhamentos</label>
+                <textarea id="mrEncaminhamentos" rows="2">${escapeHtml(encaminhamentos)}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Atestado</label>
+                <select id="mrAtestado">
+                    <option value="Não" ${atestado === 'Não' ? 'selected' : ''}>Não</option>
+                    <option value="Sim" ${atestado === 'Sim' ? 'selected' : ''}>Sim</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Observações</label>
+                <textarea id="mrObservacoes" rows="2">${escapeHtml(observacoes)}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Anexos (URLs separados por vírgula)</label>
+                <input type="text" id="mrAnexos" value="${escapeHtml(anexos)}" placeholder="https://exemplo.com/doc.pdf, https://...">
+            </div>
+            ${isRevision ? `
+                <div class="form-group">
+                    <label>Motivo da revisão *</label>
+                    <textarea id="mrMotivoRevisao" rows="2" required>${escapeHtml(motivoRevisao)}</textarea>
+                </div>
+            ` : ''}
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">${buttonText}</button>
+            </div>
+        </form>
+    `;
+
+    modal.style.display = 'flex';
+
+    // Evento de submit
+    document.getElementById('medicalRecordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveMedicalRecord(isRevision);
+    });
+}
+
+async function saveMedicalRecord(isRevision) {
+    const formData = {
+        pacienteRow: state.selectedPatient._row,
+        data: getEl('mrData').value,
+        hora: getEl('mrHora').value,
+        profissional: getEl('mrProfissional').value,
+        especialidade: getEl('mrEspecialidade').value,
+        tipoAtendimento: getEl('mrTipo').value,
+        anamnese: getEl('mrAnamnese').value,
+        exameFisico: getEl('mrExameFisico').value,
+        hipoteseDiagnostica: getEl('mrHipotese').value,
+        diagnosticoDefinitivo: getEl('mrDiagnostico').value,
+        conduta: getEl('mrConduta').value,
+        prescricao: getEl('mrPrescricao').value,
+        examesSolicitados: getEl('mrExames').value,
+        encaminhamentos: getEl('mrEncaminhamentos').value,
+        atestado: getEl('mrAtestado').value,
+        observacoes: getEl('mrObservacoes').value,
+        anexos: getEl('mrAnexos').value.split(',').map(s => s.trim()).filter(Boolean)
+    };
+
+    let result;
+    if (isRevision) {
+        const motivo = getEl('mrMotivoRevisao').value.trim();
+        if (!motivo) {
+            showToast('Informe o motivo da revisão.');
+            return;
+        }
+        result = await window.pluriAPI.reviseMedicalRecord(editingRecordRow, formData, motivo);
+    } else {
+        result = await window.pluriAPI.createMedicalRecord(formData);
+    }
+
+    if (result && result.success) {
+        closeModal();
+        showToast('Registro salvo com sucesso!');
+        // Recarrega os registros e re-renderiza a aba
+        state.medicalRecords = await window.pluriAPI.getMedicalRecords();
+        renderPatientProfile(); // re-renderiza a ficha (a aba permanece ativa)
+    } else {
+        showToast(result?.error || 'Erro ao salvar registro.');
+    }
+}
+
+async function deleteMedicalRecord(row) {
+    if (!confirm('Excluir este registro do prontuário? Esta ação é irreversível.')) return;
+    const result = await window.pluriAPI.deleteMedicalRecord(row);
+    if (result && result.success) {
+        showToast('Registro excluído.');
+        state.medicalRecords = await window.pluriAPI.getMedicalRecords();
+        renderPatientProfile();
+    } else {
+        showToast(result?.error || 'Erro ao excluir.');
+    }
+}
+
+// ============================================================
+// HISTÓRICO DE VERSÕES
+// ============================================================
+
+function showVersionHistory(row) {
+    // Encontra todas as versões da cadeia
+    const allVersions = [];
+    let current = state.medicalRecords.find(r => r._row === row);
+    if (!current) {
+        showToast('Registro não encontrado.');
+        return;
+    }
+
+    // Vai para a raiz (versão sem VersaoAnterior)
+    while (current.versaoAnterior) {
+        const prev = state.medicalRecords.find(r => r._row === current.versaoAnterior);
+        if (!prev) break;
+        current = prev;
+    }
+    // Agora current é a raiz
+    const root = current;
+    allVersions.push(root);
+    let next = state.medicalRecords.find(r => r.versaoAnterior === root._row);
+    while (next) {
+        allVersions.push(next);
+        next = state.medicalRecords.find(r => r.versaoAnterior === next._row);
+    }
+
+    // Abre um modal com a lista de versões
+    const modal = getEl('modalOverlay');
+    const content = getEl('modalContent');
+    if (!modal || !content) return;
+
+    let html = `<h2>Histórico de versões</h2><div style="max-height:60vh; overflow-y:auto;">`;
+    allVersions.forEach((v, index) => {
+        html += `
+            <div style="border-bottom:1px solid #e5e7eb; padding:12px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>Versão ${index+1}</strong> 
+                    <span>${v.data || ''} ${v.hora || ''}</span>
+                    <span><em>${escapeHtml(v.criadoPor || '—')}</em></span>
+                    <button class="btn btn-sm btn-outline" onclick="viewRecordVersion(${v._row})">Ver detalhes</button>
+                </div>
+                ${v.motivoRevisao ? `<div style="margin-top:4px; font-size:0.9em;"><strong>Motivo:</strong> ${escapeHtml(v.motivoRevisao)}</div>` : ''}
+            </div>
+        `;
+    });
+    html += `</div><button class="btn btn-secondary" onclick="closeModal()" style="margin-top:12px;">Fechar</button>`;
+    content.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function viewRecordVersion(row) {
+    const record = state.medicalRecords.find(r => r._row === row);
+    if (!record) {
+        showToast('Registro não encontrado.');
+        return;
+    }
+    // Exibe o registro em um modal com todos os campos
+    const modal = getEl('modalOverlay');
+    const content = getEl('modalContent');
+    if (!modal || !content) return;
+
+    const html = `
+        <h2>Detalhes da versão</h2>
+        <div style="max-height:60vh; overflow-y:auto;">
+            <p><strong>Data:</strong> ${record.data || ''} ${record.hora ? '· ' + record.hora : ''}</p>
+            <p><strong>Profissional:</strong> ${escapeHtml(record.profissional || '—')}</p>
+            <p><strong>Especialidade:</strong> ${escapeHtml(record.especialidade || '—')}</p>
+            <p><strong>Tipo:</strong> ${escapeHtml(record.tipoAtendimento)}</p>
+            ${record.anamnese ? `<p><strong>Anamnese:</strong><br>${escapeHtml(record.anamnese)}</p>` : ''}
+            ${record.exameFisico ? `<p><strong>Exame físico:</strong><br>${escapeHtml(record.exameFisico)}</p>` : ''}
+            ${record.hipoteseDiagnostica ? `<p><strong>Hipótese diagnóstica:</strong> ${escapeHtml(record.hipoteseDiagnostica)}</p>` : ''}
+            ${record.diagnosticoDefinitivo ? `<p><strong>Diagnóstico definitivo:</strong> ${escapeHtml(record.diagnosticoDefinitivo)}</p>` : ''}
+            ${record.conduta ? `<p><strong>Conduta:</strong><br>${escapeHtml(record.conduta)}</p>` : ''}
+            ${record.prescricao ? `<p><strong>Prescrição:</strong><br>${escapeHtml(record.prescricao)}</p>` : ''}
+            ${record.examesSolicitados ? `<p><strong>Exames solicitados:</strong><br>${escapeHtml(record.examesSolicitados)}</p>` : ''}
+            ${record.encaminhamentos ? `<p><strong>Encaminhamentos:</strong> ${escapeHtml(record.encaminhamentos)}</p>` : ''}
+            ${record.observacoes ? `<p><strong>Observações:</strong><br>${escapeHtml(record.observacoes)}</p>` : ''}
+            ${record.anexos && record.anexos.length ? `<p><strong>Anexos:</strong> ${record.anexos.map(url => `<a href="${url}" target="_blank">📎</a>`).join(' ')}</p>` : ''}
+            ${record.motivoRevisao ? `<p><strong>Motivo da revisão:</strong> ${escapeHtml(record.motivoRevisao)}</p>` : ''}
+            <p style="font-size:0.85em; color:var(--text-secondary);">Criado em ${record.dataCriacao || ''} por ${escapeHtml(record.criadoPor || '—')}</p>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal()" style="margin-top:12px;">Fechar</button>
+    `;
+    content.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+// ============================================================
+// FILTROS
+// ============================================================
+
+function applyFilters() {
+    const date = getEl('filterDate')?.value;
+    const profissional = getEl('filterProfissional')?.value?.toLowerCase();
+    const tipo = getEl('filterTipo')?.value?.toLowerCase();
+
+    const cards = document.querySelectorAll('.record-card');
+    cards.forEach(card => {
+        const row = parseInt(card.dataset.row, 10);
+        const record = state.medicalRecords.find(r => r._row === row);
+        if (!record) {
+            card.style.display = 'none';
+            return;
+        }
+        let show = true;
+        if (date && record.data !== date) show = false;
+        if (profissional && !record.profissional?.toLowerCase().includes(profissional)) show = false;
+        if (tipo && record.tipoAtendimento?.toLowerCase() !== tipo) show = false;
+        card.style.display = show ? '' : 'none';
+    });
+}
+
+function clearFilters() {
+    getEl('filterDate').value = '';
+    getEl('filterProfissional').value = '';
+    getEl('filterTipo').value = '';
+    document.querySelectorAll('.record-card').forEach(c => c.style.display = '');
+}
