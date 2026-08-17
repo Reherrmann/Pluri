@@ -424,6 +424,8 @@ window.editPatient = editPatient;
 window.newPatient = newPatient;
 window.openNewPatient = openNewPatient;
 window.openPatientMenu = openPatientMenu;
+window.openNewMedicalRecord = openNewMedicalRecord;
+window.closeProntuarioModal = closeProntuarioModal;
 
 
 // ============================================================
@@ -571,9 +573,12 @@ function openEditMedicalRecord(row) {
 }
 
 function openMedicalRecordForm(record, isRevision) {
-    const modal = getEl('modalOverlay');
-    const content = getEl('modalContent');
-    if (!modal || !content) return;
+    const modal = getEl('prontuarioModal');
+    const content = getEl('prontuarioContent');
+    if (!modal || !content) {
+        console.error('❌ Modal do prontuário não encontrado! Verifique se os IDs existem no HTML.');
+        return;
+    }
 
     const title = isRevision ? 'Revisar registro' : 'Novo registro de prontuário';
     const buttonText = isRevision ? 'Salvar revisão' : 'Salvar registro';
@@ -597,10 +602,9 @@ function openMedicalRecordForm(record, isRevision) {
     const anexos = record && record.anexos ? record.anexos.join(',') : '';
     const motivoRevisao = record ? record.motivoRevisao : '';
 
-    // Monta HTML do formulário
+    // Monta HTML do formulário (sem os botões de footer, pois usaremos os do modal)
     content.innerHTML = `
-        <h2>${title}</h2>
-        <form id="medicalRecordForm" style="display:flex; flex-direction:column; gap:12px; max-height:70vh; overflow-y:auto; padding-right:8px;">
+        <form id="medicalRecordForm" style="display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto; padding-right:8px;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                 <div class="form-group">
                     <label>Data *</label>
@@ -685,61 +689,58 @@ function openMedicalRecordForm(record, isRevision) {
                     <textarea id="mrMotivoRevisao" rows="2" required>${escapeHtml(motivoRevisao)}</textarea>
                 </div>
             ` : ''}
-            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px; padding-top:12px; border-top:1px solid var(--border-color, #e5e7eb);">
+                <button type="button" class="btn btn-secondary" onclick="closeProntuarioModal()">Cancelar</button>
                 <button type="submit" class="btn btn-primary">${buttonText}</button>
             </div>
         </form>
     `;
 
+    // Atualiza o título do modal
+    const titleEl = getEl('prontuarioModalTitle');
+    if (titleEl) titleEl.textContent = title;
+
+    // Exibe o modal
     modal.style.display = 'flex';
 
+    // Evento de fechar pelo X
+    const closeBtn = getEl('prontuarioModalClose');
+    if (closeBtn) {
+        closeBtn.onclick = closeProntuarioModal;
+    }
+
     // Evento de submit
-    document.getElementById('medicalRecordForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await saveMedicalRecord(isRevision);
-    });
+    const form = document.getElementById('medicalRecordForm');
+    if (form) {
+        // Remove listeners antigos para evitar duplicação
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        newForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveMedicalRecord(isRevision);
+        });
+    }
+}
+
+// ============================================================
+// FECHAR MODAL DO PRONTUÁRIO
+// ============================================================
+
+function closeProntuarioModal() {
+    const modal = getEl('prontuarioModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 async function saveMedicalRecord(isRevision) {
-    const formData = {
-        pacienteRow: state.selectedPatient._row,
-        data: getEl('mrData').value,
-        hora: getEl('mrHora').value,
-        profissional: getEl('mrProfissional').value,
-        especialidade: getEl('mrEspecialidade').value,
-        tipoAtendimento: getEl('mrTipo').value,
-        anamnese: getEl('mrAnamnese').value,
-        exameFisico: getEl('mrExameFisico').value,
-        hipoteseDiagnostica: getEl('mrHipotese').value,
-        diagnosticoDefinitivo: getEl('mrDiagnostico').value,
-        conduta: getEl('mrConduta').value,
-        prescricao: getEl('mrPrescricao').value,
-        examesSolicitados: getEl('mrExames').value,
-        encaminhamentos: getEl('mrEncaminhamentos').value,
-        atestado: getEl('mrAtestado').value,
-        observacoes: getEl('mrObservacoes').value,
-        anexos: getEl('mrAnexos').value.split(',').map(s => s.trim()).filter(Boolean)
-    };
-
-    let result;
-    if (isRevision) {
-        const motivo = getEl('mrMotivoRevisao').value.trim();
-        if (!motivo) {
-            showToast('Informe o motivo da revisão.');
-            return;
-        }
-        result = await window.pluriAPI.reviseMedicalRecord(editingRecordRow, formData, motivo);
-    } else {
-        result = await window.pluriAPI.createMedicalRecord(formData);
-    }
+    // ... todo o código anterior ...
 
     if (result && result.success) {
-        closeModal();
+        closeProntuarioModal(); // ← substitua closeModal() por isso
         showToast('Registro salvo com sucesso!');
-        // Recarrega os registros e re-renderiza a aba
         state.medicalRecords = await window.pluriAPI.getMedicalRecords();
-        renderPatientProfile(); // re-renderiza a ficha (a aba permanece ativa)
+        renderPatientProfile();
     } else {
         showToast(result?.error || 'Erro ao salvar registro.');
     }
