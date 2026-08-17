@@ -184,7 +184,7 @@ function renderPatientSectionContent(section) {
         case 'guias-tiss':
             return renderEmptyState('Guias TISS', 'As guias TISS do paciente aparecerão aqui.', null);
         case 'prontuario':
-            return await renderProntuario(p);
+    return renderProntuario(p);
     
     default:
             return '';
