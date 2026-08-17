@@ -414,6 +414,7 @@ function openPatientMenu() {
 }
 
 // Expor funções globalmente (caso necessário)
+// Expor funções globalmente (caso necessário)
 window.buildPacientes = buildPacientes;
 window.getInitials = getInitials;
 window.openPatient = openPatient;
@@ -424,8 +425,18 @@ window.editPatient = editPatient;
 window.newPatient = newPatient;
 window.openNewPatient = openNewPatient;
 window.openPatientMenu = openPatientMenu;
+
+// Prontuário
 window.openNewMedicalRecord = openNewMedicalRecord;
+window.openEditMedicalRecord = openEditMedicalRecord;
+window.openMedicalRecordForm = openMedicalRecordForm;
 window.closeProntuarioModal = closeProntuarioModal;
+window.saveMedicalRecord = saveMedicalRecord;
+window.deleteMedicalRecord = deleteMedicalRecord;
+window.showVersionHistory = showVersionHistory;
+window.viewRecordVersion = viewRecordVersion;
+window.applyFilters = applyFilters;
+window.clearFilters = clearFilters;
 
 
 // ============================================================
@@ -734,15 +745,68 @@ function closeProntuarioModal() {
 }
 
 async function saveMedicalRecord(isRevision) {
-    // ... todo o código anterior ...
+    console.log('🔵 saveMedicalRecord chamado', { isRevision });
 
-    if (result && result.success) {
-        closeProntuarioModal(); // ← substitua closeModal() por isso
-        showToast('Registro salvo com sucesso!');
-        state.medicalRecords = await window.pluriAPI.getMedicalRecords();
-        renderPatientProfile();
-    } else {
-        showToast(result?.error || 'Erro ao salvar registro.');
+    // 1. Verifica se o paciente está selecionado
+    if (!state.selectedPatient || !state.selectedPatient._row) {
+        showToast('Erro: paciente não selecionado.');
+        return;
+    }
+
+    // 2. Captura os valores do formulário
+    const formData = {
+        pacienteRow: state.selectedPatient._row,
+        data: document.getElementById('mrData')?.value || '',
+        hora: document.getElementById('mrHora')?.value || '',
+        profissional: document.getElementById('mrProfissional')?.value || '',
+        especialidade: document.getElementById('mrEspecialidade')?.value || '',
+        tipoAtendimento: document.getElementById('mrTipo')?.value || 'Consulta',
+        anamnese: document.getElementById('mrAnamnese')?.value || '',
+        exameFisico: document.getElementById('mrExameFisico')?.value || '',
+        hipoteseDiagnostica: document.getElementById('mrHipotese')?.value || '',
+        diagnosticoDefinitivo: document.getElementById('mrDiagnostico')?.value || '',
+        conduta: document.getElementById('mrConduta')?.value || '',
+        prescricao: document.getElementById('mrPrescricao')?.value || '',
+        examesSolicitados: document.getElementById('mrExames')?.value || '',
+        encaminhamentos: document.getElementById('mrEncaminhamentos')?.value || '',
+        atestado: document.getElementById('mrAtestado')?.value || 'Não',
+        observacoes: document.getElementById('mrObservacoes')?.value || '',
+        anexos: document.getElementById('mrAnexos')?.value.split(',').map(s => s.trim()).filter(Boolean) || []
+    };
+
+    // 3. Validação básica
+    if (!formData.data) {
+        showToast('Por favor, informe a data do atendimento.');
+        return;
+    }
+
+    let result;
+    try {
+        if (isRevision) {
+            // Revisão: precisa do motivo
+            const motivo = document.getElementById('mrMotivoRevisao')?.value?.trim();
+            if (!motivo) {
+                showToast('Informe o motivo da revisão.');
+                return;
+            }
+            result = await window.pluriAPI.reviseMedicalRecord(editingRecordRow, formData, motivo);
+        } else {
+            // Criação de novo registro
+            result = await window.pluriAPI.createMedicalRecord(formData);
+        }
+
+        if (result && result.success) {
+            closeProntuarioModal();
+            showToast('Registro salvo com sucesso!');
+            // Recarrega os registros e re-renderiza a ficha
+            state.medicalRecords = await window.pluriAPI.getMedicalRecords();
+            renderPatientProfile();
+        } else {
+            showToast(result?.error || 'Erro ao salvar registro.');
+        }
+    } catch (error) {
+        console.error('❌ Erro ao salvar:', error);
+        showToast('Erro ao salvar registro: ' + error.message);
     }
 }
 
