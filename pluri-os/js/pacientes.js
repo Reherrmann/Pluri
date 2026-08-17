@@ -747,66 +747,60 @@ function closeProntuarioModal() {
 async function saveMedicalRecord(isRevision) {
     console.log('🔵 saveMedicalRecord chamado', { isRevision });
 
-    // 1. Verifica se o paciente está selecionado
+    // Verifica se há um paciente selecionado
     if (!state.selectedPatient || !state.selectedPatient._row) {
         showToast('Erro: paciente não selecionado.');
         return;
     }
 
-    // 2. Captura os valores do formulário
+    // Captura os dados do formulário
     const formData = {
         pacienteRow: state.selectedPatient._row,
-        data: document.getElementById('mrData')?.value || '',
-        hora: document.getElementById('mrHora')?.value || '',
-        profissional: document.getElementById('mrProfissional')?.value || '',
-        especialidade: document.getElementById('mrEspecialidade')?.value || '',
-        tipoAtendimento: document.getElementById('mrTipo')?.value || 'Consulta',
-        anamnese: document.getElementById('mrAnamnese')?.value || '',
-        exameFisico: document.getElementById('mrExameFisico')?.value || '',
-        hipoteseDiagnostica: document.getElementById('mrHipotese')?.value || '',
-        diagnosticoDefinitivo: document.getElementById('mrDiagnostico')?.value || '',
-        conduta: document.getElementById('mrConduta')?.value || '',
-        prescricao: document.getElementById('mrPrescricao')?.value || '',
-        examesSolicitados: document.getElementById('mrExames')?.value || '',
-        encaminhamentos: document.getElementById('mrEncaminhamentos')?.value || '',
-        atestado: document.getElementById('mrAtestado')?.value || 'Não',
-        observacoes: document.getElementById('mrObservacoes')?.value || '',
-        anexos: document.getElementById('mrAnexos')?.value.split(',').map(s => s.trim()).filter(Boolean) || []
+        data: getEl('mrData').value,
+        hora: getEl('mrHora').value,
+        profissional: getEl('mrProfissional').value,
+        especialidade: getEl('mrEspecialidade').value,
+        tipoAtendimento: getEl('mrTipo').value,
+        anamnese: getEl('mrAnamnese').value,
+        exameFisico: getEl('mrExameFisico').value,
+        hipoteseDiagnostica: getEl('mrHipotese').value,
+        diagnosticoDefinitivo: getEl('mrDiagnostico').value,
+        conduta: getEl('mrConduta').value,
+        prescricao: getEl('mrPrescricao').value,
+        examesSolicitados: getEl('mrExames').value,
+        encaminhamentos: getEl('mrEncaminhamentos').value,
+        atestado: getEl('mrAtestado').value,
+        observacoes: getEl('mrObservacoes').value,
+        anexos: getEl('mrAnexos').value.split(',').map(s => s.trim()).filter(Boolean)
     };
 
-    // 3. Validação básica
-    if (!formData.data) {
-        showToast('Por favor, informe a data do atendimento.');
-        return;
+    let result;
+    if (isRevision) {
+        const motivo = getEl('mrMotivoRevisao').value.trim();
+        if (!motivo) {
+            showToast('Informe o motivo da revisão.');
+            return;
+        }
+        // Chama a função de revisão
+        result = await window.pluriAPI.reviseMedicalRecord(editingRecordRow, formData, motivo);
+    } else {
+        // Cria um novo registro
+        result = await window.pluriAPI.createMedicalRecord(formData);
     }
 
-    let result;
-    try {
-        if (isRevision) {
-            // Revisão: precisa do motivo
-            const motivo = document.getElementById('mrMotivoRevisao')?.value?.trim();
-            if (!motivo) {
-                showToast('Informe o motivo da revisão.');
-                return;
-            }
-            result = await window.pluriAPI.reviseMedicalRecord(editingRecordRow, formData, motivo);
-        } else {
-            // Criação de novo registro
-            result = await window.pluriAPI.createMedicalRecord(formData);
-        }
-
-        if (result && result.success) {
-            closeProntuarioModal();
-            showToast('Registro salvo com sucesso!');
-            // Recarrega os registros e re-renderiza a ficha
-            state.medicalRecords = await window.pluriAPI.getMedicalRecords();
-            renderPatientProfile();
-        } else {
-            showToast(result?.error || 'Erro ao salvar registro.');
-        }
-    } catch (error) {
-        console.error('❌ Erro ao salvar:', error);
-        showToast('Erro ao salvar registro: ' + error.message);
+    if (result && result.success) {
+        closeProntuarioModal();
+        showToast('Registro salvo com sucesso!');
+        // Recarrega os registros e re-renderiza
+        state.medicalRecords = await window.pluriAPI.getMedicalRecords();
+        // Força a re-renderização da aba "Prontuário"
+        renderPatientProfile();
+        // Garante que a aba "Prontuário" continue ativa
+        state.patientSection = 'prontuario';
+        // Re-renderiza novamente para garantir
+        renderPatientProfile();
+    } else {
+        showToast(result?.error || 'Erro ao salvar registro.');
     }
 }
 
@@ -827,7 +821,6 @@ async function deleteMedicalRecord(row) {
 // ============================================================
 
 function showVersionHistory(row) {
-    // Encontra todas as versões da cadeia
     const allVersions = [];
     let current = state.medicalRecords.find(r => r._row === row);
     if (!current) {
@@ -835,13 +828,12 @@ function showVersionHistory(row) {
         return;
     }
 
-    // Vai para a raiz (versão sem VersaoAnterior)
+    // Vai para a raiz
     while (current.versaoAnterior) {
         const prev = state.medicalRecords.find(r => r._row === current.versaoAnterior);
         if (!prev) break;
         current = prev;
     }
-    // Agora current é a raiz
     const root = current;
     allVersions.push(root);
     let next = state.medicalRecords.find(r => r.versaoAnterior === root._row);
@@ -850,9 +842,9 @@ function showVersionHistory(row) {
         next = state.medicalRecords.find(r => r.versaoAnterior === next._row);
     }
 
-    // Abre um modal com a lista de versões
-    const modal = getEl('modalOverlay');
-    const content = getEl('modalContent');
+    // Usa o modal de prontuário
+    const modal = getEl('prontuarioModal');
+    const content = getEl('prontuarioContent');
     if (!modal || !content) return;
 
     let html = `<h2>Histórico de versões</h2><div style="max-height:60vh; overflow-y:auto;">`;
@@ -869,7 +861,7 @@ function showVersionHistory(row) {
             </div>
         `;
     });
-    html += `</div><button class="btn btn-secondary" onclick="closeModal()" style="margin-top:12px;">Fechar</button>`;
+    html += `</div><button class="btn btn-secondary" onclick="closeProntuarioModal()" style="margin-top:12px;">Fechar</button>`;
     content.innerHTML = html;
     modal.style.display = 'flex';
 }
@@ -880,9 +872,8 @@ function viewRecordVersion(row) {
         showToast('Registro não encontrado.');
         return;
     }
-    // Exibe o registro em um modal com todos os campos
-    const modal = getEl('modalOverlay');
-    const content = getEl('modalContent');
+    const modal = getEl('prontuarioModal');
+    const content = getEl('prontuarioContent');
     if (!modal || !content) return;
 
     const html = `
@@ -905,7 +896,7 @@ function viewRecordVersion(row) {
             ${record.motivoRevisao ? `<p><strong>Motivo da revisão:</strong> ${escapeHtml(record.motivoRevisao)}</p>` : ''}
             <p style="font-size:0.85em; color:var(--text-secondary);">Criado em ${record.dataCriacao || ''} por ${escapeHtml(record.criadoPor || '—')}</p>
         </div>
-        <button class="btn btn-secondary" onclick="closeModal()" style="margin-top:12px;">Fechar</button>
+        <button class="btn btn-secondary" onclick="closeProntuarioModal()" style="margin-top:12px;">Fechar</button>
     `;
     content.innerHTML = html;
     modal.style.display = 'flex';
