@@ -55,6 +55,25 @@ ${state.staff.map(s => `
                 <span>Google Calendar</span>
                 <span style="color: #f59e0b;">Verificando…</span>
             </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;" id="googleDriveIntegrationStatus">
+                <span>Google Drive</span>
+                <span style="
+                    display:flex;
+                    align-items:center;
+                    gap:8px;
+                    color:#10b981;
+                    font-weight:600;
+                ">
+                    <span style="
+                        width:8px;
+                        height:8px;
+                        border-radius:50%;
+                        background:#10b981;
+                        display:inline-block;
+                    "></span>
+                    Conectado
+                </span>
+            </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>WhatsApp</span> ${statusBadge('Desconectado')}
             </div>
