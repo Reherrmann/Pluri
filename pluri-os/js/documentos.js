@@ -51,7 +51,6 @@
         if (button.dataset.documentsBound === 'true') return;
 
         button.dataset.documentsBound = 'true';
-        button.disabled = false;
 
         button.addEventListener('click', function (event) {
             event.preventDefault();
@@ -114,16 +113,14 @@
         if (!container) return;
 
         try {
-            const response = await window.pluriAPI.getPatientDocuments(
+            const documents = await window.pluriAPI.getPatientDocuments(
                 patient._row,
                 patient.name
             );
 
-            const files = Array.isArray(response?.files)
-                ? response.files
-                : Array.isArray(response?.documents?.files)
-                    ? response.documents.files
-                    : [];
+            const files = Array.isArray(documents?.files)
+                ? documents.files
+                : [];
 
             if (!files.length) {
                 container.innerHTML = `
@@ -194,46 +191,23 @@
         }
     }
 
-    // O pacientes.js ainda possui a implementação antiga da seção.
-    // Em vez de alterar o restante do arquivo, interceptamos somente a
-    // abertura da seção Documentos e substituímos o conteúdo pelo módulo real.
-    const originalOpenPatientSection = window.openPatientSection;
-
-    if (typeof originalOpenPatientSection === 'function') {
-        window.openPatientSection = function (section) {
-            if (section !== 'documentos') {
-                return originalOpenPatientSection.apply(this, arguments);
-            }
-
-            if (!window.state || !window.state.selectedPatient) return;
-
-            window.state.patientSection = 'documentos';
-            if (typeof window.renderPatientProfile === 'function') {
-                window.renderPatientProfile();
-            }
-
-            const container = document.querySelector('.patient-profile-content');
-            if (!container) return;
-
-            container.innerHTML = renderDocumentos(window.state.selectedPatient);
-            bindUpload(window.state.selectedPatient);
-            loadPatientDocuments(window.state.selectedPatient);
-            if (typeof refreshIcons === 'function') refreshIcons();
-        };
-    } else {
-        console.error('PLURI OS: openPatientSection não está disponível.');
-    }
-
-    // Mantém a integração com o renderer para chamadas internas que já usem
-    // renderPatientSectionContent diretamente.
+    // O index.html carrega este módulo uma única vez, depois de pacientes.js.
+    // Fazemos uma única substituição do renderer, sem MutationObserver,
+    // setInterval, carregamento dinâmico ou reescritas concorrentes.
     const originalRenderPatientSectionContent = window.renderPatientSectionContent;
+
     if (typeof originalRenderPatientSectionContent === 'function') {
         window.renderPatientSectionContent = function (section) {
             if (section === 'documentos' && window.state?.selectedPatient) {
-                return renderDocumentos(window.state.selectedPatient);
+                const html = renderDocumentos(window.state.selectedPatient);
+                setTimeout(() => loadPatientDocuments(window.state.selectedPatient), 0);
+                return html;
             }
+
             return originalRenderPatientSectionContent.apply(this, arguments);
         };
+    } else {
+        console.error('PLURI OS: renderPatientSectionContent não está disponível.');
     }
 
     window.renderPatientDocuments = renderDocumentos;
