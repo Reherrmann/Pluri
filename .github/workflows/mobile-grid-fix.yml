@@ -1,0 +1,70 @@
+name: PLURI mobile grid fix
+
+on:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-mobile-grid:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Ajustar dados pessoais em duas colunas no mobile
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('pluri-os/css/style.css')
+          text = path.read_text(encoding='utf-8')
+
+          replacement = '''/* PLURI OS — dados pessoais em duas colunas no mobile */
+          @media (max-width: 768px) {
+              .patient-info-grid {
+                  display: grid !important;
+                  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                  gap: 1rem !important;
+                  width: 100% !important;
+              }
+
+              .patient-info-item {
+                  min-width: 0 !important;
+              }
+
+              .patient-info-item.full-width {
+                  grid-column: 1 / -1 !important;
+              }
+          }
+
+          @media (max-width: 420px) {
+              .patient-info-grid {
+                  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                  gap: .8rem !important;
+              }
+          }
+          '''
+
+          text = re.sub(
+              r'/\* PLURI OS — dados pessoais em duas colunas no mobile \*/.*$',
+              '',
+              text,
+              flags=re.S,
+          ).rstrip() + '\n\n'
+
+          path.write_text(text + replacement, encoding='utf-8')
+          PY
+
+      - name: Commitar alteração e remover workflow temporário
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pluri-os/css/style.css
+          git rm .github/workflows/mobile-grid-fix.yml
+          git commit -m "Corrige dados pessoais em duas colunas no mobile"
+          git push
