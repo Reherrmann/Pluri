@@ -427,6 +427,94 @@ class PluriAPI {
     }
 
     // -------------------------------------------------
+    // GOOGLE DRIVE — DOCUMENTOS DOS PACIENTES
+    // -------------------------------------------------
+
+    async getPatientDocuments(patientId, patientName) {
+        if (!this.token) {
+            throw new Error('Token de sessão ausente.');
+        }
+
+        const url =
+            `${this.config.appsScript.baseUrl}` +
+            `?action=drive_documents` +
+            `&token=${encodeURIComponent(this.token)}` +
+            `&patientId=${encodeURIComponent(patientId)}` +
+            `&patientName=${encodeURIComponent(patientName || '')}`;
+
+        const data = await this.get(url);
+
+        if (!data || !data.success) {
+            throw new Error(
+                data?.error ||
+                'Não foi possível carregar os documentos.'
+            );
+        }
+
+        return data.documents || {
+            folderId: '',
+            folderName: '',
+            files: []
+        };
+    }
+
+    async deletePatientDocument(fileId) {
+        if (!this.token) {
+            throw new Error('Token de sessão ausente.');
+        }
+
+        return this.post({
+            action: 'deletePatientDocument',
+            token: this.token,
+            fileId: fileId
+        });
+    }
+
+    async uploadPatientDocument(patientId, patientName, file) {
+        if (!this.token) {
+            throw new Error('Token de sessão ausente.');
+        }
+
+        if (!file) {
+            throw new Error('Arquivo não informado.');
+        }
+
+        const base64Data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                const result = String(reader.result || '');
+                const comma = result.indexOf(',');
+
+                resolve(
+                    comma >= 0
+                        ? result.substring(comma + 1)
+                        : result
+                );
+            };
+
+            reader.onerror = () =>
+                reject(
+                    new Error(
+                        'Não foi possível ler o arquivo.'
+                    )
+                );
+
+            reader.readAsDataURL(file);
+        });
+
+        return this.post({
+            action: 'uploadPatientDocument',
+            token: this.token,
+            patientId: patientId,
+            patientName: patientName,
+            fileName: file.name,
+            mimeType: file.type || 'application/octet-stream',
+            base64Data: base64Data
+        });
+    }
+
+    // -------------------------------------------------
     // CONVERSAS
     // -------------------------------------------------
     async getConversations() {
