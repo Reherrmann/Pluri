@@ -22,16 +22,51 @@ const PLURI_CONFIG = {
 };
 
 // Carrega o módulo de documentos sem alterar a ordem dos módulos existentes.
-// O módulo só precisa estar disponível quando o usuário abrir a ficha do paciente.
 (function loadPatientDocumentsModule() {
+    function connectRenderer() {
+        if (window.__pluriDocumentsRendererConnected) return true;
+        if (typeof window.renderPatientDocuments !== 'function') return false;
+        if (typeof window.renderPatientSectionContent !== 'function') return false;
+
+        const originalRenderer = window.renderPatientSectionContent;
+
+        window.renderPatientSectionContent = function (section) {
+            if (
+                section === 'documentos' &&
+                window.state &&
+                state.selectedPatient
+            ) {
+                return window.renderPatientDocuments(state.selectedPatient);
+            }
+
+            return originalRenderer.apply(this, arguments);
+        };
+
+        window.__pluriDocumentsRendererConnected = true;
+        return true;
+    }
+
     function load() {
-        if (window.renderPatientDocuments) return;
-        const script = document.createElement('script');
-        script.src = 'js/documentos.js';
-        script.async = true;
-        script.dataset.pluriDocuments = 'true';
-        script.onerror = () => console.error('PLURI OS: não foi possível carregar js/documentos.js');
-        document.head.appendChild(script);
+        if (!window.renderPatientDocuments) {
+            const script = document.createElement('script');
+            script.src = 'js/documentos.js';
+            script.async = true;
+            script.dataset.pluriDocuments = 'true';
+            script.onload = function () {
+                if (!connectRenderer()) {
+                    const retry = setInterval(function () {
+                        if (connectRenderer()) clearInterval(retry);
+                    }, 50);
+                    setTimeout(function () {
+                        clearInterval(retry);
+                    }, 10000);
+                }
+            };
+            script.onerror = () => console.error('PLURI OS: não foi possível carregar js/documentos.js');
+            document.head.appendChild(script);
+        } else {
+            connectRenderer();
+        }
     }
 
     if (document.readyState === 'loading') {
