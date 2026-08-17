@@ -307,3 +307,64 @@ async function saveClinicSettings() {
         showToast('Erro ao salvar.');
     }
 }
+
+// =====================================================
+// CONVÊNIOS — NAVEGAÇÃO
+// O módulo convenios.js já é carregado pelo index.html.
+// Aqui garantimos que a aba apareça e seja aberta mesmo
+// antes de integrarmos o case definitivo no app.js.
+// =====================================================
+
+(function initConveniosNavigation() {
+    function setup() {
+        const nav = document.querySelector('.sidebar-nav');
+        if (!nav || typeof buildConvenios !== 'function') return;
+
+        let link = nav.querySelector('[data-page="convenios"]');
+
+        if (!link) {
+            link = document.createElement('a');
+            link.setAttribute('data-page', 'convenios');
+            link.innerHTML = '<i data-lucide="shield-check"></i><span>Convênios</span>';
+            nav.insertBefore(link, nav.querySelector('[data-page="configuracoes"]') || null);
+            refreshIcons();
+        }
+
+        if (link.dataset.conveniosBound === '1') return;
+        link.dataset.conveniosBound = '1';
+
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            state.currentPage = 'convenios';
+
+            nav.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+
+            const container = getEl('pageContainer');
+            if (!container) return;
+
+            try {
+                container.innerHTML = buildConvenios();
+                if (typeof attachPageEvents === 'function') attachPageEvents();
+                if (typeof refreshIcons === 'function') refreshIcons();
+                const title = getEl('pageTitle');
+                const subtitle = getEl('pageSubtitle');
+                if (title) title.textContent = 'Convênios';
+                if (subtitle) subtitle.textContent = 'Gerencie operadoras, planos, procedimentos e regras de atendimento.';
+            } catch (error) {
+                console.error('Erro ao abrir Convênios:', error);
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:#B91C1C;">Erro ao carregar a aba Convênios.</div>';
+            }
+
+            if (typeof closeSidebar === 'function') closeSidebar();
+        }, true);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+    } else {
+        setup();
+    }
+})();
