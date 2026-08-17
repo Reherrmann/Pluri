@@ -198,11 +198,11 @@
 
     if (typeof originalRenderPatientSectionContent === 'function') {
         window.renderPatientSectionContent = function (section) {
-            if (section === 'documentos' && window.state?.selectedPatient) {
-                const html = renderDocumentos(window.state.selectedPatient);
-                setTimeout(() => loadPatientDocuments(window.state.selectedPatient), 0);
-                return html;
-            }
+            if (section === 'documentos' && state?.selectedPatient) {
+    const html = renderDocumentos(state.selectedPatient);
+    setTimeout(() => loadPatientDocuments(state.selectedPatient), 0);
+    return html;
+}
 
             return originalRenderPatientSectionContent.apply(this, arguments);
         };
