@@ -21,8 +21,8 @@
         return 'file';
     }
 
-    function renderDocumentos(p) {
-        setTimeout(() => loadPatientDocuments(p), 0);
+    function renderDocumentos(patient) {
+        if (!patient) return '';
 
         return `
             <div class="patient-section">
@@ -44,20 +44,13 @@
         `;
     }
 
-    function bindButton(button, patient) {
-        if (!button || !patient || button.dataset.documentsBound === 'true') return;
+    function bindUpload(patient) {
+        const button = document.getElementById('patientAddDocumentBtn');
+        const input = document.getElementById('patientDocumentInput');
+        if (!button || !input || !patient) return;
+        if (button.dataset.documentsBound === 'true') return;
 
         button.dataset.documentsBound = 'true';
-        button.removeAttribute('disabled');
-
-        let input = document.getElementById('patientDocumentInput');
-        if (!input) {
-            input = document.createElement('input');
-            input.type = 'file';
-            input.id = 'patientDocumentInput';
-            input.hidden = true;
-            document.body.appendChild(input);
-        }
 
         button.addEventListener('click', function (event) {
             event.preventDefault();
@@ -73,19 +66,7 @@
         });
     }
 
-    function replaceLegacyDocumentsButton() {
-        if (!window.state || state.patientSection !== 'documentos' || !state.selectedPatient) return;
-
-        const legacyButton = Array.from(document.querySelectorAll('.patient-empty-state button'))
-            .find(button => String(button.textContent || '').trim() === 'Adicionar documento');
-
-        if (!legacyButton) return;
-
-        legacyButton.removeAttribute('disabled');
-        bindButton(legacyButton, state.selectedPatient);
-    }
-
-    async function uploadFile(patient, file, addButton) {
+    async function uploadFile(patient, file, button) {
         if (file.size > MAX_FILE_SIZE) {
             showToast('O arquivo deve ter no máximo 10 MB.');
             return;
@@ -96,23 +77,29 @@
             return;
         }
 
-        addButton.disabled = true;
-        addButton.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;"></i> Enviando...';
+        button.disabled = true;
+        button.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;"></i> Enviando...';
         if (typeof refreshIcons === 'function') refreshIcons();
 
         try {
-            const result = await window.pluriAPI.uploadPatientDocument(patient._row, patient.name, file);
+            const result = await window.pluriAPI.uploadPatientDocument(
+                patient._row,
+                patient.name,
+                file
+            );
+
             if (!result || !result.success) {
-                throw new Error(result && result.error ? result.error : 'Não foi possível enviar o documento.');
+                throw new Error(result?.error || 'Não foi possível enviar o documento.');
             }
+
             showToast('Documento enviado com sucesso!');
             await loadPatientDocuments(patient);
         } catch (error) {
             console.error('Erro ao enviar documento:', error);
             showToast(error.message || 'Não foi possível enviar o documento.');
         } finally {
-            addButton.disabled = false;
-            addButton.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
+            button.disabled = false;
+            button.innerHTML = '<i data-lucide="upload" style="width:16px;height:16px;"></i> Adicionar documento';
             if (typeof refreshIcons === 'function') refreshIcons();
         }
     }
@@ -120,25 +107,20 @@
     async function loadPatientDocuments(patient) {
         if (!patient) return;
 
+        bindUpload(patient);
+
         const container = document.getElementById('patientDocumentsList');
-        const addButton = document.getElementById('patientAddDocumentBtn');
-
-        if (!container) {
-            replaceLegacyDocumentsButton();
-            return;
-        }
-
-        const input = document.getElementById('patientDocumentInput');
-        if (addButton && input) bindButton(addButton, patient);
+        if (!container) return;
 
         try {
-            const result = await window.pluriAPI.getPatientDocuments(patient._row, patient.name);
-            const documents = result && result.documents ? result.documents : result;
-            const files = documents && Array.isArray(documents.files) ? documents.files : [];
+            const documents = await window.pluriAPI.getPatientDocuments(
+                patient._row,
+                patient.name
+            );
 
-            if (!documents || !Array.isArray(documents.files)) {
-                throw new Error('Resposta inválida ao carregar documentos.');
-            }
+            const files = Array.isArray(documents?.files)
+                ? documents.files
+                : [];
 
             if (!files.length) {
                 container.innerHTML = `
@@ -183,7 +165,9 @@
                     button.disabled = true;
                     try {
                         const response = await window.pluriAPI.deletePatientDocument(fileId);
-                        if (!response || !response.success) throw new Error(response && response.error ? response.error : 'Não foi possível excluir o documento.');
+                        if (!response || !response.success) {
+                            throw new Error(response?.error || 'Não foi possível excluir o documento.');
+                        }
                         showToast('Documento excluído.');
                         await loadPatientDocuments(patient);
                     } catch (error) {
@@ -207,46 +191,25 @@
         }
     }
 
-    function forceDocumentsSection() {
-        if (!window.state || !state.selectedPatient || state.patientSection !== 'documentos') return;
+    // O index.html carrega este módulo uma única vez, depois de pacientes.js.
+    // Fazemos uma única substituição do renderer, sem MutationObserver,
+    // setInterval, carregamento dinâmico ou reescritas concorrentes.
+    const originalRenderPatientSectionContent = window.renderPatientSectionContent;
 
-        const content = document.querySelector('.patient-profile-content');
-        if (!content) return;
+    if (typeof originalRenderPatientSectionContent === 'function') {
+        window.renderPatientSectionContent = function (section) {
+            if (section === 'documentos' && window.state?.selectedPatient) {
+                const html = renderDocumentos(window.state.selectedPatient);
+                setTimeout(() => loadPatientDocuments(window.state.selectedPatient), 0);
+                return html;
+            }
 
-        // Se a aba ainda estiver usando o estado vazio antigo, troca pelo módulo real.
-        if (!document.getElementById('patientDocumentsList')) {
-            content.innerHTML = renderDocumentos(state.selectedPatient);
-            if (typeof refreshIcons === 'function') refreshIcons();
-        }
-
-        const button = document.getElementById('patientAddDocumentBtn');
-        if (button) bindButton(button, state.selectedPatient);
-        else replaceLegacyDocumentsButton();
+            return originalRenderPatientSectionContent.apply(this, arguments);
+        };
+    } else {
+        console.error('PLURI OS: renderPatientSectionContent não está disponível.');
     }
 
     window.renderPatientDocuments = renderDocumentos;
     window.loadPatientDocuments = loadPatientDocuments;
-
-    const pageContainer = document.getElementById('pageContainer');
-    if (pageContainer && window.MutationObserver) {
-        const observer = new MutationObserver(() => forceDocumentsSection());
-        observer.observe(pageContainer, { childList: true, subtree: true });
-    }
-
-    setTimeout(forceDocumentsSection, 0);
-    setTimeout(forceDocumentsSection, 300);
-    setTimeout(forceDocumentsSection, 1000);
-
-    // Integração direta com pacientes.js:
-    // a seção "documentos" deve renderizar o módulo funcional,
-    // e não o estado vazio com botão disabled.
-    const originalRenderPatientSectionContent = window.renderPatientSectionContent;
-    if (typeof originalRenderPatientSectionContent === 'function') {
-        window.renderPatientSectionContent = function (section) {
-            if (section === 'documentos' && window.state && state.selectedPatient) {
-                return renderDocumentos(state.selectedPatient);
-            }
-            return originalRenderPatientSectionContent(section);
-        };
-    }
 })();
