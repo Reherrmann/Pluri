@@ -1,10 +1,10 @@
 // Autenticação da Mentalita via Supabase.
-// A plataforma usa o login central da PLURI; este arquivo apenas valida a sessão.
+// O login é centralizado em /pluri-login/ e este arquivo apenas valida a sessão.
 const SUPABASE_URL = 'https://nsvdyewfnkulrwvzviqi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nGSbNQ4Pbpkg2trgWaQuZA_MuT-TpHY';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-(async () => {
+window.PLURI_AUTH_READY = (async () => {
   try {
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     if (error || !session) throw new Error('Sessão não encontrada.');
@@ -14,14 +14,21 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       .select('clinic_name, platform_slug')
       .eq('id', session.user.id)
       .single();
-
     if (profileError || !profile || profile.platform_slug !== 'mentalita') {
       throw new Error('Usuário sem acesso à plataforma Mentalita.');
     }
 
+    const { data: clinic, error: clinicError } = await supabaseClient
+      .from('mentalita_clinics')
+      .select('id,name,slug')
+      .eq('slug', profile.platform_slug)
+      .single();
+    if (clinicError || !clinic) throw new Error('Clínica Mentalita não encontrada.');
+
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
     window.PLURI_PROFILE = profile;
+    window.PLURI_CLINIC = clinic;
     window.PLURI_SESSION_VALIDATED = true;
 
     localStorage.setItem('pluri_session', JSON.stringify({
@@ -37,15 +44,18 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       },
       loggedAt: new Date().toISOString()
     }));
+    return { session, profile, clinic };
   } catch (err) {
     console.error('Falha na autenticação Supabase:', err);
     localStorage.removeItem('pluri_session');
     window.location.replace('/pluri-login/');
+    throw err;
   }
 })();
 
 window.PLURI_LOGOUT = async function () {
-  try { await supabaseClient.auth.signOut(); } finally {
+  try { await supabaseClient.auth.signOut(); }
+  finally {
     localStorage.removeItem('pluri_session');
     window.location.replace('/pluri-login/');
   }
