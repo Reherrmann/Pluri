@@ -1,0 +1,48 @@
+/* =====================================================
+   PLURI OS — Agenda mensal compacta
+   Exibe somente as bolinhas dos agendamentos na visão Mês.
+   ===================================================== */
+
+.agenda-month-events {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-height: 10px;
+    padding-top: 4px;
+}
+
+.agenda-month-event {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 9px;
+    height: 9px;
+    min-width: 9px;
+    padding: 0 !important;
+    margin: 0;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    line-height: 0;
+    cursor: pointer;
+}
+
+.agenda-month-event-time,
+.agenda-month-event-name {
+    display: none !important;
+}
+
+.agenda-month-dot {
+    display: block !important;
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    border-radius: 50%;
+    margin: 0;
+}
+
+.agenda-month-more {
+    margin-left: 2px;
+    line-height: 12px;
+}
