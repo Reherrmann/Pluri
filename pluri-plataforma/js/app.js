@@ -3,7 +3,7 @@
     // STATE (dados mockados em memória)
     // ======================================================
     const state = {
-        clinic: {
+        clinic: { 
             id: "mock",
             name: "Clínica Bem-Estar",
             phone: "(11) 3000-1234",
