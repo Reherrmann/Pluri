@@ -41,7 +41,7 @@
                 <div class="patient-empty-state">
                     <h3>Nenhum convênio vinculado</h3>
                     <p>Cadastre o convênio, plano, carteirinha e validade deste paciente.</p>
-                    <button class="btn btn-outline" type="button" onclick="openPatientConvenioForm(${Number(patient._row)})">
+                    <button class="btn btn-outline" type="button" onclick="openPatientConvenioForm()">
                         Adicionar convênio
                     </button>
                 </div>
@@ -57,7 +57,7 @@
                         <h2 style="margin:0;">Convênios</h2>
                         <p style="margin:5px 0 0;color:var(--text-secondary);">Convênio atualmente vinculado ao paciente.</p>
                     </div>
-                    <button class="btn btn-outline" type="button" onclick="openPatientConvenioForm(${Number(patient._row)})">Editar convênio</button>
+                    <button class="btn btn-outline" type="button" onclick="openPatientConvenioForm()">Editar convênio</button>
                 </div>
                 <div class="patient-info-card">
                     <h3>Convênio do paciente</h3>
@@ -74,9 +74,19 @@
 
     async function openPatientConvenioForm(row) {
         const patients = window.state?.patients || [];
-        const patient = patients.find(p => Number(p._row) === Number(row));
+        const selected = window.state?.selectedPatient || null;
+
+        // O botão está dentro da ficha do paciente. Portanto, o paciente
+        // atualmente selecionado é a fonte de verdade; o row é apenas
+        // compatibilidade com chamadas antigas.
+        const patient = selected || patients.find(p => String(p._row) === String(row));
+
         if (!patient) {
-            console.error('PLURI OS: paciente não encontrado para convênio.', row);
+            console.error('PLURI OS: paciente não encontrado para convênio.', {
+                row,
+                selectedPatient: selected,
+                patientsLoaded: patients.length
+            });
             return;
         }
 
@@ -164,7 +174,7 @@
 
     async function savePatientConvenio(event, row) {
         event.preventDefault();
-        const patient = (window.state?.patients || []).find(p => Number(p._row) === Number(row));
+        const patient = (window.state?.patients || []).find(p => String(p._row) === String(row)) || window.state?.selectedPatient;
         if (!patient) { showToast('Paciente não encontrado.', 'error'); return; }
         const convenio = document.getElementById('patientConvenioName')?.value || '';
         const plano = document.getElementById('patientConvenioPlan')?.value || '';
@@ -175,8 +185,8 @@
         if (button) { button.disabled = true; button.textContent = 'Salvando...'; }
         try {
             const updatedPatient = { ...patient, hasInsurance: 'Sim', insuranceName: convenio, insurancePlan: plano, insuranceCard: carteirinha, insuranceExpiration: validade };
-            await window.pluriAPI.updatePatient(row, updatedPatient);
-            const index = (window.state.patients || []).findIndex(p => Number(p._row) === Number(row));
+            await window.pluriAPI.updatePatient(patient._row, updatedPatient);
+            const index = (window.state.patients || []).findIndex(p => String(p._row) === String(patient._row));
             if (index >= 0) window.state.patients[index] = updatedPatient;
             window.state.selectedPatient = updatedPatient;
             showToast('Convênio salvo com sucesso.', 'success');
@@ -195,8 +205,6 @@
         }
     }
 
-    // Cria um vínculo de teste apenas quando explicitamente chamado.
-    // Usa o primeiro paciente existente e o primeiro convênio ativo cadastrado.
     async function seedTestConvenioForExistingPatient() {
         const patients = window.state?.patients || [];
         if (!patients.length) throw new Error('Nenhum paciente existente para vincular o convênio.');
@@ -218,7 +226,7 @@
         };
 
         await window.pluriAPI.updatePatient(patient._row, updatedPatient);
-        const index = patients.findIndex(p => Number(p._row) === Number(patient._row));
+        const index = patients.findIndex(p => String(p._row) === String(patient._row));
         if (index >= 0) patients[index] = updatedPatient;
         window.state.selectedPatient = updatedPatient;
         return updatedPatient;
