@@ -100,3 +100,73 @@ function installConveniosModule() {
     script.onerror = () => console.error('❌ Não foi possível carregar convenios-paciente.js');
     document.head.appendChild(script);
 })();
+
+// =====================================================
+// PLURI OS — ajuste de diagramação da agenda mensal
+// Mantém a estrutura e a lógica existentes e apenas
+// reduz o espaço vertical excessivo das semanas sem eventos.
+// =====================================================
+(function installAgendaMonthLayout() {
+    const styleId = 'pluri-agenda-month-layout';
+
+    const install = () => {
+        if (document.getElementById(styleId)) return;
+
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+            .agenda-month-grid {
+                align-items: stretch;
+            }
+
+            .agenda-month-cell {
+                min-height: 56px !important;
+                height: auto !important;
+                padding: 7px !important;
+                overflow: hidden;
+            }
+
+            .agenda-month-cell:has(.agenda-month-event) {
+                min-height: 82px !important;
+            }
+
+            .agenda-month-cell:has(.agenda-month-more) {
+                min-height: 96px !important;
+            }
+
+            .agenda-month-cell.empty {
+                min-height: 56px !important;
+            }
+
+            .agenda-month-daynum {
+                margin-bottom: 5px !important;
+                line-height: 1.1;
+            }
+
+            .agenda-month-events {
+                gap: 3px !important;
+            }
+
+            .agenda-month-event {
+                min-height: 20px;
+                line-height: 20px;
+                padding: 0 4px !important;
+                overflow: hidden;
+            }
+
+            .agenda-month-event-name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        `;
+
+        document.head.appendChild(style);
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', install, { once: true });
+    } else {
+        install();
+    }
+})();
