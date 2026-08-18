@@ -27,7 +27,7 @@ const PLURI_CONFIG = {
 // =====================================================
 (function loadConveniosModule() {
     const script = document.createElement('script');
-    script.src = 'js/convenios.js?v=1';
+politica-de-privacidade    script.src = 'js/convenios.js?v=1';
     script.onload = installConveniosModule;
     script.onerror = () => console.error('❌ Não foi possível carregar convenios.js');
     document.head.appendChild(script);
