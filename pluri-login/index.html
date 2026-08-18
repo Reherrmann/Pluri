@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entrar | PLURI</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f6f8fb;font-family:Inter,system-ui,-apple-system,sans-serif;color:#101828;padding:24px}.card{width:min(400px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,.04)}.brand{text-align:center;color:#002c47;font-weight:700;font-size:22px;margin-bottom:28px}h1{font-size:23px;color:#002c47;margin:0 0 7px}p{color:#667085;font-size:13.5px;line-height:1.5;margin:0 0 24px}.group{margin-bottom:16px}.group label{display:block;font-size:12.5px;color:#667085;margin-bottom:6px}.group input{width:100%;padding:11px 12px;border:1px solid #e5e7eb;border-radius:7px;font:inherit;outline:0}.group input:focus{border-color:#002c47;box-shadow:0 0 0 3px rgba(0,44,71,.08)}button{width:100%;padding:11px 16px;border:1px solid #002c47;border-radius:22px;background:#002c47;color:#fff;font-weight:600;cursor:pointer}button:disabled{opacity:.65;cursor:not-allowed}.msg{display:none;padding:10px 12px;border-radius:7px;font-size:12.5px;line-height:1.4;margin-bottom:16px}.msg.show{display:block}.error{background:#fef3f2;color:#b42318}.foot{text-align:center;margin-top:18px;color:#667085;font-size:11.5px}</style>
+</head>
+<body><main class="card"><div class="brand">PLURI</div><h1>Bem-vindo de volta.</h1><p>Entre para acessar sua plataforma.</p><form id="form"><div id="error" class="msg error"></div><div class="group"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><div class="group"><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required></div><button id="button">Entrar</button></form><div class="foot">PLURI · Acesso central</div></main>
+<script>
+const SUPABASE_URL='https://nsvdyewfnkulrwvzviqi.supabase.co';
+const SUPABASE_KEY='sb_publishable_nGSbNQ4Pbpkg2trgWaQuZA_MuT-TpHY';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const form=document.getElementById('form'),button=document.getElementById('button'),error=document.getElementById('error');
+form.addEventListener('submit',async e=>{e.preventDefault();error.classList.remove('show');button.disabled=true;button.textContent='Entrando...';try{const {data,error:authError}=await supabaseClient.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});if(authError)throw authError;const email=data.user?.email||'';const route=localStorage.getItem('pluri_test_platform')||'mintalita';if(route==='mintalita'){location.href='/mintalita/';}else{location.href='/';}}catch(err){error.textContent=err?.message||'E-mail ou senha inválidos.';error.classList.add('show')}finally{button.disabled=false;button.textContent='Entrar'}});
+</script></body></html>
