@@ -88,3 +88,15 @@ function installConveniosModule() {
         setTimeout(() => clearInterval(timer), 10000);
     }
 }
+
+// =====================================================
+// Integração Convênios → Ficha do Paciente
+// O módulo aguarda o carregamento de slidepanel.js e
+// substitui os campos de convênio/plano por seletores.
+// =====================================================
+(function loadConveniosPacienteModule() {
+    const script = document.createElement('script');
+    script.src = 'js/convenios-paciente.js?v=1';
+    script.onerror = () => console.error('❌ Não foi possível carregar convenios-paciente.js');
+    document.head.appendChild(script);
+})();
