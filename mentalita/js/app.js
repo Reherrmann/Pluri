@@ -13,9 +13,8 @@ function renderPage() {
             case 'agenda': html = buildAgenda(); break;
             case 'atendimentos': html = buildAtendimentos(); break;
             case 'pacientes': html = buildPacientes(); break;
-           // case 'automacoes': html = buildAutomacoes(); break;
             case 'indicadores': html = buildIndicadores(); break;
-            case 'configuracoes': html = buildConfiguracoes(); break;  // ✅ síncrono, função correta
+            case 'configuracoes': html = buildConfiguracoes(); break;
             default: html = buildDashboard();
         }
     } catch (e) {
@@ -34,33 +33,22 @@ function renderPage() {
     }
 
     if (state.currentPage === 'configuracoes') {
-        updateGoogleCalendarStatus();   // função definida em configuracoes.js
+        updateGoogleCalendarStatus();
     }
 }
 
 function updateTitleAndSubtitle(title, subtitle) {
     const titles = {
         dashboard: [
-    (() => {
-
-        const hour = new Date().getHours();
-
-        let greeting = 'Boa noite';
-
-        if (hour >= 5 && hour < 12) {
-            greeting = 'Bom dia';
-        } else if (hour >= 12 && hour < 18) {
-            greeting = 'Boa tarde';
-        }
-
-        return state.clinic.name
-            ? `${greeting}, ${state.clinic.name}.`
-            : `${greeting}!`;
-
-    })(),
-
-    'Veja o que está acontecendo na clínica hoje.'
-],
+            (() => {
+                const hour = new Date().getHours();
+                let greeting = 'Boa noite';
+                if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+                else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+                return state.clinic.name ? `${greeting}, ${state.clinic.name}.` : `${greeting}!`;
+            })(),
+            'Veja o que está acontecendo na clínica hoje.'
+        ],
         agenda: ['Agenda', 'Gerencie os horários da clínica.'],
         atendimentos: ['Atendimentos', 'Central de conversas com pacientes.'],
         pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
@@ -89,7 +77,7 @@ function attachPageEvents() {
 
     document.querySelectorAll('#agendaTabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            state.agendaTab = tab.dataset.tab; // 'today' | 'month'
+            state.agendaTab = tab.dataset.tab;
             renderPage();
         });
     });
@@ -167,9 +155,14 @@ function attachPageEvents() {
 }
 
 function getSessionToken() {
-    if (window.PLURI_SESSION_VALIDATED && window.PLURI_SESSION && window.PLURI_SESSION.token) {
+    if (window.PLURI_AUTH_SESSION?.access_token) {
+        return window.PLURI_AUTH_SESSION.access_token;
+    }
+
+    if (window.PLURI_SESSION_VALIDATED && window.PLURI_SESSION?.token) {
         return window.PLURI_SESSION.token;
     }
+
     const sessionData = localStorage.getItem('pluri_session');
     if (sessionData) {
         try {
@@ -179,29 +172,20 @@ function getSessionToken() {
             localStorage.removeItem('pluri_session');
         }
     }
-    window.location.href = 'login.html';
+
+    window.location.replace('/pluri-login/');
     return null;
 }
 
 async function init() {
-
-// Saudação automática conforme o horário
     const hour = new Date().getHours();
-
     let greeting = 'Boa noite';
-
-    if (hour >= 5 && hour < 12) {
-        greeting = 'Bom dia';
-    } else if (hour >= 12 && hour < 18) {
-        greeting = 'Boa tarde';
-    }
+    if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+    else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
 
     const pageTitle = getEl('pageTitle');
+    if (pageTitle) pageTitle.textContent = `${greeting}!`;
 
-    if (pageTitle) {
-        pageTitle.textContent = `${greeting}!`;
-    }
-    
     if (!window.pluriAPI) {
         window.pluriAPI = new PluriAPI(PLURI_CONFIG);
     }
@@ -209,7 +193,6 @@ async function init() {
     const token = getSessionToken();
     if (!token) return;
     window.pluriAPI.setSessionToken(token);
-    console.log('🔑 Token configurado:', token.substring(0, 10) + '...');
 
     window.addEventListener('calendar:not_connected', () => {
         window._calendarNotConnected = true;
@@ -219,26 +202,21 @@ async function init() {
         console.log('🔄 Carregando pacientes...');
         const patients = await window.pluriAPI.getPatients();
         state.patients = Array.isArray(patients) ? patients : [];
-        console.log('✅ Pacientes:', state.patients.length);
 
         console.log('🔄 Carregando agenda...');
         const appointments = await window.pluriAPI.getCalendarAppointments();
         state.appointments = Array.isArray(appointments) ? appointments : [];
-        console.log('✅ Agenda:', state.appointments.length);
 
         console.log('🔄 Carregando equipe...');
-const staff = await window.pluriAPI.getStaff();
-state.staff = Array.isArray(staff) ? staff : [];
-console.log('✅ Equipe:', state.staff.length);
+        const staff = await window.pluriAPI.getStaff();
+        state.staff = Array.isArray(staff) ? staff : [];
 
-console.log('🔄 Carregando clínica...');
-state.clinic = await window.pluriAPI.getClinic();
-console.log('✅ Clínica carregada:', state.clinic);
+        console.log('🔄 Carregando clínica...');
+        state.clinic = await window.pluriAPI.getClinic();
 
-console.log('🔄 Carregando conversas...');
-const conversations = await window.pluriAPI.getConversations();
-state.conversations = Array.isArray(conversations) ? conversations : [];
-console.log('✅ Conversas:', state.conversations.length);
+        console.log('🔄 Carregando conversas...');
+        const conversations = await window.pluriAPI.getConversations();
+        state.conversations = Array.isArray(conversations) ? conversations : [];
     } catch (e) {
         console.error('❌ Erro ao carregar dados:', e.message);
         state.patients = [];
@@ -282,16 +260,12 @@ console.log('✅ Conversas:', state.conversations.length);
     };
 }
 
-// =====================================================
-// AÇÕES DE AGENDAMENTO (editar / apagar / confirmar)
-// =====================================================
-
 async function deleteAppointmentById(id) {
     const appt = state.appointments.find(a => String(a.id) === String(id));
     if (!appt) return;
     if (!confirm(`Excluir o agendamento de ${appt.patient}?`)) return;
 
-    const result = await window.pluriAPI.deleteAppointment(id, window.PLURI_USER?.clinicaId);
+    const result = await window.pluriAPI.deleteAppointment(id, window.PLURI_PROFILE?.clinic_id || window.PLURI_USER?.clinicaId);
     if (!result || !result.success) {
         showToast(result?.error || 'Erro ao excluir agendamento.');
         return;
@@ -316,7 +290,7 @@ async function confirmAppointmentById(id, phone, patient) {
         status: 'Confirmado',
         date: appt.date,
         time: appt.time,
-        clinicaID: window.PLURI_USER?.clinicaId
+        clinicaID: window.PLURI_PROFILE?.clinic_id || window.PLURI_USER?.clinicaId
     });
 
     if (!result || !result.success) {
