@@ -1,13 +1,16 @@
 // js/convenios-paciente.js
 // Integração entre a aba Convênios e a ficha do paciente.
 
-(function () {
-    const originalOpenPatientForm = window.openPatientForm;
-
-    if (typeof originalOpenPatientForm !== 'function') {
-        console.error('openPatientForm não encontrada.');
+(function initConveniosPacienteIntegration() {
+    if (typeof window.openPatientForm !== 'function') {
+        setTimeout(initConveniosPacienteIntegration, 100);
         return;
     }
+
+    if (window.__pluriConveniosPacienteInstalled) return;
+    window.__pluriConveniosPacienteInstalled = true;
+
+    const originalOpenPatientForm = window.openPatientForm;
 
     window.openPatientForm = function (patient) {
         originalOpenPatientForm(patient);
