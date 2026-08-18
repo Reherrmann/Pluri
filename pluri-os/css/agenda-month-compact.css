@@ -3,12 +3,17 @@
    Exibe somente as bolinhas dos agendamentos na visão Mês.
    ===================================================== */
 
+.agenda-month-cell:has(.agenda-month-event),
+.agenda-month-cell:has(.agenda-month-more) {
+    min-height: 56px !important;
+}
+
 .agenda-month-events {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 5px;
-    min-height: 10px;
+    min-height: 9px;
     padding-top: 4px;
 }
 
@@ -19,6 +24,7 @@
     width: 9px;
     height: 9px;
     min-width: 9px;
+    min-height: 9px !important;
     padding: 0 !important;
     margin: 0;
     background: transparent !important;
@@ -38,6 +44,7 @@
     width: 8px;
     height: 8px;
     min-width: 8px;
+    min-height: 8px;
     border-radius: 50%;
     margin: 0;
 }
