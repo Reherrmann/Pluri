@@ -3,40 +3,46 @@ class PluriAPI {
   constructor(config) { this.config=config; this.token=null; }
   setSessionToken(token){ this.token=token; }
   get client(){ return window.PLURI_SUPABASE; }
-  get clinicId(){ return window.PLURI_CLINIC?.id; }
-  async run(label, fn){ try{ showLoading(label||'Carregando...'); const result=await fn(); if(result?.error) throw result.error; return result?.data ?? result; } catch(e){ console.error(`[Mentalita] ${e.message||e}`); return null; } finally{ hideLoading(); } }
+  get clinicId(){ return window.PLURI_CLINIC?.id || ''; }
+  async run(label, fn){
+    let timer;
+    try{
+      showLoading(label||'Carregando...');
+      const request=Promise.resolve().then(fn);
+      const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Tempo limite ao consultar o Supabase.')),8000);});
+      const result=await Promise.race([request,timeout]);
+      if(result?.error) throw result.error;
+      return result?.data ?? result;
+    }catch(e){ console.error(`[Mentalita] ${e.message||e}`); return null; }
+    finally{ clearTimeout(timer); hideLoading(); }
+  }
   formatDate(v){ if(!v)return ''; if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v))return v; const d=new Date(v); return isNaN(d)?'':d.toISOString().slice(0,10); }
   formatTime(v){ if(!v)return ''; if(typeof v==='string'&&/^\d{2}:\d{2}/.test(v))return v.slice(0,5); const d=new Date(v); return isNaN(d)?'':d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
   mapPatient(p){ return {_row:p.id,id:p.id,name:p.name||'',phone:p.phone||'',email:p.email||'',created:this.formatDate(p.created_at),lastVisit:this.formatDate(p.last_visit),nextAppt:this.formatDate(p.next_appointment),status:p.status||'Ativo',notes:p.notes||''}; }
   mapStaff(s){ return {_row:s.id,id:s.id,name:s.name||'',role:s.role||'',email:s.email||'',phone:s.phone||'',status:s.status||'Ativo'}; }
   mapAppointment(a){ return {id:a.id,time:this.formatTime(a.appointment_time),patient:a.patient_name||'',professional:a.professional||'',service:a.service||'',phone:a.phone||'',notes:a.notes||'',status:a.status||'Aguardando',date:this.formatDate(a.appointment_date)}; }
   mapConversation(c){ return {_row:c.id,id:c.id,patient:c.patient_name||'',phone:c.phone||'',email:c.email||'',procedure:c.procedure||'',summary:c.summary||'',lastMsg:c.last_message||'',conversationDate:c.conversation_date||'',status:c.status||'Aguardando'}; }
-
   async getPatients(){ const data=await this.run('Carregando pacientes...',()=>this.client.from('mentalita_patients').select('*').eq('clinic_id',this.clinicId).order('name')); return Array.isArray(data)?data.map(p=>this.mapPatient(p)):[]; }
-  async createPatient(p){ return this.run('Salvando paciente...',()=>this.client.from('mentalita_patients').insert({clinic_id:this.clinicId,name:p.name,phone:p.phone||'',email:p.email||'',created_at:p.created||null,last_visit:p.lastVisit||null,next_appointment:p.nextAppt||null,status:p.status||'Ativo',notes:p.notes||''}).select().single()).then(x=>x?{success:true,data:x}:{success:false,error:'Não foi possível salvar o paciente.'}); }
-  async updatePatient(id,p){ return this.run('Salvando paciente...',()=>this.client.from('mentalita_patients').update({name:p.name,phone:p.phone||'',email:p.email||'',last_visit:p.lastVisit||null,next_appointment:p.nextAppt||null,status:p.status||'Ativo',notes:p.notes||''}).eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar o paciente.'}); }
-  async deletePatient(id){ return this.run('Excluindo paciente...',()=>this.client.from('mentalita_patients').delete().eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível excluir o paciente.'}); }
-
   async getStaff(){ const data=await this.run('Carregando equipe...',()=>this.client.from('mentalita_staff').select('*').eq('clinic_id',this.clinicId).order('name')); return Array.isArray(data)?data.map(s=>this.mapStaff(s)):[]; }
-  async createStaff(s){ return this.run('Salvando equipe...',()=>this.client.from('mentalita_staff').insert({clinic_id:this.clinicId,name:s.name,role:s.role||'',email:s.email||'',phone:s.phone||'',status:s.status||'Ativo'}).select().single()).then(x=>x?{success:true,data:x}:{success:false,error:'Não foi possível salvar o profissional.'}); }
-  async updateStaff(id,s){ return this.run('Salvando equipe...',()=>this.client.from('mentalita_staff').update({name:s.name,role:s.role||'',email:s.email||'',phone:s.phone||'',status:s.status||'Ativo'}).eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar o profissional.'}); }
-  async deleteStaff(id){ return this.run('Excluindo profissional...',()=>this.client.from('mentalita_staff').delete().eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível excluir o profissional.'}); }
-
-  async getClinic(){ const data=await this.run('Carregando clínica...',()=>this.client.from('mentalita_clinics').select('name,phone,email,address,hours').eq('id',this.clinicId).single()); return data||{name:'Mentalita',phone:'',email:'',address:'',hours:''}; }
-  async updateClinic(c){ return this.run('Salvando clínica...',()=>this.client.from('mentalita_clinics').update({name:c.name,phone:c.phone||'',email:c.email||'',address:c.address||'',hours:c.hours||''}).eq('id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível salvar a clínica.'}); }
-  async saveClinic(c){ return this.updateClinic(c); }
-
-  async getCalendarAppointments(date=null){ const q=this.client.from('mentalita_appointments').select('*').eq('clinic_id',this.clinicId).order('appointment_date').order('appointment_time'); const data=await this.run('Carregando agenda...',()=>date?q.eq('appointment_date',date):q); return Array.isArray(data)?data.map(a=>this.mapAppointment(a)):[]; }
-  async createAppointment(a){ return this.run('Salvando agendamento...',()=>this.client.from('mentalita_appointments').insert({clinic_id:this.clinicId,patient_id:a.patientId||null,patient_name:a.patient||'',professional:a.professional||'',service:a.service||'',phone:a.phone||'',notes:a.notes||'',status:a.status||'Aguardando',appointment_date:a.date,appointment_time:a.time||null}).select().single()).then(x=>x?{success:true,data:x}:{success:false,error:'Não foi possível salvar o agendamento.'}); }
-  async updateAppointment(a){ return this.run('Atualizando agendamento...',()=>this.client.from('mentalita_appointments').update({patient_id:a.patientId||null,patient_name:a.patient||a.patient_name||'',professional:a.professional||'',service:a.service||'',phone:a.phone||'',notes:a.notes||'',status:a.status||'Aguardando',appointment_date:a.date,appointment_time:a.time||null}).eq('id',a.id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar o agendamento.'}); }
-  async deleteAppointment(id){ return this.run('Excluindo agendamento...',()=>this.client.from('mentalita_appointments').delete().eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível excluir o agendamento.'}); }
-  async isCalendarConnected(){ return false; }
-  async getCalendarAuthUrl(){ throw new Error('Google Calendar ainda precisa ser conectado ao Supabase para esta clínica.'); }
-
-  async getConversations(){ const data=await this.run('Carregando conversas...',()=>this.client.from('mentalita_conversations').select('*').eq('clinic_id',this.clinicId).order('conversation_date',{ascending:false}); return Array.isArray(data)?data.map(c=>this.mapConversation(c)):[]; }
-  async getConversation(id){ const data=await this.run('Carregando conversa...',()=>this.client.from('mentalita_conversations').select('*').eq('id',id).eq('clinic_id',this.clinicId).single()); return data?this.mapConversation(data):null; }
-  async updateConversation(id,status){ return this.run('Atualizando conversa...',()=>this.client.from('mentalita_conversations').update({status}).eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar a conversa.'}); }
-  async findConversationByPhone(phone){ const data=await this.run('Buscando conversa...',()=>this.client.from('mentalita_conversations').select('*').eq('clinic_id',this.clinicId).eq('phone',phone).limit(1).maybeSingle()); return data?this.mapConversation(data):null; }
-  async findConversationByPatient(name){ const data=await this.run('Buscando conversa...',()=>this.client.from('mentalita_conversations').select('*').eq('clinic_id',this.clinicId).ilike('patient_name',name).limit(1).maybeSingle()); return data?this.mapConversation(data):null; }
+  async getClinic(){ const data=await this.run('Carregando clínica...',()=>this.client.from('mentalita_clinics').select('id,name,slug,phone,email,address,hours').eq('id',this.clinicId).single()); return data||{id:this.clinicId,name:'Mentalita',phone:'',email:'',address:'',hours:''}; }
+  async getCalendarAppointments(date=null){ const data=await this.run('Carregando agenda...',()=>{let q=this.client.from('mentalita_appointments').select('*').eq('clinic_id',this.clinicId).order('appointment_date').order('appointment_time'); if(date)q=q.eq('appointment_date',date); return q;}); return Array.isArray(data)?data.map(a=>this.mapAppointment(a)):[]; }
+  async getConversations(){ const data=await this.run('Carregando conversas...',()=>this.client.from('mentalita_conversations').select('*').eq('clinic_id',this.clinicId).order('conversation_date',{ascending:false})); return Array.isArray(data)?data.map(c=>this.mapConversation(c)):[]; }
+  async createPatient(p){return this.run('Salvando paciente...',()=>this.client.from('mentalita_patients').insert({clinic_id:this.clinicId,name:p.name,phone:p.phone||'',email:p.email||'',created_at:p.created||null,last_visit:p.lastVisit||null,next_appointment:p.nextAppt||null,status:p.status||'Ativo',notes:p.notes||''}).select().single()).then(x=>x?{success:true,data:x}:{success:false,error:'Não foi possível salvar o paciente.'});}
+  async updatePatient(id,p){return this.run('Salvando paciente...',()=>this.client.from('mentalita_patients').update({name:p.name,phone:p.phone||'',email:p.email||'',last_visit:p.lastVisit||null,next_appointment:p.nextAppt||null,status:p.status||'Ativo',notes:p.notes||''}).eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar o paciente.'});}
+  async deletePatient(id){return this.run('Excluindo paciente...',()=>this.client.from('mentalita_patients').delete().eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível excluir o paciente.'});}
+  async createStaff(s){return this.run('Salvando equipe...',()=>this.client.from('mentalita_staff').insert({clinic_id:this.clinicId,name:s.name,role:s.role||'',email:s.email||'',phone:s.phone||'',status:s.status||'Ativo'}).select().single()).then(x=>x?{success:true,data:x}:{success:false,error:'Não foi possível salvar o profissional.'});}
+  async updateStaff(id,s){return this.run('Salvando equipe...',()=>this.client.from('mentalita_staff').update({name:s.name,role:s.role||'',email:s.email||'',phone:s.phone||'',status:s.status||'Ativo'}).eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar o profissional.'});}
+  async deleteStaff(id){return this.run('Excluindo profissional...',()=>this.client.from('mentalita_staff').delete().eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível excluir o profissional.'});}
+  async updateClinic(c){return this.run('Salvando clínica...',()=>this.client.from('mentalita_clinics').update({name:c.name,phone:c.phone||'',email:c.email||'',address:c.address||'',hours:c.hours||''}).eq('id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível salvar a clínica.'});}
+  async saveClinic(c){return this.updateClinic(c);}
+  async createAppointment(a){return this.run('Salvando agendamento...',()=>this.client.from('mentalita_appointments').insert({clinic_id:this.clinicId,patient_id:a.patientId||null,patient_name:a.patient||'',professional:a.professional||'',service:a.service||'',phone:a.phone||'',notes:a.notes||'',status:a.status||'Aguardando',appointment_date:a.date,appointment_time:a.time||null}).select().single()).then(x=>x?{success:true,data:x}:{success:false,error:'Não foi possível salvar o agendamento.'});}
+  async updateAppointment(a){return this.run('Atualizando agendamento...',()=>this.client.from('mentalita_appointments').update({patient_id:a.patientId||null,patient_name:a.patient||a.patient_name||'',professional:a.professional||'',service:a.service||'',phone:a.phone||'',notes:a.notes||'',status:a.status||'Aguardando',appointment_date:a.date,appointment_time:a.time||null}).eq('id',a.id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar o agendamento.'});}
+  async deleteAppointment(id){return this.run('Excluindo agendamento...',()=>this.client.from('mentalita_appointments').delete().eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível excluir o agendamento.'});}
+  async getConversation(id){const data=await this.run('Carregando conversa...',()=>this.client.from('mentalita_conversations').select('*').eq('id',id).eq('clinic_id',this.clinicId).single());return data?this.mapConversation(data):null;}
+  async updateConversation(id,status){return this.run('Atualizando conversa...',()=>this.client.from('mentalita_conversations').update({status}).eq('id',id).eq('clinic_id',this.clinicId)).then(x=>x?{success:true}:{success:false,error:'Não foi possível atualizar a conversa.'});}
+  async findConversationByPhone(phone){const data=await this.run('Buscando conversa...',()=>this.client.from('mentalita_conversations').select('*').eq('clinic_id',this.clinicId).eq('phone',phone).limit(1).maybeSingle());return data?this.mapConversation(data):null;}
+  async findConversationByPatient(name){const data=await this.run('Buscando conversa...',()=>this.client.from('mentalita_conversations').select('*').eq('clinic_id',this.clinicId).ilike('patient_name',name).limit(1).maybeSingle());return data?this.mapConversation(data):null;}
+  async isCalendarConnected(){return false;}
+  async getCalendarAuthUrl(){throw new Error('Google Calendar ainda precisa ser conectado ao Supabase para esta clínica.');}
 }
 window.pluriAPI=null;
