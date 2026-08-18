@@ -118,7 +118,7 @@ async function renderPatientProfile() {
                     <button class="btn btn-outline" onclick="editPatient(${p._row})">
                         Editar dados
                     </button>
-                    <button class="btn btn-icon" onclick="openPatientMenu()" title="Mais ações">⋯</button>
+                    <!--<button class="btn btn-icon" onclick="openPatientMenu()" title="Mais ações">⋯</button>-->
                 </div>
             </div>
             <div class="patient-profile-main">
