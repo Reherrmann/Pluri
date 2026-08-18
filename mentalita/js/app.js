@@ -64,16 +64,25 @@ function attachPageEvents() {
 async function init() {
     try {
         if (window.PLURI_AUTH_READY) await window.PLURI_AUTH_READY;
-        if (!window.PLURI_SESSION_VALIDATED || !window.PLURI_AUTH_SESSION) throw new Error('Sessão Supabase não validada.');
+        if (!window.PLURI_SESSION_VALIDATED || !window.PLURI_AUTH_SESSION || !window.PLURI_SUPABASE || !window.PLURI_CLINIC?.id) throw new Error('Sessão Supabase ou clínica não validada.');
         if (!window.pluriAPI) window.pluriAPI = new PluriAPI(PLURI_CONFIG);
         window.pluriAPI.setSessionToken(window.PLURI_AUTH_SESSION.access_token);
         console.log('🔑 Supabase autenticado:', window.PLURI_AUTH_SESSION.user.email);
+        console.log('🏥 Clínica:', window.PLURI_CLINIC);
 
-        console.log('🔄 Carregando pacientes...'); state.patients = await window.pluriAPI.getPatients(); console.log('✅ Pacientes:', state.patients.length);
-        console.log('🔄 Carregando agenda...'); state.appointments = await window.pluriAPI.getCalendarAppointments(); console.log('✅ Agenda:', state.appointments.length);
-        console.log('🔄 Carregando equipe...'); state.staff = await window.pluriAPI.getStaff(); console.log('✅ Equipe:', state.staff.length);
-        console.log('🔄 Carregando clínica...'); state.clinic = await window.pluriAPI.getClinic(); console.log('✅ Clínica:', state.clinic);
-        console.log('🔄 Carregando conversas...'); state.conversations = await window.pluriAPI.getConversations(); console.log('✅ Conversas:', state.conversations.length);
+        const results = await Promise.allSettled([
+            window.pluriAPI.getPatients(),
+            window.pluriAPI.getCalendarAppointments(),
+            window.pluriAPI.getStaff(),
+            window.pluriAPI.getClinic(),
+            window.pluriAPI.getConversations()
+        ]);
+        state.patients = results[0].status === 'fulfilled' && Array.isArray(results[0].value) ? results[0].value : [];
+        state.appointments = results[1].status === 'fulfilled' && Array.isArray(results[1].value) ? results[1].value : [];
+        state.staff = results[2].status === 'fulfilled' && Array.isArray(results[2].value) ? results[2].value : [];
+        state.clinic = results[3].status === 'fulfilled' && results[3].value ? results[3].value : { id: window.PLURI_CLINIC.id, name: window.PLURI_PROFILE?.clinic_name || 'Mentalita' };
+        state.conversations = results[4].status === 'fulfilled' && Array.isArray(results[4].value) ? results[4].value : [];
+        console.log('📦 Dados carregados:', { pacientes:state.patients.length, agenda:state.appointments.length, equipe:state.staff.length, conversas:state.conversations.length });
     } catch (e) {
         console.error('❌ Inicialização da Mentalita:', e);
         return;
