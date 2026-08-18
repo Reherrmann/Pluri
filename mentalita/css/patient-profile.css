@@ -1,0 +1,42 @@
+/* Mentalita — ficha do paciente, inspirada no PLURI OS */
+.patient-profile{display:flex;flex-direction:column;gap:18px;min-height:100%;}
+.patient-profile .back-link{display:inline-flex;align-items:center;gap:6px;width:max-content;color:var(--text-secondary);font-size:13px;font-weight:600;text-decoration:none;background:none;border:0;cursor:pointer;padding:4px 0;}
+.patient-profile .back-link:hover{color:var(--primary);}
+.patient-profile-header{display:flex;align-items:center;gap:16px;padding:20px;background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);}
+.patient-profile-avatar{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--hover-bg);color:var(--primary);font-size:20px;font-weight:700;flex-shrink:0;}
+.patient-profile-info{min-width:0;flex:1;}
+.patient-profile-info h2{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;}
+.patient-profile-bio,.patient-profile-contact,.patient-profile-id{font-size:12.5px;color:var(--text-secondary);margin:2px 0;}
+.patient-profile-actions{margin-left:auto;display:flex;gap:8px;}
+.patient-profile-main{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start;}
+.patient-profile-sidebar{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:8px;position:sticky;top:10px;}
+.patient-profile-nav ul{list-style:none;display:flex;flex-direction:column;gap:2px;}
+.patient-profile-nav li{padding:10px 12px;border-radius:var(--radius-sm);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all var(--transition);border-left:3px solid transparent;}
+.patient-profile-nav li:hover{background:var(--hover-bg);color:var(--primary);border-left-color:var(--accent);}
+.patient-profile-nav li.active{background:var(--hover-bg);color:var(--primary);border-left-color:var(--primary);}
+.patient-profile-content{min-width:0;display:flex;flex-direction:column;gap:16px;}
+.patient-section{display:flex;flex-direction:column;gap:16px;}
+.patient-section>h2{font-size:20px;color:var(--primary);font-weight:700;}
+.patient-section>p.section-subtitle{font-size:13px;color:var(--text-secondary);margin-top:-8px;}
+.patient-info-card{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:18px 20px;}
+.patient-info-card h3{font-size:14px;color:var(--primary);font-weight:700;margin-bottom:14px;}
+.patient-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px;}
+.patient-info-item{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.patient-info-item.full-width{grid-column:1/-1;}
+.patient-info-label{font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.patient-info-value{font-size:13.5px;color:var(--text);font-weight:500;word-break:break-word;}
+.patient-empty-state{background:var(--card-bg);border:2px dashed var(--border);border-radius:var(--radius-lg);padding:36px 24px;text-align:center;}
+.patient-empty-state h3{font-size:16px;color:var(--primary);margin-bottom:6px;}
+.patient-empty-state p{font-size:13px;color:var(--text-secondary);margin-bottom:16px;}
+.patient-mini-list{display:flex;flex-direction:column;gap:0;background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.patient-mini-item{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border-light);}
+.patient-mini-item:last-child{border-bottom:0;}
+.patient-mini-time{font-size:12px;font-weight:700;color:var(--primary);}
+.patient-mini-main{min-width:0;}
+.patient-mini-title{font-size:13px;font-weight:600;color:var(--text);}
+.patient-mini-meta{font-size:11.5px;color:var(--text-secondary);margin-top:2px;}
+.patient-avatar-list{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--hover-bg);color:var(--primary);font-size:11px;font-weight:700;flex-shrink:0;}
+.patient-list-name{display:flex;align-items:center;gap:8px;}
+.patient-tab-note{font-size:12px;color:var(--text-secondary);padding:10px 12px;border-radius:var(--radius-sm);background:var(--hover-bg);}
+@media(max-width:900px){.patient-profile-main{grid-template-columns:1fr;}.patient-profile-sidebar{position:static;}.patient-profile-nav ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}.patient-profile-nav li{border-left:0;border-bottom:3px solid transparent;}.patient-profile-nav li:hover,.patient-profile-nav li.active{border-left:0;border-bottom-color:var(--primary);}.patient-profile-header{align-items:flex-start;flex-wrap:wrap;}.patient-profile-actions{width:100%;margin-left:74px;}}
+@media(max-width:620px){.patient-info-grid{grid-template-columns:1fr;}.patient-info-item.full-width{grid-column:auto;}.patient-profile-nav ul{grid-template-columns:1fr;}.patient-profile-header{padding:16px;}.patient-profile-actions{margin-left:0;}.patient-profile-actions .btn{width:100%;}.patient-mini-item{grid-template-columns:58px minmax(0,1fr);}.patient-mini-item>.status-badge{grid-column:2;justify-self:start;}}
