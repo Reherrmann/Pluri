@@ -170,3 +170,20 @@ function installConveniosModule() {
         install();
     }
 })();
+
+// =====================================================
+// PLURI OS — agenda mensal compacta
+// Exibe somente as bolinhas dos agendamentos na visão Mês.
+// =====================================================
+(function loadAgendaMonthCompactCSS() {
+    const href = 'css/agenda-month-compact.css?v=2';
+
+    if (document.querySelector('link[href^="css/agenda-month-compact.css"]')) {
+        return;
+    }
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+})();
