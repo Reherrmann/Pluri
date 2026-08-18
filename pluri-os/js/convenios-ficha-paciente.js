@@ -16,8 +16,8 @@
         const originalRender = window.renderPatientSectionContent;
 
         window.renderPatientSectionContent = async function (section) {
-            if (section === 'convenios' && window.state?.selectedPatient) {
-                return await renderPatientConvenioSection(window.state.selectedPatient);
+            if (section === 'convenios' && state.selectedPatient) {
+                return await renderPatientConvenioSection(state.selectedPatient);
             }
             return originalRender.apply(this, arguments);
         };
@@ -73,12 +73,12 @@
     }
 
     async function openPatientConvenioForm(row) {
-        const patients = window.state?.patients || [];
-        const selected = window.state?.selectedPatient || null;
+        const patients = Array.isArray(state.patients) ? state.patients : [];
+        const selected = state.selectedPatient || null;
 
-        // O botão está dentro da ficha do paciente. Portanto, o paciente
-        // atualmente selecionado é a fonte de verdade; o row é apenas
-        // compatibilidade com chamadas antigas.
+        // O botão está dentro da ficha do paciente. O paciente atualmente
+        // selecionado é a fonte de verdade; o row é apenas compatibilidade
+        // com chamadas antigas.
         const patient = selected || patients.find(p => String(p._row) === String(row));
 
         if (!patient) {
@@ -90,7 +90,7 @@
             return;
         }
 
-        window.state.selectedPatient = patient;
+        state.selectedPatient = patient;
         const container = typeof getMainContainer === 'function' ? getMainContainer() : document.querySelector('#pageContainer');
         if (!container) return;
 
@@ -174,7 +174,7 @@
 
     async function savePatientConvenio(event, row) {
         event.preventDefault();
-        const patient = (window.state?.patients || []).find(p => String(p._row) === String(row)) || window.state?.selectedPatient;
+        const patient = state.selectedPatient || (Array.isArray(state.patients) ? state.patients : []).find(p => String(p._row) === String(row));
         if (!patient) { showToast('Paciente não encontrado.', 'error'); return; }
         const convenio = document.getElementById('patientConvenioName')?.value || '';
         const plano = document.getElementById('patientConvenioPlan')?.value || '';
@@ -186,9 +186,9 @@
         try {
             const updatedPatient = { ...patient, hasInsurance: 'Sim', insuranceName: convenio, insurancePlan: plano, insuranceCard: carteirinha, insuranceExpiration: validade };
             await window.pluriAPI.updatePatient(patient._row, updatedPatient);
-            const index = (window.state.patients || []).findIndex(p => String(p._row) === String(patient._row));
-            if (index >= 0) window.state.patients[index] = updatedPatient;
-            window.state.selectedPatient = updatedPatient;
+            const index = (Array.isArray(state.patients) ? state.patients : []).findIndex(p => String(p._row) === String(patient._row));
+            if (index >= 0) state.patients[index] = updatedPatient;
+            state.selectedPatient = updatedPatient;
             showToast('Convênio salvo com sucesso.', 'success');
             if (typeof window.renderPatientProfile === 'function') await window.renderPatientProfile();
         } catch (error) {
@@ -200,13 +200,13 @@
 
     function cancelPatientConvenioForm() {
         if (typeof window.renderPatientProfile === 'function') {
-            window.state.patientSection = 'convenios';
+            state.patientSection = 'convenios';
             window.renderPatientProfile();
         }
     }
 
     async function seedTestConvenioForExistingPatient() {
-        const patients = window.state?.patients || [];
+        const patients = Array.isArray(state.patients) ? state.patients : [];
         if (!patients.length) throw new Error('Nenhum paciente existente para vincular o convênio.');
 
         const baseUrl = window.pluriAPI.config.appsScript.baseUrl;
@@ -228,7 +228,7 @@
         await window.pluriAPI.updatePatient(patient._row, updatedPatient);
         const index = patients.findIndex(p => String(p._row) === String(patient._row));
         if (index >= 0) patients[index] = updatedPatient;
-        window.state.selectedPatient = updatedPatient;
+        state.selectedPatient = updatedPatient;
         return updatedPatient;
     }
 
