@@ -175,7 +175,15 @@ async function renderPatientSectionContent(section) {
         case 'documentos':
             return renderEmptyState('Documentos do paciente', 'Os documentos deste paciente aparecerão aqui.', 'Adicionar documento');
         case 'convenios':
-            return renderEmptyState('Convênios', 'Os convênios vinculados ao paciente aparecerão aqui.', 'Adicionar convênio');
+    if (typeof window.renderPatientConvenioSection === 'function') {
+        return await window.renderPatientConvenioSection(p);
+    }
+
+    return renderEmptyState(
+        'Convênios',
+        'Carregando módulo de convênios...',
+        null
+    );
         case 'agendamentos':
             return renderEmptyState('Agendamentos do paciente', 'Os próximos e anteriores agendamentos aparecerão aqui.', null);
         case 'financeiro':
