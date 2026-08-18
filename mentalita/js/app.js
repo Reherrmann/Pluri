@@ -54,9 +54,9 @@ function attachPageEvents() {
     getEl('agendaNextDay')?.addEventListener('click', () => { const d = new Date((state.agendaDate || new Date().toISOString().split('T')[0]) + 'T00:00:00'); d.setDate(d.getDate()+1); state.agendaDate=toDateStr(d); renderPage(); });
     document.querySelectorAll('.kpi-card[data-link]').forEach(card => card.addEventListener('click', () => { if (card.dataset.link) navigateTo(card.dataset.link); }));
     document.querySelectorAll('.js-nav').forEach(el => { const page=el.dataset.page; if(page) el.addEventListener('click',e=>{e.preventDefault();navigateTo(page);}); });
-    document.querySelectorAll('[data-conversation-id]').forEach(el => el.addEventListener('click', () => { const id=parseInt(el.dataset.conversationId,10); if(!isNaN(id)) openConversation(id); }));
-    document.querySelectorAll('[data-patient-row]').forEach(el => el.addEventListener('click', () => { const row=parseInt(el.dataset.patientRow,10); if(!isNaN(row)) openPatient(row); }));
-    document.querySelectorAll('[data-staff-row]').forEach(el => el.addEventListener('click', () => { const row=parseInt(el.dataset.staffRow,10); if(!isNaN(row)) openStaff(row); }));
+    document.querySelectorAll('[data-conversation-id]').forEach(el => el.addEventListener('click', () => { const id=el.dataset.conversationId; if(id) openConversation(id); }));
+    document.querySelectorAll('[data-patient-row]').forEach(el => el.addEventListener('click', () => { const row=el.dataset.patientRow; if(row) openPatient(row); }));
+    document.querySelectorAll('[data-staff-row]').forEach(el => el.addEventListener('click', () => { const row=el.dataset.staffRow; if(row) openStaff(row); }));
     const searchInput=getEl('patientSearch');
     if(searchInput) searchInput.addEventListener('input',e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('#patientTableBody tr').forEach(row=>row.style.display=row.textContent.toLowerCase().includes(q)?'':'none');});
 }
