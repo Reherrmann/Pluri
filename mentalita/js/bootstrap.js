@@ -26,6 +26,19 @@
     }
     const logout=document.getElementById('logoutBtn');
     if(logout) logout.addEventListener('click',()=>window.PLURI_LOGOUT&&window.PLURI_LOGOUT());
+
+    // Evita o onclick inline quebrado do botão "Editar dados" da ficha do paciente.
+    // O ID é obtido da sessão atual do paciente e a função existente é chamada diretamente.
+    document.addEventListener('click', function(e){
+      const button=e.target.closest?.('.patient-profile-actions button');
+      if(!button) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const patient=window.state?.selectedPatient || (typeof state !== 'undefined' ? state.selectedPatient : null);
+      if(patient && typeof window.editPatient==='function') {
+        window.editPatient(String(patient._row));
+      }
+    }, true);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initMentalitaUI); else initMentalitaUI();
 })();
