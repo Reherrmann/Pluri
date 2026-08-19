@@ -70,16 +70,26 @@ function getSessionToken() {
     return null;
 }
 
+function buildAtendimentos() {
+    return `<div class="card"><div class="card-body" style="padding:56px 32px;text-align:center;"><div style="width:56px;height:56px;margin:0 auto 18px;border-radius:16px;background:var(--hover-bg);display:flex;align-items:center;justify-content:center;"><i data-lucide="message-circle" style="width:28px;height:28px;color:var(--text-secondary);"></i></div><h3 style="margin:0 0 8px;">Conversas</h3><p style="margin:0;color:var(--text-secondary);font-size:14px;">Em breve</p><p style="margin:8px auto 0;max-width:480px;color:var(--text-secondary);font-size:13px;line-height:1.5;">Estamos preparando a central de conversas da Mentalita. Por enquanto, esta área permanece desativada.</p></div></div>`;
+}
+
+const MENTALITA_CATALOGO_CONVENIOS_APP = ['Unimed','Bradesco Saúde','SulAmérica Saúde','Amil','Hapvida','NotreDame Intermédica','Porto Saúde','Care Plus','Omint'];
+async function seedMentalitaConveniosApp() {
+    const client = window.PLURI_SUPABASE;
+    const clinicId = window.PLURI_CLINIC?.id;
+    if (!client || !clinicId) return;
+    const { data: existing, error: readError } = await client.from('mentalita_convenios').select('name').eq('clinic_id', clinicId);
+    if (readError) { console.error('[Mentalita] catálogo de convênios:', readError); return; }
+    const names = new Set((existing || []).map(c => String(c.name || '').trim().toLowerCase()));
+    const missing = MENTALITA_CATALOGO_CONVENIOS_APP.filter(name => !names.has(name.toLowerCase())).map(name => ({ clinic_id: clinicId, name, status: 'Ativo', plans: [], notes: 'Catálogo inicial PLURI' }));
+    if (missing.length) { const { error } = await client.from('mentalita_convenios').insert(missing); if (error) console.error('[Mentalita] catálogo inicial:', error); }
+}
+
 async function init() {
     if (window.PLURI_AUTH_READY) {
-        try {
-            await window.PLURI_AUTH_READY;
-        } catch (e) {
-            console.error('❌ Falha na autenticação:', e);
-            return;
-        }
+        try { await window.PLURI_AUTH_READY; } catch (e) { console.error('❌ Falha na autenticação:', e); return; }
     }
-
     const pageTitle = getEl('pageTitle');
     if (pageTitle) pageTitle.textContent = 'Visão Geral';
     if (!window.pluriAPI) window.pluriAPI = new PluriAPI(PLURI_CONFIG);
@@ -87,34 +97,14 @@ async function init() {
     if (!token) return;
     window.pluriAPI.setSessionToken(token);
     try {
-        const results = await Promise.all([
-            window.pluriAPI.getPatients(),
-            window.pluriAPI.getCalendarAppointments(),
-            window.pluriAPI.getStaff(),
-            window.pluriAPI.getClinic(),
-            window.pluriAPI.getConversations()
-        ]);
-        state.patients = results[0] || [];
-        state.appointments = results[1] || [];
-        state.staff = results[2] || [];
-        state.clinic = results[3] || {};
-        state.conversations = results[4] || [];
-    } catch (e) {
-        console.error('❌ Erro ao carregar dados:', e);
-        state.patients = [];
-        state.appointments = [];
-        state.staff = [];
-        state.conversations = [];
-    }
+        const results = await Promise.all([window.pluriAPI.getPatients(), window.pluriAPI.getCalendarAppointments(), window.pluriAPI.getStaff(), window.pluriAPI.getClinic(), window.pluriAPI.getConversations()]);
+        state.patients = results[0] || []; state.appointments = results[1] || []; state.staff = results[2] || []; state.clinic = results[3] || {}; state.conversations = results[4] || [];
+        await seedMentalitaConveniosApp();
+    } catch (e) { console.error('❌ Erro ao carregar dados:', e); state.patients=[]; state.appointments=[]; state.staff=[]; state.conversations=[]; }
     loadTheme();
     getEl('themeToggle')?.addEventListener('click', toggleTheme);
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.addEventListener('click', e => { e.preventDefault(); navigateTo(a.dataset.page); }));
-    getEl('modalClose')?.addEventListener('click', closeModal);
-    getEl('modalCancel')?.addEventListener('click', closeModal);
-    getEl('modalSave')?.addEventListener('click', saveAppointment);
-    getEl('modalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
-    getEl('slideOverlay')?.addEventListener('click', closeSlidePanel);
-    getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
+    getEl('modalClose')?.addEventListener('click', closeModal); getEl('modalCancel')?.addEventListener('click', closeModal); getEl('modalSave')?.addEventListener('click', saveAppointment); getEl('modalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); }); getEl('slideOverlay')?.addEventListener('click', closeSlidePanel); getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
     renderPage();
     window.pluri = { navigateTo, openConversation, openPatient, openModal, openStaff: typeof openStaff === 'function' ? openStaff : () => {}, showToast, editAppointment: typeof openEditAppointment === 'function' ? openEditAppointment : () => {}, deleteAppointment: deleteAppointmentById, confirmAppointment: confirmAppointmentById, openDayFromMonth };
 }
