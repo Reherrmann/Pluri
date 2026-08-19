@@ -1,6 +1,6 @@
 // Mentalita — edição/cadastro de paciente alinhado ao modelo do PLURI OS.
 (function () {
-  const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;');
   const val = (p,k) => esc(p?.[k]);
   function maskDate(input){input?.addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);if(v.length>4)v=v.replace(/(\d{2})(\d{2})(\d{0,4})/,'$1/$2/$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,2})/,'$1/$2');e.target.value=v;});}
   function maskPhone(input){input?.addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,11);if(v.length>10)v=v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');else if(v.length>6)v=v.replace(/(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,5})/,'($1) $2');else if(v.length)v='('+v;e.target.value=v;});}
@@ -60,6 +60,10 @@
     document.getElementById('mentalita-cancel-edit')?.addEventListener('click',closeSlidePanel);
     document.getElementById('mentalita-patient-form')?.addEventListener('submit',e=>handlePatientSubmit(e,p,isEdit));
     document.getElementById('mentalita-delete-patient')?.addEventListener('click',()=>deletePatient(p._row));
+    const insuranceToggle=document.querySelector('#mentalita-patient-form [name="hasInsurance"]');
+    insuranceToggle?.addEventListener('change',async()=>{
+      if(insuranceToggle.checked) await loadInsuranceCatalog('', '');
+    });
     if(p.hasInsurance==='Sim') await loadInsuranceCatalog(p.insuranceName,p.insurancePlan);
   };
 
