@@ -9,6 +9,9 @@ function closeSidebar() {
 
 function navigateTo(page) {
     state.currentPage = page;
+    try {
+        localStorage.setItem('mentalita_navigation', JSON.stringify({ page, patientRow: null, patientSection: null }));
+    } catch (_) {}
 
     document
         .querySelectorAll('.sidebar-nav a')
@@ -20,6 +23,7 @@ function navigateTo(page) {
 
     if (link) link.classList.add('active');
 
-    renderPage();
+    // Fecha imediatamente o menu lateral após escolher uma aba.
     closeSidebar();
+    renderPage();
 }
