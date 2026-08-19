@@ -78,6 +78,7 @@ function getSessionToken() {
     try { const stored = JSON.parse(localStorage.getItem('pluri_session') || 'null'); if (stored?.token) return stored.token; } catch (_) {}
     window.location.replace('/pluri-login/');
     return null;
+>>>>>>> 806688fb92d5d9521957d2b17d4792c358b55486
 }
 
 async function init() {
