@@ -8,8 +8,17 @@
     script.defer=false;
     document.head.appendChild(script);
   }
+  function loadPatientConvenioBridge(){
+    if(document.getElementById('patientConvenioBridgeScript')) return;
+    const script=document.createElement('script');
+    script.id='patientConvenioBridgeScript';
+    script.src='js/patient-convenio-bridge.js?v=mentalita-patient-convenio-1';
+    script.defer=false;
+    document.head.appendChild(script);
+  }
   function initMentalitaUI(){
     loadPatientProfileLayout();
+    loadPatientConvenioBridge();
     if(window.lucide && typeof window.lucide.createIcons==='function') window.lucide.createIcons();
     const h=document.getElementById('hamburgerBtn');
     const o=document.getElementById('sidebarOverlay');
