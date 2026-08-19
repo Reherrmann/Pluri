@@ -8,6 +8,7 @@ function renderPage() {
     let html = '';
     try {
         if (state.currentPage === 'pacientes' && state.selectedPatient) {
+            updateTitleAndSubtitle(title, subtitle);
             renderPatientProfile();
             return;
         }
