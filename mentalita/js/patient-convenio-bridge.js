@@ -15,6 +15,10 @@
       return original.apply(this,arguments);
     };
     window.__mentalitaPatientConvenioBridgeInstalled=true;
+    const patient=window.state?.selectedPatient || (typeof state !== 'undefined' ? state.selectedPatient : null);
+    if(patient && window.state?.patientSection==='convenios' && typeof window.renderPatientProfile==='function'){
+      window.renderPatientProfile();
+    }
   }
   install();
 })();
