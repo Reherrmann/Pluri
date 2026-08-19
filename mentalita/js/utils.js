@@ -3,6 +3,15 @@ function getEl(id) {
     return document.getElementById(id);
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // =====================================================
 // LOADING GLOBAL
 // =====================================================
@@ -10,44 +19,20 @@ function getEl(id) {
 let _loadingCount = 0;
 
 function showLoading(message = 'Carregando...') {
-
-    const loading =
-        document.getElementById('globalLoading');
-
-    const text =
-        document.getElementById('globalLoadingText');
-
+    const loading = document.getElementById('globalLoading');
+    const text = document.getElementById('globalLoadingText');
     if (!loading) return;
-
     _loadingCount++;
-
-    if (text) {
-        text.textContent = message;
-    }
-
+    if (text) text.textContent = message;
     loading.classList.add('show');
 }
 
-
 function hideLoading() {
-
     _loadingCount--;
-
-    if (_loadingCount < 0) {
-        _loadingCount = 0;
-    }
-
-    // Só fecha quando todas as operações terminaram
-    if (_loadingCount > 0) {
-        return;
-    }
-
-    const loading =
-        document.getElementById('globalLoading');
-
-    if (loading) {
-        loading.classList.remove('show');
-    }
+    if (_loadingCount < 0) _loadingCount = 0;
+    if (_loadingCount > 0) return;
+    const loading = document.getElementById('globalLoading');
+    if (loading) loading.classList.remove('show');
 }
 
 function getInitials(name) {
@@ -66,9 +51,7 @@ function showToast(msg) {
 }
 
 function refreshIcons() {
-    if (window.lucide && typeof lucide.createIcons === 'function') {
-        lucide.createIcons();
-    }
+    if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
 }
 
 function statusBadge(status) {
@@ -77,32 +60,25 @@ function statusBadge(status) {
     else if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo') cls = 'pending';
     else cls = 'cancelled';
     const dotColor = cls === 'confirmed' ? 'green' : 'amber';
-    return `<span class="status-badge ${cls}"><span class="status-dot ${dotColor}"></span>${status}</span>`;
+    return `<span class="status-badge ${cls}"><span class="status-dot ${dotColor}"></span>${escapeHtml(status)}</span>`;
 }
 
 function statusDotOnly(status) {
-    if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') {
-        return '<span class="agenda-week-appointment-dot" style="background:var(--green);"></span>';
-    } else if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo') {
-        return '<span class="agenda-week-appointment-dot" style="background:#F59E0B;"></span>';
-    } else {
-        return '<span class="agenda-week-appointment-dot" style="background:#EF4444;"></span>';
-    }
+    if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') return '<span class="agenda-week-appointment-dot" style="background:var(--green);"></span>';
+    if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo') return '<span class="agenda-week-appointment-dot" style="background:#F59E0B;"></span>';
+    return '<span class="agenda-week-appointment-dot" style="background:#EF4444;"></span>';
 }
 
-// Cor do status, usada na bolinha do canto do card e no grid do mês
 function statusColor(status) {
     if (status === 'Confirmado' || status === 'Concluído' || status === 'Ativo' || status === 'Resolvido') return '#22C55E';
     if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo') return '#F59E0B';
-    return '#EF4444'; // Cancelado e afins
+    return '#EF4444';
 }
 
-// Bolinha de status no canto superior direito do card de agendamento
 function statusDotCorner(status) {
-    return `<span class="agenda-status-corner" style="background:${statusColor(status)};" title="${status}"></span>`;
+    return `<span class="agenda-status-corner" style="background:${statusColor(status)};" title="${escapeHtml(status)}"></span>`;
 }
 
-// Converte um objeto Date em string yyyy-MM-dd (fuso local, sem UTC shift)
 function toDateStr(d) {
     return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
 }
@@ -112,9 +88,9 @@ function renderBarChart(values, labels, highlightIdx = -1) {
     return values.map((v, i) => {
         const pct = (v / max) * 100;
         return `<div class="bar-col">
-            <span class="bar-value">${v}</span>
+            <span class="bar-value">${escapeHtml(v)}</span>
             <div class="bar-fill${i === highlightIdx ? ' today' : ''}" style="height:${pct}%"></div>
-            <span class="bar-label">${labels[i] || ''}</span>
+            <span class="bar-label">${escapeHtml(labels[i] || '')}</span>
         </div>`;
     }).join('');
 }
