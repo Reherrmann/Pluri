@@ -1,4 +1,4 @@
-// js/api.js — backend da Mentalita no Supabase.
+ // js/api.js — backend da Mentalita no Supabase.
 class PluriAPI {
   constructor(config){this.config=config;this.token=null;}
   setSessionToken(token){this.token=token;}
