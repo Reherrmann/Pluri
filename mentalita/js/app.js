@@ -1,15 +1,5 @@
 // js/app.js
 
-// Compatibilidade usada pelas telas renderizadas em HTML.
-function escapeHtml(value) {
-    return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
 function renderPage() {
     const container = getEl('pageContainer');
     if (!container) return;
@@ -72,6 +62,10 @@ function attachPageEvents() {
     if (searchInput) searchInput.addEventListener('input', e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('#patientTableBody tr').forEach(row => { row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none'; }); });
 }
 
+<<<<<<< HEAD
+f
+
+=======
 function getSessionToken() {
     const session = window.PLURI_AUTH_SESSION;
     if (window.PLURI_SESSION_VALIDATED && session?.access_token) return session.access_token;
@@ -82,10 +76,18 @@ function getSessionToken() {
 }
 
 async function init() {
+    // auth.js roda antes deste arquivo, mas sua validação é assíncrona.
+    // Esperamos explicitamente por ela antes de verificar a sessão para
+    // evitar o redirecionamento prematuro de volta ao /pluri-login/.
     if (window.PLURI_AUTH_READY) {
-        try { await window.PLURI_AUTH_READY; }
-        catch (e) { console.error('❌ Falha na autenticação:', e); return; }
+        try {
+            await window.PLURI_AUTH_READY;
+        } catch (e) {
+            console.error('❌ Falha na autenticação:', e);
+            return;
+        }
     }
+
     const pageTitle = getEl('pageTitle');
     if (pageTitle) pageTitle.textContent = 'Visão Geral';
     if (!window.pluriAPI) window.pluriAPI = new PluriAPI(PLURI_CONFIG);
