@@ -13,7 +13,6 @@ function renderPage() {
             case 'atendimentos': html = buildAtendimentos(); break;
             case 'pacientes': html = buildPacientes(); break;
             case 'convenios': html = buildConvenios(); break;
-            case 'automacoes': html = typeof buildAutomacoes === 'function' ? buildAutomacoes() : '<div class="card"><div class="card-body"><h3>Automações</h3><p>Em preparação.</p></div></div>'; break;
             case 'indicadores': html = buildIndicadores(); break;
             case 'configuracoes': html = buildConfiguracoes(); break;
             default: html = buildDashboard();
@@ -36,7 +35,6 @@ function updateTitleAndSubtitle(title, subtitle) {
         atendimentos: ['Conversas', 'Central de conversas com pacientes.'],
         pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
         convenios: ['Convênios', 'Cadastre operadoras e planos da clínica.'],
-        automacoes: ['Automações', 'Automatize tarefas da clínica.'],
         indicadores: ['Indicadores', 'Visão operacional da clínica.'],
         configuracoes: ['Configurações', 'Gerencie sua clínica.']
     };
