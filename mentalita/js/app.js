@@ -60,25 +60,17 @@ function attachPageEvents() {
     document.querySelectorAll('[data-staff-row]').forEach(el => el.addEventListener('click', () => { const row = el.dataset.staffRow; if (row) openStaff(row); }));
     const searchInput = getEl('patientSearch');
     if (searchInput) searchInput.addEventListener('input', e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('#patientTableBody tr').forEach(row => { row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none'; }); });
-} 
+}
 
-<<<<<<< HEAD
-f
-
-=======
 function getSessionToken() {
     const session = window.PLURI_AUTH_SESSION;
     if (window.PLURI_SESSION_VALIDATED && session?.access_token) return session.access_token;
     try { const stored = JSON.parse(localStorage.getItem('pluri_session') || 'null'); if (stored?.token) return stored.token; } catch (_) {}
     window.location.replace('/pluri-login/');
     return null;
->>>>>>> 806688fb92d5d9521957d2b17d4792c358b55486
 }
 
 async function init() {
-    // auth.js roda antes deste arquivo, mas sua validação é assíncrona.
-    // Esperamos explicitamente por ela antes de verificar a sessão para
-    // evitar o redirecionamento prematuro de volta ao /pluri-login/.
     if (window.PLURI_AUTH_READY) {
         try {
             await window.PLURI_AUTH_READY;
@@ -96,14 +88,33 @@ async function init() {
     window.pluriAPI.setSessionToken(token);
     try {
         const results = await Promise.all([
-            window.pluriAPI.getPatients(), window.pluriAPI.getCalendarAppointments(), window.pluriAPI.getStaff(), window.pluriAPI.getClinic(), window.pluriAPI.getConversations()
+            window.pluriAPI.getPatients(),
+            window.pluriAPI.getCalendarAppointments(),
+            window.pluriAPI.getStaff(),
+            window.pluriAPI.getClinic(),
+            window.pluriAPI.getConversations()
         ]);
-        state.patients = results[0] || []; state.appointments = results[1] || []; state.staff = results[2] || []; state.clinic = results[3] || {}; state.conversations = results[4] || [];
-    } catch (e) { console.error('❌ Erro ao carregar dados:', e); state.patients=[]; state.appointments=[]; state.staff=[]; state.conversations=[]; }
+        state.patients = results[0] || [];
+        state.appointments = results[1] || [];
+        state.staff = results[2] || [];
+        state.clinic = results[3] || {};
+        state.conversations = results[4] || [];
+    } catch (e) {
+        console.error('❌ Erro ao carregar dados:', e);
+        state.patients = [];
+        state.appointments = [];
+        state.staff = [];
+        state.conversations = [];
+    }
     loadTheme();
     getEl('themeToggle')?.addEventListener('click', toggleTheme);
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.addEventListener('click', e => { e.preventDefault(); navigateTo(a.dataset.page); }));
-    getEl('modalClose')?.addEventListener('click', closeModal); getEl('modalCancel')?.addEventListener('click', closeModal); getEl('modalSave')?.addEventListener('click', saveAppointment); getEl('modalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); }); getEl('slideOverlay')?.addEventListener('click', closeSlidePanel); getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
+    getEl('modalClose')?.addEventListener('click', closeModal);
+    getEl('modalCancel')?.addEventListener('click', closeModal);
+    getEl('modalSave')?.addEventListener('click', saveAppointment);
+    getEl('modalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    getEl('slideOverlay')?.addEventListener('click', closeSlidePanel);
+    getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
     renderPage();
     window.pluri = { navigateTo, openConversation, openPatient, openModal, openStaff: typeof openStaff === 'function' ? openStaff : () => {}, showToast, editAppointment: typeof openEditAppointment === 'function' ? openEditAppointment : () => {}, deleteAppointment: deleteAppointmentById, confirmAppointment: confirmAppointmentById, openDayFromMonth };
 }
