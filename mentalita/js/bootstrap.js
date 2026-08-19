@@ -24,10 +24,19 @@
     script.defer=false;
     document.head.appendChild(script);
   }
+  function loadPatientProntuarioModule(){
+    if(document.getElementById('patientProntuarioModuleScript')) return;
+    const script=document.createElement('script');
+    script.id='patientProntuarioModuleScript';
+    script.src='js/prontuario-paciente.js?v=mentalita-patient-prontuario-1';
+    script.defer=false;
+    document.head.appendChild(script);
+  }
   function initMentalitaUI(){
     loadPatientProfileLayout();
     loadPatientConvenioBridge();
     loadPatientDocumentsModule();
+    loadPatientProntuarioModule();
     if(window.lucide && typeof window.lucide.createIcons==='function') window.lucide.createIcons();
     const h=document.getElementById('hamburgerBtn');
     const o=document.getElementById('sidebarOverlay');
