@@ -2,15 +2,58 @@
 let mentalitaConvenios = [];
 let mentalitaConvenioEditingId = null;
 
+// Catálogo inicial de grandes operadoras/marcas presentes no mercado brasileiro.
+// A lista é apenas um ponto de partida: planos, cobertura e disponibilidade variam por região.
+const MENTALITA_CATALOGO_CONVENIOS = [
+    { name: 'Unimed' },
+    { name: 'Bradesco Saúde' },
+    { name: 'SulAmérica Saúde' },
+    { name: 'Amil' },
+    { name: 'Hapvida' },
+    { name: 'NotreDame Intermédica' },
+    { name: 'Porto Saúde' },
+    { name: 'Care Plus' },
+    { name: 'Omint' }
+];
+
 function buildConvenios() {
     setTimeout(loadMentalitaConvenios, 0);
-    return `<div class="card"><div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;"><div><h3 style="margin:0;">Convênios</h3><p style="margin:4px 0 0;color:var(--text-secondary);font-size:13px;">Cadastre operadoras e planos da clínica.</p></div><button class="btn btn-primary" id="newMentalitaConvenio"><i data-lucide="plus"></i> Novo convênio</button></div><div class="card-body"><div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"><input id="mentalitaConvenioSearch" type="search" placeholder="Buscar convênio..." style="flex:1;min-width:220px;"><select id="mentalitaConvenioStatus" style="width:160px"><option value="">Todos</option><option value="Ativo">Ativos</option><option value="Inativo">Inativos</option></select></div><div class="table-responsive"><table class="data-table"><thead><tr><th>Convênio</th><th>ANS</th><th>Planos</th><th>Status</th><th></th></tr></thead><tbody id="mentalitaConveniosBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-secondary);">Carregando...</td></tr></tbody></table></div></div></div><div class="modal-overlay" id="mentalitaConvenioModal" style="display:none"><div class="modal" style="max-width:760px;max-height:90vh;overflow:auto"><div class="modal-header"><h3 id="mentalitaConvenioTitle">Novo convênio</h3><button class="modal-close" id="mentalitaConvenioClose"><i data-lucide="x"></i></button></div><div class="modal-body"><div class="form-row"><div class="form-group"><label>Nome do convênio</label><input id="mcNome" placeholder="Ex.: Unimed"></div><div class="form-group"><label>Registro / ANS</label><input id="mcAns" placeholder="Opcional"></div></div><div class="form-row"><div class="form-group"><label>Contato</label><input id="mcContato" placeholder="Telefone ou e-mail"></div><div class="form-group"><label>Status</label><select id="mcStatus"><option>Ativo</option><option>Inativo</option></select></div></div><div style="margin-top:18px"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>Planos</strong><div style="font-size:12px;color:var(--text-secondary)">Planos oferecidos pelo convênio.</div></div><button type="button" class="btn btn-outline btn-sm" id="mcAddPlano"><i data-lucide="plus"></i> Plano</button></div><div id="mcPlanos" style="margin-top:10px"></div></div><div class="form-group" style="margin-top:18px"><label>Observações</label><textarea id="mcNotes" rows="3"></textarea></div></div><div class="modal-footer"><button class="btn btn-outline" id="mcCancel">Cancelar</button><button class="btn btn-primary" id="mcSave">Salvar convênio</button></div></div></div>`;
+    return `<div class="card"><div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;"><div><h3 style="margin:0;">Convênios</h3><p style="margin:4px 0 0;color:var(--text-secondary);font-size:13px;">Selecione um convênio do catálogo ou cadastre outro para a clínica.</p></div><button class="btn btn-primary" id="newMentalitaConvenio"><i data-lucide="plus"></i> Novo convênio</button></div><div class="card-body"><div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"><input id="mentalitaConvenioSearch" type="search" placeholder="Buscar convênio..." style="flex:1;min-width:220px;"><select id="mentalitaConvenioStatus" style="width:160px"><option value="">Todos</option><option value="Ativo">Ativos</option><option value="Inativo">Inativos</option></select></div><div class="table-responsive"><table class="data-table"><thead><tr><th>Convênio</th><th>ANS</th><th>Planos</th><th>Status</th><th></th></tr></thead><tbody id="mentalitaConveniosBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-secondary);">Carregando...</td></tr></tbody></table></div></div></div><div class="modal-overlay" id="mentalitaConvenioModal" style="display:none"><div class="modal" style="max-width:760px;max-height:90vh;overflow:auto"><div class="modal-header"><h3 id="mentalitaConvenioTitle">Novo convênio</h3><button class="modal-close" id="mentalitaConvenioClose"><i data-lucide="x"></i></button></div><div class="modal-body"><div class="form-row"><div class="form-group"><label>Nome do convênio</label><input id="mcNome" placeholder="Ex.: Unimed"></div><div class="form-group"><label>Registro / ANS</label><input id="mcAns" placeholder="Opcional"></div></div><div class="form-row"><div class="form-group"><label>Contato</label><input id="mcContato" placeholder="Telefone ou e-mail"></div><div class="form-group"><label>Status</label><select id="mcStatus"><option>Ativo</option><option>Inativo</option></select></div></div><div style="margin-top:18px"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>Planos</strong><div style="font-size:12px;color:var(--text-secondary)">Planos oferecidos pelo convênio.</div></div><button type="button" class="btn btn-outline btn-sm" id="mcAddPlano"><i data-lucide="plus"></i> Plano</button></div><div id="mcPlanos" style="margin-top:10px"></div></div><div class="form-group" style="margin-top:18px"><label>Observações</label><textarea id="mcNotes" rows="3"></textarea></div></div><div class="modal-footer"><button class="btn btn-outline" id="mcCancel">Cancelar</button><button class="btn btn-primary" id="mcSave">Salvar convênio</button></div></div></div>`;
+}
+
+async function seedMentalitaConvenios() {
+    const client = window.PLURI_SUPABASE;
+    const clinicId = window.PLURI_CLINIC?.id;
+    if (!client || !clinicId) return;
+
+    const { data: existing, error: readError } = await client
+        .from('mentalita_convenios')
+        .select('name')
+        .eq('clinic_id', clinicId);
+
+    if (readError) {
+        console.error('[Mentalita] catálogo de convênios:', readError);
+        return;
+    }
+
+    const existingNames = new Set((existing || []).map(c => String(c.name || '').trim().toLowerCase()));
+    const missing = MENTALITA_CATALOGO_CONVENIOS
+        .filter(c => !existingNames.has(c.name.toLowerCase()))
+        .map(c => ({ clinic_id: clinicId, name: c.name, status: 'Ativo', plans: [], notes: 'Catálogo inicial PLURI' }));
+
+    if (!missing.length) return;
+
+    const { error } = await client.from('mentalita_convenios').insert(missing);
+    if (error) console.error('[Mentalita] não foi possível carregar o catálogo inicial:', error);
 }
 
 async function loadMentalitaConvenios() {
     const client = window.PLURI_SUPABASE;
     const clinicId = window.PLURI_CLINIC?.id;
     if (!client || !clinicId) return;
+
+    await seedMentalitaConvenios();
+
     const { data, error } = await client.from('mentalita_convenios').select('*').eq('clinic_id', clinicId).order('name');
     if (error) { console.error('[Mentalita] convênios:', error); mentalitaConvenios = []; }
     else mentalitaConvenios = data || [];
@@ -22,7 +65,7 @@ function renderMentalitaConvenios() {
     const body = document.getElementById('mentalitaConveniosBody'); if (!body) return;
     const q = (document.getElementById('mentalitaConvenioSearch')?.value || '').toLowerCase();
     const st = document.getElementById('mentalitaConvenioStatus')?.value || '';
-    const rows = mentalitaConvenios.filter(c => (!q || c.name.toLowerCase().includes(q)) && (!st || c.status === st));
+    const rows = mentalitaConvenios.filter(c => (!q || String(c.name || '').toLowerCase().includes(q)) && (!st || c.status === st));
     body.innerHTML = rows.length ? rows.map(c => `<tr data-mc-id="${c.id}" style="cursor:pointer"><td><strong>${escapeHtml(c.name)}</strong>${c.contact ? `<div style="font-size:11px;color:var(--text-secondary)">${escapeHtml(c.contact)}</div>` : ''}</td><td>${escapeHtml(c.ans || '—')}</td><td>${Array.isArray(c.plans) ? c.plans.length : 0}</td><td>${statusBadge(c.status)}</td><td><i data-lucide="chevron-right"></i></td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;padding:35px;color:var(--text-secondary)">Nenhum convênio cadastrado.</td></tr>`;
     body.querySelectorAll('[data-mc-id]').forEach(row => row.addEventListener('click', () => openMentalitaConvenio(row.dataset.mcId)));
     refreshIcons();
