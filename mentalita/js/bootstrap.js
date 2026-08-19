@@ -16,9 +16,18 @@
     script.defer=false;
     document.head.appendChild(script);
   }
+  function loadPatientDocumentsModule(){
+    if(document.getElementById('patientDocumentsModuleScript')) return;
+    const script=document.createElement('script');
+    script.id='patientDocumentsModuleScript';
+    script.src='js/documentos-paciente.js?v=mentalita-patient-documents-1';
+    script.defer=false;
+    document.head.appendChild(script);
+  }
   function initMentalitaUI(){
     loadPatientProfileLayout();
     loadPatientConvenioBridge();
+    loadPatientDocumentsModule();
     if(window.lucide && typeof window.lucide.createIcons==='function') window.lucide.createIcons();
     const h=document.getElementById('hamburgerBtn');
     const o=document.getElementById('sidebarOverlay');
