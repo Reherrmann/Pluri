@@ -17,9 +17,12 @@
       const value = item.querySelector('.patient-info-value');
       if (!label || !value) return;
       const normalized = label.textContent.trim().toUpperCase();
-      if (normalized === 'DATA DE CADASTRO' || normalized === 'DATA DE NASCIMENTO') {
-        value.textContent = formatBrazilianDate(value.textContent);
-      }
+      if (normalized !== 'DATA DE CADASTRO' && normalized !== 'DATA DE NASCIMENTO') return;
+
+      const formatted = formatBrazilianDate(value.textContent);
+      // Evita escrever o mesmo valor novamente: isso impede que o MutationObserver
+      // dispare a si próprio em ciclo infinito.
+      if (value.textContent.trim() !== formatted) value.textContent = formatted;
     });
   }
 
@@ -29,12 +32,20 @@
   }
 
   window.formatPatientProfileDates = formatPatientProfileDates;
-  document.addEventListener('DOMContentLoaded', apply);
-  const observer = new MutationObserver(apply);
+
   const start = () => {
+    apply();
     const container = document.getElementById('pageContainer');
-    if (container) observer.observe(container, { childList: true, subtree: true });
+    if (!container || window.__MENTALITA_PROFILE_DATE_OBSERVER__) return;
+
+    const observer = new MutationObserver(apply);
+    observer.observe(container, { childList: true, subtree: true });
+    window.__MENTALITA_PROFILE_DATE_OBSERVER__ = observer;
   };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
-  else start();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
 })();
