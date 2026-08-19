@@ -25,6 +25,10 @@
 .patient-info-item.full-width{grid-column:1/-1;}
 .patient-info-label{font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
 .patient-info-value{font-size:13.5px;color:var(--text);font-weight:500;word-break:break-word;}
+.patient-data-card-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start;}
+.patient-data-card{min-width:0;}
+.patient-data-card-insurance{grid-column:1;}
+.patient-data-card-notes{grid-column:2;}
 .patient-empty-state{background:var(--card-bg);border:2px dashed var(--border);border-radius:var(--radius-lg);padding:36px 24px;text-align:center;}
 .patient-empty-state h3{font-size:16px;color:var(--primary);margin-bottom:6px;}
 .patient-empty-state p{font-size:13px;color:var(--text-secondary);margin-bottom:16px;}
@@ -38,5 +42,5 @@
 .patient-avatar-list{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--hover-bg);color:var(--primary);font-size:11px;font-weight:700;flex-shrink:0;}
 .patient-list-name{display:flex;align-items:center;gap:8px;}
 .patient-tab-note{font-size:12px;color:var(--text-secondary);padding:10px 12px;border-radius:var(--radius-sm);background:var(--hover-bg);}
-@media(max-width:900px){.patient-profile-main{grid-template-columns:1fr;}.patient-profile-sidebar{position:static;}.patient-profile-nav ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}.patient-profile-nav li{border-left:0;border-bottom:3px solid transparent;}.patient-profile-nav li:hover,.patient-profile-nav li.active{border-left:0;border-bottom-color:var(--primary);}.patient-profile-header{align-items:flex-start;flex-wrap:wrap;}.patient-profile-actions{width:100%;margin-left:74px;}}
+@media(max-width:900px){.patient-profile-main{grid-template-columns:1fr;}.patient-profile-sidebar{position:static;}.patient-profile-nav ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}.patient-profile-nav li{border-left:0;border-bottom:3px solid transparent;}.patient-profile-nav li:hover,.patient-profile-nav li.active{border-left:0;border-bottom-color:var(--primary);}.patient-profile-header{align-items:flex-start;flex-wrap:wrap;}.patient-profile-actions{width:100%;margin-left:74px;}.patient-data-card-grid{grid-template-columns:1fr;}.patient-data-card-insurance,.patient-data-card-notes{grid-column:1;}}
 @media(max-width:620px){.patient-info-grid{grid-template-columns:1fr;}.patient-info-item.full-width{grid-column:auto;}.patient-profile-nav ul{grid-template-columns:1fr;}.patient-profile-header{padding:16px;}.patient-profile-actions{margin-left:0;}.patient-profile-actions .btn{width:100%;}.patient-mini-item{grid-template-columns:58px minmax(0,1fr);}.patient-mini-item>.status-badge{grid-column:2;justify-self:start;}}
