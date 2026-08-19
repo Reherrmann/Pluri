@@ -36,34 +36,108 @@
 
   window.openPatientForm = async function(patient){
     const p=patient||{}, isEdit=!!patient;
-    const html=`<div class="slide-panel-content">
+    const html=`<style>
+      #mentalita-patient-form .patient-edit-layout{display:block}
+      #mentalita-patient-form .patient-edit-box{min-width:0}
+      @media (min-width: 900px){
+        #mentalita-patient-form .patient-edit-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+        #mentalita-patient-form .patient-edit-box{margin:0}
+        #mentalita-patient-form .patient-edit-identificacao{grid-column:1}
+        #mentalita-patient-form .patient-edit-contato{grid-column:2}
+        #mentalita-patient-form .patient-edit-endereco{grid-column:1}
+        #mentalita-patient-form .patient-edit-familia{grid-column:2}
+        #mentalita-patient-form .patient-edit-convenio{grid-column:1}
+        #mentalita-patient-form .patient-edit-observacoes{grid-column:1 / -1}
+        #mentalita-patient-form .patient-edit-actions{grid-column:1 / -1}
+      }
+      #mentalita-patient-form .patient-edit-box .form-section,
+      #mentalita-patient-form .patient-edit-box.form-collapsible{margin-bottom:0}
+      #mentalita-patient-form .patient-edit-box h4{margin-top:0}
+    </style>
+    <div class="slide-panel-content">
       <div class="slide-panel-header"><h3>${isEdit?'Editar paciente':'Novo paciente'}</h3></div>
       <form id="mentalita-patient-form">
-        <div class="form-section"><h4>Dados principais</h4><div class="form-grid">
-          <div class="form-field"><label>Nome completo *</label><input name="name" value="${val(p,'name')}" required></div>
-          <div class="form-field"><label>Data de nascimento</label><input name="birthDate" class="mask-date" value="${val(p,'birthDate')}" placeholder="DD/MM/AAAA"></div>
-          <div class="form-field"><label>Sexo</label><select name="gender"><option value="">Selecione</option><option ${p.gender==='Masculino'?'selected':''}>Masculino</option><option ${p.gender==='Feminino'?'selected':''}>Feminino</option><option ${p.gender==='Outro'?'selected':''}>Outro</option></select></div>
-          <div class="form-field"><label>Estado civil</label><select name="maritalStatus"><option value="">Selecione</option><option ${p.maritalStatus==='Solteiro(a)'?'selected':''}>Solteiro(a)</option><option ${p.maritalStatus==='Casado(a)'?'selected':''}>Casado(a)</option><option ${p.maritalStatus==='Divorciado(a)'?'selected':''}>Divorciado(a)</option><option ${p.maritalStatus==='Viúvo(a)'?'selected':''}>Viúvo(a)</option><option ${p.maritalStatus==='Separado(a)'?'selected':''}>Separado(a)</option><option ${p.maritalStatus==='União estável'?'selected':''}>União estável</option></select></div>
-          <div class="form-field"><label>Profissão</label><input name="profession" value="${val(p,'profession')}"></div>
-        </div></div>
-        <div class="form-section"><h4>Documentação</h4><div class="form-grid"><div class="form-field"><label>CPF</label><input name="cpf" class="mask-cpf" value="${val(p,'cpf')}" placeholder="000.000.000-00"></div><div class="form-field"><label>RG</label><input name="rg" value="${val(p,'rg')}"></div></div></div>
-        <div class="form-section"><h4>Contato</h4><div class="form-grid"><div class="form-field"><label>E-mail</label><input type="email" name="email" value="${val(p,'email')}"></div><div class="form-field"><label>Telefone</label><input name="phone" class="mask-phone" value="${val(p,'phone')}"></div><div class="form-field"><label>Celular</label><input name="mobile" class="mask-phone" value="${val(p,'mobile')}"></div><div class="form-field checkbox-field"><label class="checkbox-label"><input type="checkbox" name="sendReminders" ${p.sendReminders==='Sim'?'checked':''}> Enviar lembretes</label></div></div></div>
-        <details class="form-collapsible" ${p.address||p.zipCode||p.number||p.neighborhood||p.city||p.state?'open':''}><summary><i data-lucide="chevron-down"></i><h4>Endereço</h4></summary><div class="form-grid"><div class="form-field"><label>CEP</label><input name="zipCode" class="mask-cep" value="${val(p,'zipCode')}"></div><div class="form-field full-width"><label>Endereço</label><input name="address" value="${val(p,'address')}"></div><div class="form-field"><label>Número</label><input name="number" value="${val(p,'number')}"></div><div class="form-field"><label>Complemento</label><input name="complement" value="${val(p,'complement')}"></div><div class="form-field"><label>Bairro</label><input name="neighborhood" value="${val(p,'neighborhood')}"></div><div class="form-field"><label>Cidade</label><input name="city" value="${val(p,'city')}"></div><div class="form-field"><label>Estado</label><input name="state" maxlength="2" value="${val(p,'state')}"></div></div></details>
-        <details class="form-collapsible" ${p.motherName||p.fatherName||p.familyContactName||p.familyContactPhone?'open':''}><summary><i data-lucide="chevron-down"></i><h4>Família</h4></summary><div class="form-grid"><div class="form-field"><label>Nome da mãe</label><input name="motherName" value="${val(p,'motherName')}"></div><div class="form-field"><label>Nome do pai</label><input name="fatherName" value="${val(p,'fatherName')}"></div><div class="form-field"><label>Contato familiar</label><input name="familyContactName" value="${val(p,'familyContactName')}"></div><div class="form-field"><label>Grau de parentesco</label><input name="familyContactRelationship" value="${val(p,'familyContactRelationship')}"></div><div class="form-field"><label>Telefone familiar</label><input name="familyContactPhone" class="mask-phone" value="${val(p,'familyContactPhone')}"></div></div></details>
-        <div class="form-section"><h4>Convênio</h4><div class="form-field checkbox-field"><label class="checkbox-label"><input type="checkbox" name="hasInsurance" ${p.hasInsurance==='Sim'?'checked':''} onchange="toggleInsuranceFields(this.checked)"> Possui convênio</label></div><div id="insurance-fields" style="display:${p.hasInsurance==='Sim'?'block':'none'}"><div class="form-grid"><div class="form-field"><label>Convênio</label><select id="insuranceName" name="insuranceName"><option value="">Carregando convênios...</option></select></div><div class="form-field"><label>Carteirinha</label><input name="insuranceCard" value="${val(p,'insuranceCard')}"></div><div class="form-field"><label>Plano</label><select id="insurancePlan" name="insurancePlan"><option value="">Selecione o plano</option></select></div><div class="form-field"><label>Validade</label><input name="insuranceExpiration" class="mask-date" value="${val(p,'insuranceExpiration')}" placeholder="DD/MM/AAAA"></div></div></div></div>
-        <div class="form-section"><h4>Observações</h4><div class="form-field"><textarea name="notes" rows="3">${val(p,'notes')}</textarea></div></div>
-        <div class="form-actions"><button type="button" class="btn btn-secondary" id="mentalita-cancel-edit">Cancelar</button><button type="submit" class="btn btn-primary">${isEdit?'Salvar alterações':'Criar paciente'}</button></div>
-        ${isEdit?'<div class="form-actions danger-zone"><button type="button" class="btn btn-danger" id="mentalita-delete-patient">Excluir paciente</button></div>':''}
-      </form></div>`;
+        <div class="patient-edit-layout">
+          <div class="patient-edit-box patient-edit-identificacao form-section">
+            <h4>Identificação</h4>
+            <div class="form-grid">
+              <div class="form-field"><label>Nome completo *</label><input name="name" value="${val(p,'name')}" required></div>
+              <div class="form-field"><label>Data de nascimento</label><input name="birthDate" class="mask-date" value="${val(p,'birthDate')}" placeholder="DD/MM/AAAA"></div>
+              <div class="form-field"><label>Sexo</label><select name="gender"><option value="">Selecione</option><option ${p.gender==='Masculino'?'selected':''}>Masculino</option><option ${p.gender==='Feminino'?'selected':''}>Feminino</option><option ${p.gender==='Outro'?'selected':''}>Outro</option></select></div>
+              <div class="form-field"><label>Estado civil</label><select name="maritalStatus"><option value="">Selecione</option><option ${p.maritalStatus==='Solteiro(a)'?'selected':''}>Solteiro(a)</option><option ${p.maritalStatus==='Casado(a)'?'selected':''}>Casado(a)</option><option ${p.maritalStatus==='Divorciado(a)'?'selected':''}>Divorciado(a)</option><option ${p.maritalStatus==='Viúvo(a)'?'selected':''}>Viúvo(a)</option><option ${p.maritalStatus==='Separado(a)'?'selected':''}>Separado(a)</option><option ${p.maritalStatus==='União estável'?'selected':''}>União estável</option></select></div>
+              <div class="form-field"><label>Profissão</label><input name="profession" value="${val(p,'profession')}"></div>
+              <div class="form-field"><label>CPF</label><input name="cpf" class="mask-cpf" value="${val(p,'cpf')}" placeholder="000.000.000-00"></div>
+              <div class="form-field"><label>RG</label><input name="rg" value="${val(p,'rg')}"></div>
+            </div>
+          </div>
+
+          <div class="patient-edit-box patient-edit-contato form-section">
+            <h4>Contato</h4>
+            <div class="form-grid">
+              <div class="form-field"><label>E-mail</label><input type="email" name="email" value="${val(p,'email')}"></div>
+              <div class="form-field"><label>Telefone</label><input name="phone" class="mask-phone" value="${val(p,'phone')}"></div>
+              <div class="form-field"><label>Celular</label><input name="mobile" class="mask-phone" value="${val(p,'mobile')}"></div>
+              <div class="form-field checkbox-field"><label class="checkbox-label"><input type="checkbox" name="sendReminders" ${p.sendReminders==='Sim'?'checked':''}> Enviar lembretes</label></div>
+            </div>
+          </div>
+
+          <details class="patient-edit-box patient-edit-endereco form-collapsible" ${p.address||p.zipCode||p.number||p.neighborhood||p.city||p.state?'open':''}>
+            <summary><i data-lucide="chevron-down"></i><h4>Endereço</h4></summary>
+            <div class="form-grid">
+              <div class="form-field"><label>CEP</label><input name="zipCode" class="mask-cep" value="${val(p,'zipCode')}"></div>
+              <div class="form-field full-width"><label>Endereço</label><input name="address" value="${val(p,'address')}"></div>
+              <div class="form-field"><label>Número</label><input name="number" value="${val(p,'number')}"></div>
+              <div class="form-field"><label>Complemento</label><input name="complement" value="${val(p,'complement')}"></div>
+              <div class="form-field"><label>Bairro</label><input name="neighborhood" value="${val(p,'neighborhood')}"></div>
+              <div class="form-field"><label>Cidade</label><input name="city" value="${val(p,'city')}"></div>
+              <div class="form-field"><label>Estado</label><input name="state" maxlength="2" value="${val(p,'state')}"></div>
+            </div>
+          </details>
+
+          <details class="patient-edit-box patient-edit-familia form-collapsible" ${p.motherName||p.fatherName||p.familyContactName||p.familyContactPhone?'open':''}>
+            <summary><i data-lucide="chevron-down"></i><h4>Família</h4></summary>
+            <div class="form-grid">
+              <div class="form-field"><label>Nome da mãe</label><input name="motherName" value="${val(p,'motherName')}"></div>
+              <div class="form-field"><label>Nome do pai</label><input name="fatherName" value="${val(p,'fatherName')}"></div>
+              <div class="form-field"><label>Contato familiar</label><input name="familyContactName" value="${val(p,'familyContactName')}"></div>
+              <div class="form-field"><label>Grau de parentesco</label><input name="familyContactRelationship" value="${val(p,'familyContactRelationship')}"></div>
+              <div class="form-field"><label>Telefone familiar</label><input name="familyContactPhone" class="mask-phone" value="${val(p,'familyContactPhone')}"></div>
+            </div>
+          </details>
+
+          <div class="patient-edit-box patient-edit-convenio form-section">
+            <h4>Convênio</h4>
+            <div class="form-field checkbox-field"><label class="checkbox-label"><input type="checkbox" name="hasInsurance" ${p.hasInsurance==='Sim'?'checked':''} onchange="toggleInsuranceFields(this.checked)"> Possui convênio</label></div>
+            <div id="insurance-fields" style="display:${p.hasInsurance==='Sim'?'block':'none'}">
+              <div class="form-grid">
+                <div class="form-field"><label>Convênio</label><select id="insuranceName" name="insuranceName"><option value="">Carregando convênios...</option></select></div>
+                <div class="form-field"><label>Carteirinha</label><input name="insuranceCard" value="${val(p,'insuranceCard')}"></div>
+                <div class="form-field"><label>Plano</label><select id="insurancePlan" name="insurancePlan"><option value="">Selecione o plano</option></select></div>
+                <div class="form-field"><label>Validade</label><input name="insuranceExpiration" class="mask-date" value="${val(p,'insuranceExpiration')}" placeholder="DD/MM/AAAA"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="patient-edit-box patient-edit-observacoes form-section">
+            <h4>Observações</h4>
+            <div class="form-field"><textarea name="notes" rows="3">${val(p,'notes')}</textarea></div>
+          </div>
+
+          <div class="patient-edit-actions form-actions">
+            <button type="button" class="btn btn-secondary" id="mentalita-cancel-edit">Cancelar</button>
+            <button type="submit" class="btn btn-primary">${isEdit?'Salvar alterações':'Criar paciente'}</button>
+          </div>
+          ${isEdit?'<div class="form-actions danger-zone patient-edit-actions"><button type="button" class="btn btn-danger" id="mentalita-delete-patient">Excluir paciente</button></div>':''}
+        </div>
+      </form>
+    </div>`;
     setSlideContent(html);openSlidePanel();refreshIcons();
     document.querySelectorAll('#mentalita-patient-form .mask-date').forEach(maskDate);document.querySelectorAll('#mentalita-patient-form .mask-phone').forEach(maskPhone);document.querySelectorAll('#mentalita-patient-form .mask-cpf').forEach(maskCpf);document.querySelectorAll('#mentalita-patient-form .mask-cep').forEach(maskCep);
     document.getElementById('mentalita-cancel-edit')?.addEventListener('click',closeSlidePanel);
     document.getElementById('mentalita-patient-form')?.addEventListener('submit',e=>handlePatientSubmit(e,p,isEdit));
     document.getElementById('mentalita-delete-patient')?.addEventListener('click',()=>deletePatient(p._row));
     const insuranceToggle=document.querySelector('#mentalita-patient-form [name="hasInsurance"]');
-    insuranceToggle?.addEventListener('change',async()=>{
-      if(insuranceToggle.checked) await loadInsuranceCatalog('', '');
-    });
+    insuranceToggle?.addEventListener('change',async()=>{if(insuranceToggle.checked) await loadInsuranceCatalog('', '');});
     if(p.hasInsurance==='Sim') await loadInsuranceCatalog(p.insuranceName,p.insurancePlan);
   };
 
