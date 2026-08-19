@@ -55,7 +55,7 @@ function attachPageEvents() {
     getEl('agendaNextMonth')?.addEventListener('click', () => { if (!state.agendaMonth) { const n = new Date(); state.agendaMonth = { year: n.getFullYear(), month: n.getMonth() }; } state.agendaMonth.month += 1; if (state.agendaMonth.month > 11) { state.agendaMonth.month = 0; state.agendaMonth.year += 1; } renderPage(); });
     document.querySelectorAll('.kpi-card[data-link]').forEach(card => card.addEventListener('click', () => { const page = card.dataset.link; if (page) navigateTo(page); }));
     document.querySelectorAll('.js-nav').forEach(el => { const page = el.dataset.page; if (page) el.addEventListener('click', e => { e.preventDefault(); navigateTo(page); }); });
-    document.querySelectorAll('[data-conversation-id]').forEach(el => el.addEventListener('click', () => { const id = el.dataset.conversationId; if (id) openConversation(id); }));
+    document.querySelectorAll('[data-conversation-id]').forEach(el => el.addEventListener('click', () => { const id = el.dataset.conversationId; if (id && typeof openConversation === 'function') openConversation(id); }));
     document.querySelectorAll('[data-patient-row]').forEach(el => el.addEventListener('click', () => { const row = el.dataset.patientRow; if (row) openPatient(row); }));
     document.querySelectorAll('[data-staff-row]').forEach(el => el.addEventListener('click', () => { const row = el.dataset.staffRow; if (row) openStaff(row); }));
     const searchInput = getEl('patientSearch');
@@ -68,22 +68,6 @@ function getSessionToken() {
     try { const stored = JSON.parse(localStorage.getItem('pluri_session') || 'null'); if (stored?.token) return stored.token; } catch (_) {}
     window.location.replace('/pluri-login/');
     return null;
-}
-
-function buildAtendimentos() {
-    return `<div class="card"><div class="card-body" style="padding:56px 32px;text-align:center;"><div style="width:56px;height:56px;margin:0 auto 18px;border-radius:16px;background:var(--hover-bg);display:flex;align-items:center;justify-content:center;"><i data-lucide="message-circle" style="width:28px;height:28px;color:var(--text-secondary);"></i></div><h3 style="margin:0 0 8px;">Conversas</h3><p style="margin:0;color:var(--text-secondary);font-size:14px;">Em breve</p><p style="margin:8px auto 0;max-width:480px;color:var(--text-secondary);font-size:13px;line-height:1.5;">Estamos preparando a central de conversas da Mentalita. Por enquanto, esta área permanece desativada.</p></div></div>`;
-}
-
-const MENTALITA_CATALOGO_CONVENIOS_APP = ['Unimed','Bradesco Saúde','SulAmérica Saúde','Amil','Hapvida','NotreDame Intermédica','Porto Saúde','Care Plus','Omint'];
-async function seedMentalitaConveniosApp() {
-    const client = window.PLURI_SUPABASE;
-    const clinicId = window.PLURI_CLINIC?.id;
-    if (!client || !clinicId) return;
-    const { data: existing, error: readError } = await client.from('mentalita_convenios').select('name').eq('clinic_id', clinicId);
-    if (readError) { console.error('[Mentalita] catálogo de convênios:', readError); return; }
-    const names = new Set((existing || []).map(c => String(c.name || '').trim().toLowerCase()));
-    const missing = MENTALITA_CATALOGO_CONVENIOS_APP.filter(name => !names.has(name.toLowerCase())).map(name => ({ clinic_id: clinicId, name, status: 'Ativo', plans: [], notes: 'Catálogo inicial PLURI' }));
-    if (missing.length) { const { error } = await client.from('mentalita_convenios').insert(missing); if (error) console.error('[Mentalita] catálogo inicial:', error); }
 }
 
 async function init() {
@@ -99,14 +83,13 @@ async function init() {
     try {
         const results = await Promise.all([window.pluriAPI.getPatients(), window.pluriAPI.getCalendarAppointments(), window.pluriAPI.getStaff(), window.pluriAPI.getClinic(), window.pluriAPI.getConversations()]);
         state.patients = results[0] || []; state.appointments = results[1] || []; state.staff = results[2] || []; state.clinic = results[3] || {}; state.conversations = results[4] || [];
-        await seedMentalitaConveniosApp();
     } catch (e) { console.error('❌ Erro ao carregar dados:', e); state.patients=[]; state.appointments=[]; state.staff=[]; state.conversations=[]; }
     loadTheme();
     getEl('themeToggle')?.addEventListener('click', toggleTheme);
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.addEventListener('click', e => { e.preventDefault(); navigateTo(a.dataset.page); }));
     getEl('modalClose')?.addEventListener('click', closeModal); getEl('modalCancel')?.addEventListener('click', closeModal); getEl('modalSave')?.addEventListener('click', saveAppointment); getEl('modalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); }); getEl('slideOverlay')?.addEventListener('click', closeSlidePanel); getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
     renderPage();
-    window.pluri = { navigateTo, openConversation, openPatient, openModal, openStaff: typeof openStaff === 'function' ? openStaff : () => {}, showToast, editAppointment: typeof openEditAppointment === 'function' ? openEditAppointment : () => {}, deleteAppointment: deleteAppointmentById, confirmAppointment: confirmAppointmentById, openDayFromMonth };
+    window.pluri = { navigateTo, openModal, openPatient, openStaff: typeof openStaff === 'function' ? openStaff : () => {}, showToast, editAppointment: typeof openEditAppointment === 'function' ? openEditAppointment : () => {}, deleteAppointment: deleteAppointmentById, confirmAppointment: confirmAppointmentById, openDayFromMonth };
 }
 
 async function deleteAppointmentById(id) { const appt = state.appointments.find(a => String(a.id) === String(id)); if (!appt) return; if (!confirm(`Excluir o agendamento de ${appt.patient}?`)) return; const result = await window.pluriAPI.deleteAppointment(id); if (!result?.success) { showToast(result?.error || 'Erro ao excluir agendamento.'); return; } state.appointments = await window.pluriAPI.getCalendarAppointments(); renderPage(); showToast('Agendamento excluído.'); }
