@@ -1,0 +1,47 @@
+/* Ajustes finos da ficha do paciente — somente Mentalita */
+@media (min-width: 901px) {
+  .patient-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: stretch;
+  }
+
+  .patient-section > h2 {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .patient-section > .patient-info-card {
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .patient-section > .patient-info-card:nth-child(2),
+  .patient-section > .patient-info-card:nth-child(3),
+  .patient-section > .patient-info-card:nth-child(4),
+  .patient-section > .patient-info-card:nth-child(5) {
+    min-height: 230px;
+  }
+
+  .patient-section > .patient-info-card:nth-child(6) {
+    grid-column: 1 / -1;
+    min-height: 120px;
+  }
+
+  /* Identificação e documentação usam o mesmo ritmo visual, sem caixa esticada por conteúdo. */
+  .patient-section > .patient-info-card .patient-info-grid {
+    align-content: start;
+  }
+}
+
+@media (max-width: 900px) {
+  .patient-section > .patient-info-card {
+    min-height: 0;
+  }
+}
+
+/* O ID já é exibido no cabeçalho da ficha; não repetir dentro de Identificação. */
+.patient-section > .patient-info-card:first-of-type .patient-info-item:first-child {
+  display: none;
+}
