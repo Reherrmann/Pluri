@@ -60,7 +60,7 @@ function attachPageEvents() {
     document.querySelectorAll('[data-staff-row]').forEach(el => el.addEventListener('click', () => { const row = el.dataset.staffRow; if (row) openStaff(row); }));
     const searchInput = getEl('patientSearch');
     if (searchInput) searchInput.addEventListener('input', e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('#patientTableBody tr').forEach(row => { row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none'; }); });
-}
+} 
 
 <<<<<<< HEAD
 f
