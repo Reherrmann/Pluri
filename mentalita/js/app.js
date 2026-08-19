@@ -71,6 +71,18 @@ function getSessionToken() {
 }
 
 async function init() {
+    // auth.js roda antes deste arquivo, mas sua validação é assíncrona.
+    // Esperamos explicitamente por ela antes de verificar a sessão para
+    // evitar o redirecionamento prematuro de volta ao /pluri-login/.
+    if (window.PLURI_AUTH_READY) {
+        try {
+            await window.PLURI_AUTH_READY;
+        } catch (e) {
+            console.error('❌ Falha na autenticação:', e);
+            return;
+        }
+    }
+
     const pageTitle = getEl('pageTitle');
     if (pageTitle) pageTitle.textContent = 'Visão Geral';
     if (!window.pluriAPI) window.pluriAPI = new PluriAPI(PLURI_CONFIG);
