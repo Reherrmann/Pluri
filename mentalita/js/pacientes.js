@@ -63,8 +63,10 @@ function openPatient(row) {
     ensurePatientProfileStyles();
     const p = state.patients.find(pt => String(pt._row) === String(row));
     if (!p) return;
+    state.currentPage = 'pacientes';
     state.selectedPatient = p;
     state.patientSection = 'dados-pessoais';
+    try { localStorage.setItem('mentalita_navigation', JSON.stringify({ page:'pacientes', patientRow:String(row), patientSection:'dados-pessoais' })); } catch (_) {}
     renderPatientProfile();
 }
 
@@ -119,6 +121,10 @@ function patientSectionNav(key, label, icon, active) {
 
 function openPatientSection(section) {
     state.patientSection = section;
+    try {
+        const saved = JSON.parse(localStorage.getItem('mentalita_navigation') || '{}');
+        localStorage.setItem('mentalita_navigation', JSON.stringify({ page:'pacientes', patientRow: state.selectedPatient?._row || saved.patientRow || null, patientSection:section }));
+    } catch (_) {}
     renderPatientProfile();
 }
 
@@ -181,7 +187,7 @@ function renderProntuarioPaciente(p) {
         <h2>Prontuário eletrônico</h2>
         <p class="section-subtitle">Histórico clínico e registros do paciente.</p>
         <div class="patient-info-card"><h3>Observações atuais</h3><p class="patient-tab-note">${patientEscape(p.notes || 'Nenhum registro clínico cadastrado.')}</p></div>
-        <div class="patient-empty-state"><h3>Registros clínicos</h3><p>O layout da ficha já está preparado para os registros eletrônicos. A persistência clínica será conectada ao Supabase quando a tabela de prontuário estiver disponível.</p><button class="btn btn-outline" type="button" disabled>Novo registro</button></div>
+        <div class="patient-empty-state"><h3>Registros clínicos</h3><p>O layout da ficha já está preparado para os registros eletrônicos. A persistência clínica será conectada ao Supabase quando a tabela de prontuário estiver disponível.</p><button class="btn btn-outline btn-sm" type="button" disabled>Novo registro</button></div>
     </div>`;
 }
 
@@ -204,6 +210,7 @@ function renderPatientEmpty(title, subtitle, buttonText) {
 function voltarParaLista() {
     state.selectedPatient = null;
     state.patientSection = 'dados-pessoais';
+    try { localStorage.setItem('mentalita_navigation', JSON.stringify({ page:'pacientes', patientRow:null, patientSection:null })); } catch (_) {}
     renderPage();
 }
 
@@ -238,71 +245,7 @@ async function saveNewPatient() {
         renderPage();
     } catch (error) {
         console.error(error);
-        showToast(error?.message || 'Não foi possível salvar o paciente.');
+        showToast(error.message || 'Erro ao criar paciente.');
         if (button) { button.disabled = false; button.textContent = 'Criar paciente'; }
     }
 }
-
-function editPatient(row) {
-    const p = state.patients.find(pt => String(pt._row) === String(row));
-    if (!p) return;
-    const content = getEl('slideContent');
-    if (!content) return;
-    content.innerHTML = `<h3 style="margin-bottom:16px;">Editar paciente</h3>
-        <div class="form-group"><label>Nome</label><input type="text" id="editPatientName" value="${patientEscape(p.name)}"></div>
-        <div class="form-group"><label>Telefone</label><input type="text" id="editPatientPhone" value="${patientEscape(p.phone)}"></div>
-        <div class="form-group"><label>E-mail</label><input type="email" id="editPatientEmail" value="${patientEscape(p.email || '')}"></div>
-        <div class="form-group"><label>Observações</label><textarea id="editPatientNotes" rows="4">${patientEscape(p.notes || '')}</textarea></div>
-        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-outline btn-sm" id="cancelPatientEdit">Cancelar</button><button class="btn btn-primary btn-sm" id="savePatientEdit">Salvar alterações</button><button class="btn btn-outline btn-sm" id="deletePatientBtn" style="color:#dc3545;border-color:#dc3545;">Excluir paciente</button></div>`;
-    getEl('cancelPatientEdit')?.addEventListener('click', closeSlidePanel);
-    getEl('savePatientEdit')?.addEventListener('click', async () => {
-        const button = getEl('savePatientEdit');
-        if (button) { button.disabled = true; button.textContent = 'Salvando...'; }
-        try {
-            const result = await window.pluriAPI.updatePatient(p._row, {
-                name:getEl('editPatientName')?.value?.trim() || p.name,
-                phone:getEl('editPatientPhone')?.value?.trim() || '',
-                email:getEl('editPatientEmail')?.value?.trim() || '',
-                notes:getEl('editPatientNotes')?.value?.trim() || ''
-            });
-            if (!result?.success) throw new Error(result?.error || 'Não foi possível atualizar o paciente.');
-            state.patients = await window.pluriAPI.getPatients();
-            state.selectedPatient = state.patients.find(pt => String(pt._row) === String(p._row)) || null;
-            closeSlidePanel();
-            showToast('Paciente atualizado.');
-            if (state.selectedPatient) renderPatientProfile(); else renderPage();
-        } catch (error) {
-            console.error(error);
-            showToast(error?.message || 'Não foi possível atualizar o paciente.');
-            if (button) { button.disabled = false; button.textContent = 'Salvar alterações'; }
-        }
-    });
-    getEl('deletePatientBtn')?.addEventListener('click', async () => {
-        if (!window.confirm(`Tem certeza que deseja excluir o paciente "${p.name}"?`)) return;
-        const button = getEl('deletePatientBtn');
-        if (button) { button.disabled = true; button.textContent = 'Excluindo...'; }
-        try {
-            const result = await window.pluriAPI.deletePatient(p._row);
-            if (!result?.success) throw new Error(result?.error || 'Não foi possível excluir o paciente.');
-            state.patients = await window.pluriAPI.getPatients();
-            state.selectedPatient = null;
-            closeSlidePanel();
-            showToast('Paciente excluído com sucesso!');
-            renderPage();
-        } catch (error) {
-            console.error(error);
-            showToast(error?.message || 'Não foi possível excluir o paciente.');
-            if (button) { button.disabled = false; button.textContent = 'Excluir paciente'; }
-        }
-    });
-    openSlidePanel();
-}
-
-window.buildPacientes = buildPacientes;
-window.openPatient = openPatient;
-window.openPatientSection = openPatientSection;
-window.renderPatientProfile = renderPatientProfile;
-window.renderPatientSectionContent = renderPatientSectionContent;
-window.voltarParaLista = voltarParaLista;
-window.editPatient = editPatient;
-window.openNewPatient = openNewPatient;
