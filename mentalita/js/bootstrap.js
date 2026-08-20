@@ -15,7 +15,8 @@
     load('js/guias-tiss-paciente.js?v=mentalita-patient-tiss-2','patientTissModuleScript');
     load('js/guias-tiss-catalogo.js?v=mentalita-tiss-catalogo-1','patientTissCatalogoScript');
     load('js/guias-tiss-bridge.js?v=mentalita-patient-tiss-bridge-1','patientTissBridgeScript');
-    load('js/faturamento-fixes.js?v=mentalita-faturamento-fixes-2','billingFixesScript');
+    load('js/faturamento-fixes.js?v=mentalita-faturamento-fixes-3','billingFixesScript');
+    load('js/faturamento-tabs-hotfix.js?v=mentalita-faturamento-tabs-hotfix-1','billingTabsHotfixScript');
     if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();
     const h=document.getElementById('hamburgerBtn'),o=document.getElementById('sidebarOverlay'),s=document.getElementById('sidebar'),toggle=()=>{if(s)s.classList.toggle('open');if(o)o.classList.toggle('show');};
     if(h)h.addEventListener('click',toggle);if(o)o.addEventListener('click',toggle);
