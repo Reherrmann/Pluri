@@ -28,7 +28,7 @@
     if(document.getElementById('patientProntuarioModuleScript')) return;
     const script=document.createElement('script');
     script.id='patientProntuarioModuleScript';
-    script.src='js/prontuario-paciente.js?v=mentalita-patient-prontuario-1';
+    script.src='js/prontuario-paciente.js?v=mentalita-patient-prontuario-2';
     script.defer=false;
     document.head.appendChild(script);
   }
@@ -62,7 +62,6 @@
     }
     const logout=document.getElementById('logoutBtn');
     if(logout) logout.addEventListener('click',()=>window.PLURI_LOGOUT&&window.PLURI_LOGOUT());
-
     document.addEventListener('click', function(e){
       const button=e.target.closest?.('.patient-profile-actions button');
       if(!button) return;
