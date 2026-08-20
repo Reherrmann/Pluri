@@ -32,11 +32,20 @@
     script.defer=false;
     document.head.appendChild(script);
   }
+  function loadPatientProntuarioPdfEnhancer(){
+    if(document.getElementById('patientProntuarioPdfEnhancerScript')) return;
+    const script=document.createElement('script');
+    script.id='patientProntuarioPdfEnhancerScript';
+    script.src='js/prontuario-pdf-enhancer.js?v=mentalita-patient-prontuario-pdf-1';
+    script.defer=false;
+    document.head.appendChild(script);
+  }
   function initMentalitaUI(){
     loadPatientProfileLayout();
     loadPatientConvenioBridge();
     loadPatientDocumentsModule();
     loadPatientProntuarioModule();
+    loadPatientProntuarioPdfEnhancer();
     if(window.lucide && typeof window.lucide.createIcons==='function') window.lucide.createIcons();
     const h=document.getElementById('hamburgerBtn');
     const o=document.getElementById('sidebarOverlay');
