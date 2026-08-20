@@ -5,7 +5,7 @@
     load('js/patient-profile-layout.js?v=mentalita-profile-layout-2','patientProfileLayoutScript');
     load('js/patient-convenio-bridge.js?v=mentalita-patient-convenio-1','patientConvenioBridgeScript');
     load('js/documentos-paciente.js?v=mentalita-patient-documents-1','patientDocumentsModuleScript');
-    load('js/prontuario-paciente.js?v=mentalita-patient-prontuario-3','patientProntuarioModuleScript');
+    load('js/prontuario-paciente.js?v=mentalita-patient-prontuario-4','patientProntuarioModuleScript');
     load('js/prontuario-pdf-enhancer.js?v=mentalita-patient-prontuario-pdf-3','patientProntuarioPdfEnhancerScript');
     load('js/prontuario-correcoes.js?v=mentalita-patient-prontuario-correcoes-1','patientProntuarioCorrecoesScript');
     load('js/prontuario-auditoria.js?v=mentalita-patient-prontuario-auditoria-1','patientProntuarioAuditoriaScript');
