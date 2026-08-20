@@ -40,6 +40,16 @@
     script.defer=false;
     document.head.appendChild(script);
   }
+  function normalizeProntuarioDates(){
+    const root=document.getElementById('mentalitaPatientProntuarioTimeline');
+    if(!root)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node=>{
+      node.nodeValue=node.nodeValue.replace(/\b(\d{2}\/\d{2}\/\d{4}),\s*\d{2}:\d{2}\b/g,'$1');
+    });
+  }
   function initMentalitaUI(){
     loadPatientProfileLayout();
     loadPatientConvenioBridge();
@@ -79,6 +89,9 @@
       const patient=window.state?.selectedPatient || (typeof state !== 'undefined' ? state.selectedPatient : null);
       if(patient && typeof window.editPatient==='function') window.editPatient(String(patient._row));
     }, true);
+    const dateObserver=new MutationObserver(normalizeProntuarioDates);
+    const startDateObserver=()=>{const root=document.getElementById('mentalitaPatientProntuarioTimeline');if(root)dateObserver.observe(root,{childList:true,subtree:true});normalizeProntuarioDates();};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startDateObserver);else startDateObserver();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initMentalitaUI); else initMentalitaUI();
 })();
