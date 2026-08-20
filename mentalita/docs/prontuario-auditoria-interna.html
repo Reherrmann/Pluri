@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mentalita — Guia Interno de Integridade do Prontuário</title>
+<style>
+:root{--navy:#183b56;--ink:#17212b;--muted:#667785;--line:#dce5eb;--soft:#f5f8fa;--green:#2f7d62;--yellow:#f5b942;--white:#fff}*{box-sizing:border-box}body{margin:0;background:#eef3f6;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6}.wrap{max-width:1050px;margin:0 auto;padding:42px 22px 70px}.hero{background:linear-gradient(135deg,#183b56,#244f6e);color:#fff;border-radius:24px;padding:38px 40px;box-shadow:0 18px 45px rgba(24,59,86,.18)}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;font-weight:800;opacity:.72}.hero h1{font-size:34px;line-height:1.12;margin:9px 0 12px}.hero p{max-width:760px;margin:0;color:#dce8ef}.badge{display:inline-block;margin-top:20px;padding:7px 11px;border:1px solid rgba(255,255,255,.22);border-radius:999px;font-size:11px;font-weight:800}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:18px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 8px 25px rgba(22,44,58,.04)}.card h2{font-size:18px;margin:0 0 10px}.card h3{font-size:14px;margin:20px 0 7px}.card p,.card li{font-size:13px;color:#52636f}.wide{margin-top:16px}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}.step{padding:15px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}.step b{display:block;font-size:12px}.step span{font-size:11px;color:var(--muted)}code{background:#edf2f5;padding:2px 5px;border-radius:5px;font-size:11px}.callout{border-left:4px solid var(--yellow);background:#fffaf0;padding:14px 16px;border-radius:8px;font-size:12px}.ok{border-left-color:var(--green);background:#f1f8f5}.danger{border-left-color:#c85c5c;background:#fff5f5}.check{list-style:none;padding:0;margin:10px 0}.check li{padding:7px 0;border-bottom:1px solid #edf1f3}.check li:before{content:'✓';font-weight:900;color:var(--green);margin-right:8px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:#f4f6f8;padding:15px;border-radius:10px;overflow:auto}.footer{margin-top:22px;color:var(--muted);font-size:11px;text-align:center}@media(max-width:760px){.hero{padding:28px 24px}.hero h1{font-size:27px}.grid,.flow{grid-template-columns:1fr}.wrap{padding:22px 14px 50px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<div class="eyebrow">PLURI · USO INTERNO · MENTALITA</div>
+<h1>Guia de preservação e auditoria do prontuário</h1>
+<p>Documento operacional para reproduzir a arquitetura, explicar as decisões técnicas e orientar uma eventual auditoria, solicitação de informações, incidente ou revisão de conformidade.</p>
+<div class="badge">NÃO PUBLICAR · DOCUMENTAÇÃO INTERNA</div>
+</header>
+
+<section class="grid">
+<div class="card"><h2>01 · Fonte oficial</h2><p>O prontuário oficial é o conjunto de registros estruturados armazenados no Supabase. O PDF é uma representação/exportação do histórico, não a fonte primária.</p><div class="callout ok"><strong>Regra:</strong> nunca tratar um PDF exportado como substituto do registro persistido no banco.</div></div>
+<div class="card"><h2>02 · Um prontuário por paciente</h2><p>Cada paciente possui um histórico longitudinal. Cada atendimento/evolução é um registro vinculado ao paciente, formando uma única linha do tempo clínica.</p><div class="mono">Paciente → registros → auditoria → anexos → exportações</div></div>
+</section>
+
+<section class="card wide"><h2>03 · Ciclo de vida de um registro</h2><div class="flow"><div class="step"><b>Rascunho</b><span>Pode ser salvo durante o preenchimento.</span></div><div class="step"><b>Finalização</b><span>Registra autoria, data/hora e integridade.</span></div><div class="step"><b>Preservação</b><span>Em produção, não editar nem apagar.</span></div><div class="step"><b>Correção</b><span>Novo lançamento vinculado ao original.</span></div></div></section>
+
+<section class="grid">
+<div class="card"><h2>04 · Integridade</h2><p>Na finalização, o conteúdo do registro recebe um hash SHA-256 armazenado em <code>content_hash</code>. O objetivo é permitir verificar se o conteúdo finalizado corresponde ao conteúdo que originou o hash.</p><h3>Importante</h3><p>Hash é mecanismo de integridade, não assinatura digital qualificada. Se houver requisito de assinatura eletrônica/digital específico, ele deverá ser implementado separadamente.</p></div>
+<div class="card"><h2>05 · Identificação profissional</h2><p>O registro guarda o vínculo com <code>mentalita_staff</code>. Para apresentação ao usuário e exportação, deve ser mostrado o nome do profissional, nunca o UUID técnico.</p><div class="callout">Exemplo: <strong>Dra. Ana Silva</strong> · função/registro profissional conforme cadastro aplicável.</div></div>
+</section>
+
+<section class="card wide"><h2>06 · Auditoria</h2><p>A auditoria deve permitir reconstruir quem fez o quê, para qual paciente, em qual registro e quando. A tabela de auditoria é parte da arquitetura e deve acompanhar criação, finalização, visualização, exportação e correções conforme o fluxo definitivo.</p><ul class="check"><li>Usuário/profissional identificado</li><li>Paciente identificado</li><li>Registro afetado identificado</li><li>Ação realizada</li><li>Data e hora</li><li>Metadados necessários à investigação</li></ul></section>
+
+<section class="grid">
+<div class="card"><h2>07 · Segurança</h2><p>O acesso deve ser controlado por clínica e usuário. RLS do Supabase deve impedir acesso cruzado entre clínicas. Anexos clínicos devem permanecer em Storage privado, vinculados ao registro correspondente.</p><h3>Produção</h3><p>Retirar o modo de exclusão de testes e impedir UPDATE/DELETE de registros finalizados.</p></div>
+<div class="card"><h2>08 · Anexos</h2><p>Exames, imagens e PDFs clínicos devem ser armazenados em Storage privado e relacionados ao registro do prontuário por metadados. O arquivo não substitui o registro clínico.</p><div class="mono">mentalita-prontuarios / clinic_id / patient_id / record_id / arquivo</div></div>
+</section>
+
+<section class="card wide"><h2>09 · Exportação em PDF</h2><p>A Mentalita possui dois conceitos de exportação:</p><ul><li><strong>PDF do registro:</strong> uma evolução/atendimento específico.</li><li><strong>PDF do prontuário completo:</strong> todo o histórico disponível do paciente, em ordem cronológica, com identificação e informações de integridade.</li></ul><div class="callout ok"><strong>Boa prática:</strong> para solicitações de cópia do prontuário, priorizar a exportação completa do histórico e preservar o registro oficial no sistema.</div></section>
+
+<section class="card wide"><h2>10 · Quando houver uma solicitação de auditoria</h2><ol><li>Identificar a clínica, paciente e período solicitado.</li><li>Preservar os dados originais — não alterar registros para “preparar” a auditoria.</li><li>Consultar a linha do tempo completa do paciente.</li><li>Consultar os registros de auditoria relacionados.</li><li>Verificar autoria, datas, status e hashes dos registros finalizados.</li><li>Verificar anexos relacionados, quando aplicável.</li><li>Gerar o PDF completo como representação/exportação, se solicitado.</li><li>Registrar internamente a solicitação e o material fornecido.</li></ol><div class="callout danger"><strong>Nunca:</strong> editar, substituir ou apagar um registro clínico para corrigir uma informação depois da finalização. A correção deve ser registrada como novo lançamento vinculado ao original.</div></section>
+
+<section class="card wide"><h2>11 · Estado de produção desejado</h2><ul class="check"><li>RLS ativo por clínica/usuário</li><li>Registro finalizado sem UPDATE/DELETE</li><li>Correção por novo lançamento</li><li>Auditoria completa</li><li>Hash de integridade</li><li>Profissional apresentado por nome, não UUID</li><li>Storage privado para anexos</li><li>PDF individual e PDF completo</li><li>Rotina de backup/continuidade adequada ao ambiente de produção</li><li>Validação jurídica/regulatória antes da oferta como SRES</li></ul></section>
+
+<section class="card wide"><h2>12 · Limites e responsabilidade</h2><p>Este documento descreve a arquitetura técnica adotada pela PLURI. Ele não constitui certificação de conformidade, parecer jurídico ou garantia de que o sistema atende sozinho a todos os requisitos profissionais, regulatórios ou de certificação aplicáveis. Antes da operação em produção como sistema de registro eletrônico em saúde, revisar requisitos do CFM, legislação aplicável, proteção de dados, segurança da informação e eventuais requisitos de certificação.</p></section>
+
+<div class="footer">PLURI · Mentalita · Documento interno de engenharia e conformidade · Manter atualizado sempre que a arquitetura do prontuário mudar.</div>
+</div>
+</body>
+</html>
