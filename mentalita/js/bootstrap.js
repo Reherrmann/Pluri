@@ -36,7 +36,7 @@
     if(document.getElementById('patientProntuarioPdfEnhancerScript')) return;
     const script=document.createElement('script');
     script.id='patientProntuarioPdfEnhancerScript';
-    script.src='js/prontuario-pdf-enhancer.js?v=mentalita-patient-prontuario-pdf-2';
+    script.src='js/prontuario-pdf-enhancer.js?v=mentalita-patient-prontuario-pdf-3';
     script.defer=false;
     document.head.appendChild(script);
   }
@@ -46,9 +46,15 @@
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
     const nodes=[];
     while(walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(node=>{
-      node.nodeValue=node.nodeValue.replace(/\b(\d{2}\/\d{2}\/\d{4}),\s*\d{2}:\d{2}\b/g,'$1');
-    });
+    nodes.forEach(node=>{node.nodeValue=node.nodeValue.replace(/\b(\d{2}\/\d{2}\/\d{4}),\s*\d{2}:\d{2}\b/g,'$1');});
+  }
+  function startProntuarioDateObserver(){
+    const observer=new MutationObserver(normalizeProntuarioDates);
+    const observe=()=>{const root=document.getElementById('mentalitaPatientProntuarioTimeline');if(root){observer.observe(root,{childList:true,subtree:true});normalizeProntuarioDates();return true;}return false;};
+    if(!observe()){
+      const pageObserver=new MutationObserver(()=>{if(observe())pageObserver.disconnect();});
+      pageObserver.observe(document.body,{childList:true,subtree:true});
+    }
   }
   function initMentalitaUI(){
     loadPatientProfileLayout();
@@ -89,9 +95,7 @@
       const patient=window.state?.selectedPatient || (typeof state !== 'undefined' ? state.selectedPatient : null);
       if(patient && typeof window.editPatient==='function') window.editPatient(String(patient._row));
     }, true);
-    const dateObserver=new MutationObserver(normalizeProntuarioDates);
-    const startDateObserver=()=>{const root=document.getElementById('mentalitaPatientProntuarioTimeline');if(root)dateObserver.observe(root,{childList:true,subtree:true});normalizeProntuarioDates();};
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startDateObserver);else startDateObserver();
+    startProntuarioDateObserver();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initMentalitaUI); else initMentalitaUI();
 })();
