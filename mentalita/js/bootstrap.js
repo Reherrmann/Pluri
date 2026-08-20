@@ -12,6 +12,7 @@
     load('js/prontuario-auditoria.js?v=mentalita-patient-prontuario-auditoria-1','patientProntuarioAuditoriaScript');
     load('js/prontuario-anexos.js?v=mentalita-patient-prontuario-anexos-2','patientProntuarioAnexosScript');
     load('js/financeiro-paciente.js?v=mentalita-patient-finance-1','patientFinanceModuleScript');
+    load('js/guias-tiss-paciente.js?v=mentalita-patient-tiss-1','patientTissModuleScript');
     if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();
     const h=document.getElementById('hamburgerBtn'),o=document.getElementById('sidebarOverlay'),s=document.getElementById('sidebar'),toggle=()=>{if(s)s.classList.toggle('open');if(o)o.classList.toggle('show');};
     if(h)h.addEventListener('click',toggle);if(o)o.addEventListener('click',toggle);
