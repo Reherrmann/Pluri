@@ -36,7 +36,7 @@
     if(document.getElementById('patientProntuarioPdfEnhancerScript')) return;
     const script=document.createElement('script');
     script.id='patientProntuarioPdfEnhancerScript';
-    script.src='js/prontuario-pdf-enhancer.js?v=mentalita-patient-prontuario-pdf-1';
+    script.src='js/prontuario-pdf-enhancer.js?v=mentalita-patient-prontuario-pdf-2';
     script.defer=false;
     document.head.appendChild(script);
   }
