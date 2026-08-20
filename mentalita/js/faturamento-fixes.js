@@ -1,79 +1,19 @@
-// Mentalita — ajustes do faturamento TISS
+// Mentalita — ajustes de UX do faturamento TISS
 (function(){
   'use strict';
-  const S=()=>window.PLURI_SUPABASE||null,C=()=>window.PLURI_CLINIC?.id||null;
+  const S=()=>window.PLURI_SUPABASE||null;
+  const C=()=>window.PLURI_CLINIC?.id||null;
   const money=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
-  let scheduled=false;
-
-  async function fixDrafts(){
-    const host=document.getElementById('billingWorkspace');
-    if(!host)return;
-    const activeTab=document.querySelector('.billing-tab.active')?.dataset?.billingTab||'visao';
-    const section=host.querySelector('.billing-drafts-fix');
-
-    // Rascunhos pertencem exclusivamente à área de Guias prontas.
-    // Nunca devem aparecer em Glosas, Lotes, Recebimentos ou Visão geral.
-    if(activeTab!=='guias'){
-      section?.remove();
-      return;
-    }
-
-    const c=S();if(!c||!C())return;
-    const {data,error}=await c.from('mentalita_patient_tiss_guides').select('id,patient_id,guide_number,execution_date,total_amount,status').eq('clinic_id',C()).eq('status','draft').order('created_at',{ascending:false});
-    if(error)return;
-    const drafts=data||[];
-    const key=drafts.map(x=>x.id).join('|');
-    if(!drafts.length){section?.remove();return;}
-    if(section?.dataset.key===key)return;
-
-    const ids=drafts.map(x=>x.patient_id);
-    let names={};
-    if(ids.length){const r=await c.from('mentalita_patients').select('id,name').in('id',ids);names=Object.fromEntries((r.data||[]).map(x=>[x.id,x.name]));}
-
-    const html=`<div class="billing-drafts-fix" data-key="${esc(key)}" style="margin-top:22px;padding-top:16px;border-top:1px solid var(--border)">
-      <h3 style="margin:0">Guias em rascunho</h3>
-      <p class="section-subtitle">Guias criadas, mas ainda não liberadas para faturamento.</p>
-      ${drafts.slice(0,20).map(g=>`<div class="billing-row">
-        <div><strong>${esc(names[g.patient_id]||'Paciente')}</strong><div class="billing-note">Guia ${esc(g.guide_number||'sem número')} · ${esc(g.execution_date||'—')} · ${money(g.total_amount)}</div></div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;padding:6px 10px;border-radius:999px;background:#eef2f6">Rascunho</span><button type="button" class="btn billing-close-draft" data-id="${g.id}">Liberar para faturamento</button></div>
-      </div>`).join('')}
-    </div>`;
-
-    if(section)section.outerHTML=html;else host.insertAdjacentHTML('beforeend',html);
-
-    host.querySelectorAll('.billing-close-draft').forEach(btn=>btn.onclick=async()=>{
-      btn.disabled=true;btn.textContent='Liberando…';
-      const r=await c.from('mentalita_patient_tiss_guides').update({status:'ready',updated_at:new Date().toISOString()}).eq('id',btn.dataset.id).eq('clinic_id',C());
-      if(r.error){btn.disabled=false;btn.textContent='Liberar para faturamento';console.error('[Mentalita Faturamento]',r.error);alert('Não foi possível liberar a guia para faturamento.');return;}
-      const tab=document.querySelector('.billing-tab[data-billing-tab="guias"]');
-      if(tab){
-        document.querySelectorAll('.billing-tab').forEach(x=>x.classList.remove('active','btn-primary'));
-        tab.classList.add('active','btn-primary');
-        if(typeof tab.click==='function')tab.click();
-      }
-      setTimeout(fixDrafts,150);
-    });
-  }
-
-  function fixTabs(){
-    const tabs=document.querySelectorAll('.billing-tab');
-    const active=document.querySelector('.billing-tab.active');
-    tabs.forEach(x=>x.classList.remove('btn-primary'));
-    if(active)active.classList.add('btn-primary');
-    tabs.forEach(x=>{if(active&&x!==active)x.classList.remove('active');});
-  }
-
-  function run(){
-    fixTabs();
-    if(scheduled)return;
-    scheduled=true;
-    setTimeout(()=>{scheduled=false;fixDrafts();},80);
-  }
-
-  document.addEventListener('click',e=>{if(e.target.closest?.('.billing-tab'))setTimeout(run,30);});
-  const obs=new MutationObserver(()=>{if(document.getElementById('billingWorkspace'))run();});
-  obs.observe(document.body,{childList:true,subtree:true});
-  setTimeout(run,300);
-  window.mentalitaFaturamentoFix=run;
+  let scheduled=false,lastTab='';
+  const css=`<style>#billingWorkspace .billing-clean{display:flex;flex-direction:column;gap:14px}#billingWorkspace .billing-section{background:var(--surface,#fff);border:1px solid var(--border);border-radius:14px;padding:18px}#billingWorkspace .billing-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}#billingWorkspace .billing-section h3{margin:0;font-size:16px}#billingWorkspace .billing-section p{margin:4px 0 0;color:var(--text-secondary);font-size:12px}#billingWorkspace .billing-list{border-top:1px solid var(--border)}#billingWorkspace .billing-row-clean{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid var(--border)}#billingWorkspace .billing-row-clean:last-child{border-bottom:0}#billingWorkspace .billing-main{min-width:0}#billingWorkspace .billing-main strong{font-size:14px}#billingWorkspace .billing-note-clean{margin-top:4px;color:var(--text-secondary);font-size:12px}#billingWorkspace .billing-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}#billingWorkspace .billing-status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#eef2f6;color:#526579;font-size:11px;font-weight:600}#billingWorkspace .billing-empty-clean{padding:18px 0;color:var(--text-secondary);font-size:13px}#billingWorkspace .billing-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}#billingWorkspace .billing-summary-card{padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface,#fff)}#billingWorkspace .billing-summary-card small{display:block;color:var(--text-secondary);font-size:11px}#billingWorkspace .billing-summary-card strong{display:block;font-size:20px;margin-top:4px}#billingWorkspace .billing-primary{background:#063a59!important;color:#fff!important;border-color:#063a59!important}@media(max-width:650px){#billingWorkspace .billing-row-clean{align-items:flex-start;flex-direction:column}#billingWorkspace .billing-actions{width:100%}#billingWorkspace .billing-summary{grid-template-columns:1fr}}</style>`;
+  function tabs(){const active=document.querySelector('.billing-tab.active')?.dataset?.billingTab||'visao';document.querySelectorAll('.billing-tab').forEach(b=>{b.classList.toggle('active',b.dataset.billingTab===active);b.classList.toggle('btn-primary',b.dataset.billingTab===active);});return active;}
+  async function loadGuides(){const c=S();if(!c||!C())return{drafts:[],ready:[]};const q=await c.from('mentalita_patient_tiss_guides').select('id,patient_id,guide_number,execution_date,total_amount,status').eq('clinic_id',C()).in('status',['draft','ready']).order('created_at',{ascending:false});if(q.error)return{drafts:[],ready:[]};const rows=q.data||[];const ids=[...new Set(rows.map(x=>x.patient_id).filter(Boolean))];let names={};if(ids.length){const p=await c.from('mentalita_patients').select('id,name').in('id',ids);names=Object.fromEntries((p.data||[]).map(x=>[x.id,x.name]));}rows.forEach(x=>x.patient_name=names[x.patient_id]||'Paciente');return{drafts:rows.filter(x=>x.status==='draft'),ready:rows.filter(x=>x.status==='ready')};}
+  function row(g,action){return `<div class="billing-row-clean"><div class="billing-main"><strong>${esc(g.patient_name)}</strong><div class="billing-note-clean">Guia ${esc(g.guide_number||'sem número')} · ${esc(g.execution_date||'—')} · ${money(g.total_amount)}</div></div><div class="billing-actions"><span class="billing-status">${g.status==='draft'?'Rascunho':'Pronta'}</span>${action||''}</div></div>`;}
+  async function renderGuides(host){const{drafts,ready}=await loadGuides();host.innerHTML=css+`<div class="billing-clean"><div class="billing-summary"><div class="billing-summary-card"><small>Prontas para faturamento</small><strong>${ready.length}</strong></div><div class="billing-summary-card"><small>Em rascunho</small><strong>${drafts.length}</strong></div><div class="billing-summary-card"><small>Total de guias</small><strong>${ready.length+drafts.length}</strong></div></div><div class="billing-section"><div class="billing-section-head"><div><h3>Prontas para faturamento</h3><p>Guias revisadas e liberadas para entrar em um lote.</p></div>${ready.length?'<button class="btn billing-primary" type="button" disabled>Criar lote</button>':''}</div><div class="billing-list">${ready.length?ready.map(g=>row(g,'<input type="checkbox" aria-label="Selecionar guia">')).join(''):'<div class="billing-empty-clean">Nenhuma guia pronta para faturamento.</div>'}</div></div><div class="billing-section"><div class="billing-section-head"><div><h3>Em preparação</h3><p>Guias criadas, mas ainda não liberadas para faturamento.</p></div></div><div class="billing-list">${drafts.length?drafts.map(g=>row(g,`<button type="button" class="btn billing-release" data-id="${g.id}">Liberar para faturamento</button>`)).join(''):'<div class="billing-empty-clean">Nenhum rascunho pendente.</div>'}</div></div></div>`;host.querySelectorAll('.billing-release').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;btn.textContent='Liberando…';const c=S();const r=await c.from('mentalita_patient_tiss_guides').update({status:'ready',updated_at:new Date().toISOString()}).eq('id',btn.dataset.id).eq('clinic_id',C());if(r.error){btn.disabled=false;btn.textContent='Liberar para faturamento';alert('Não foi possível liberar a guia.');return;}await renderGuides(host);});}
+  function renderOverview(host){host.innerHTML=css+`<div class="billing-clean"><div class="billing-section"><div class="billing-section-head"><div><h3>Fluxo de faturamento</h3><p>Da guia TISS ao recebimento do convênio.</p></div></div><div class="billing-summary"><div class="billing-summary-card"><small>1 · Guia pronta</small><strong>TISS</strong></div><div class="billing-summary-card"><small>2 · Agrupamento</small><strong>Lote</strong></div><div class="billing-summary-card"><small>3 · Operadora</small><strong>Envio</strong></div></div></div><div class="billing-section"><div class="billing-section-head"><div><h3>Próximas etapas</h3><p>O fluxo financeiro será conectado aos lotes, glosas e recebimentos nas próximas etapas.</p></div></div></div></div>`;}
+  function renderPlaceholder(host,title,description){host.innerHTML=css+`<div class="billing-clean"><div class="billing-section"><div class="billing-section-head"><div><h3>${title}</h3><p>${description}</p></div></div><div class="billing-empty-clean">Nenhum registro disponível ainda.</div></div></div>`;}
+  async function render(){const host=document.getElementById('billingWorkspace');if(!host)return;const active=tabs();if(active===lastTab&&host.dataset.billingRendered==='1')return;lastTab=active;host.dataset.billingRendered='1';if(active==='guias')return renderGuides(host);if(active==='lotes')return renderPlaceholder(host,'Lotes','Agrupe guias prontas por convênio e competência.');if(active==='glosas')return renderPlaceholder(host,'Glosas','Registre e acompanhe recusas e pendências dos convênios.');if(active==='recebimentos')return renderPlaceholder(host,'Recebimentos','Acompanhe os pagamentos recebidos dos convênios.');renderOverview(host);}
+  function run(){if(scheduled)return;scheduled=true;setTimeout(async()=>{scheduled=false;await render();},60);}
+  document.addEventListener('click',e=>{if(e.target.closest?.('.billing-tab')){lastTab='';setTimeout(run,20);}});const obs=new MutationObserver(()=>{if(document.getElementById('billingWorkspace')){lastTab='';run();}});obs.observe(document.body,{childList:true,subtree:true});setTimeout(()=>{lastTab='';run();},300);window.mentalitaFaturamentoFix=run;
 })();
