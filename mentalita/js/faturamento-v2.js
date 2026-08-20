@@ -1,4 +1,4 @@
-// Mentalita — Central de Faturamento
+// Mentalita — Central de Faturamento 
 (function(){
 'use strict';
 const S=()=>window.PLURI_SUPABASE||null,C=()=>window.PLURI_CLINIC?.id||null,U=()=>window.PLURI_AUTH_SESSION?.user||null;
