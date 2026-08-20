@@ -29,7 +29,6 @@ function renderPage() {
     }
     container.innerHTML = html;
     attachPageEvents();
-    if (state.currentPage === 'faturamento' && typeof attachFaturamentoEvents === 'function') attachFaturamentoEvents();
     refreshIcons();
     updateTitleAndSubtitle(title, subtitle);
     if (state.currentPage === 'configuracoes' && typeof updateGoogleCalendarStatus === 'function') updateGoogleCalendarStatus();
