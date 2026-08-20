@@ -6,30 +6,7 @@
   const money=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
   const esc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
   let scheduled=false,lastTab='';
-  const css=`<style>
-    #billingWorkspace .billing-clean{display:flex;flex-direction:column;gap:14px}
-    #billingWorkspace .billing-section{background:var(--surface,#fff);border:1px solid var(--border);border-radius:14px;padding:18px}
-    #billingWorkspace .billing-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
-    #billingWorkspace .billing-section h3{margin:0;font-size:16px}
-    #billingWorkspace .billing-section p{margin:4px 0 0;color:var(--text-secondary);font-size:12px}
-    #billingWorkspace .billing-list{border-top:1px solid var(--border)}
-    #billingWorkspace .billing-row-clean{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid var(--border)}
-    #billingWorkspace .billing-row-clean:last-child{border-bottom:0}
-    #billingWorkspace .billing-main{min-width:0;display:flex;align-items:center;gap:10px}
-    #billingWorkspace .billing-main strong{font-size:14px}
-    #billingWorkspace .billing-note-clean{margin-top:4px;color:var(--text-secondary);font-size:12px}
-    #billingWorkspace .billing-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-    #billingWorkspace .billing-status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#eef2f6;color:#526579;font-size:11px;font-weight:600}
-    #billingWorkspace .billing-empty-clean{padding:18px 0;color:var(--text-secondary);font-size:13px}
-    #billingWorkspace .billing-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    #billingWorkspace .billing-summary-card{padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface,#fff)}
-    #billingWorkspace .billing-summary-card small{display:block;color:var(--text-secondary);font-size:11px}
-    #billingWorkspace .billing-summary-card strong{display:block;font-size:20px;margin-top:4px}
-    #billingWorkspace .billing-primary{background:#063a59!important;color:#fff!important;border-color:#063a59!important}
-    #billingWorkspace .billing-check{width:17px;height:17px;accent-color:#063a59;cursor:pointer}
-    #billingWorkspace .billing-batch-number{font-weight:800;font-size:14px}
-    @media(max-width:650px){#billingWorkspace .billing-row-clean{align-items:flex-start;flex-direction:column}#billingWorkspace .billing-actions{width:100%;flex-wrap:wrap}#billingWorkspace .billing-summary{grid-template-columns:1fr}}
-  </style>`;
+  const css=`<style>#billingWorkspace .billing-clean{display:flex;flex-direction:column;gap:14px}#billingWorkspace .billing-section{background:var(--surface,#fff);border:1px solid var(--border);border-radius:14px;padding:18px}#billingWorkspace .billing-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}#billingWorkspace .billing-section h3{margin:0;font-size:16px}#billingWorkspace .billing-section p{margin:4px 0 0;color:var(--text-secondary);font-size:12px}#billingWorkspace .billing-list{border-top:1px solid var(--border)}#billingWorkspace .billing-row-clean{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid var(--border)}#billingWorkspace .billing-row-clean:last-child{border-bottom:0}#billingWorkspace .billing-main{min-width:0;display:flex;align-items:center;gap:10px}#billingWorkspace .billing-main strong{font-size:14px}#billingWorkspace .billing-note-clean{margin-top:4px;color:var(--text-secondary);font-size:12px}#billingWorkspace .billing-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}#billingWorkspace .billing-status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#eef2f6;color:#526579;font-size:11px;font-weight:600}#billingWorkspace .billing-empty-clean{padding:18px 0;color:var(--text-secondary);font-size:13px}#billingWorkspace .billing-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}#billingWorkspace .billing-summary-card{padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface,#fff)}#billingWorkspace .billing-summary-card small{display:block;color:var(--text-secondary);font-size:11px}#billingWorkspace .billing-summary-card strong{display:block;font-size:20px;margin-top:4px}#billingWorkspace .billing-primary{background:#063a59!important;color:#fff!important;border-color:#063a59!important}#billingWorkspace .billing-check{width:17px;height:17px;accent-color:#063a59;cursor:pointer}#billingWorkspace .billing-batch-number{font-weight:800;font-size:14px}@media(max-width:650px){#billingWorkspace .billing-row-clean{align-items:flex-start;flex-direction:column}#billingWorkspace .billing-actions{width:100%;flex-wrap:wrap}#billingWorkspace .billing-summary{grid-template-columns:1fr}}</style>`;
   function tabs(){const active=document.querySelector('.billing-tab.active')?.dataset?.billingTab||'visao';document.querySelectorAll('.billing-tab').forEach(b=>{b.classList.toggle('active',b.dataset.billingTab===active);b.classList.toggle('btn-primary',b.dataset.billingTab===active);});return active;}
   async function loadGuides(){
     const c=S();if(!c||!C())return{drafts:[],ready:[]};
@@ -39,7 +16,7 @@
     if(ids.length){const p=await c.from('mentalita_patients').select('id,name').in('id',ids);names=Object.fromEntries((p.data||[]).map(x=>[x.id,x.name]));}
     const convenioIds=[...new Set(rows.map(x=>x.convenio_id).filter(Boolean))];let convenios={};
     if(convenioIds.length){const p=await c.from('mentalita_convenios').select('id,name').in('id',convenioIds);convenios=Object.fromEntries((p.data||[]).map(x=>[x.id,x.name]));}
-    rows.forEach(x=>{x.patient_name=names[x.patient_id]||'Paciente';x.convenio_name=convenios[x.convenio_id]||'Convênio não informado';});
+    rows.forEach(x=>{x.patient_name=names[x.patient_id]||'Paciente';x.convenio_name=convenios[x.convenio_id]||'Convênio do paciente';});
     return{drafts:rows.filter(x=>x.status==='draft'),ready:rows.filter(x=>x.status==='ready')};
   }
   function guideRow(g,selectable){return `<div class="billing-row-clean"><div class="billing-main">${selectable?`<input class="billing-check billing-guide-check" type="checkbox" value="${esc(g.id)}" data-convenio="${esc(g.convenio_id||'')}" aria-label="Selecionar guia de ${esc(g.patient_name)}">`:''}<div><strong>${esc(g.patient_name)}</strong><div class="billing-note-clean">Guia ${esc(g.guide_number||'sem número')} · ${esc(g.execution_date||'—')} · ${esc(g.convenio_name)} · ${money(g.total_amount)}</div></div></div><div class="billing-actions"><span class="billing-status">${g.status==='draft'?'Rascunho':'Pronta'}</span>${!selectable?`<button type="button" class="btn billing-release" data-id="${esc(g.id)}">Liberar para faturamento</button>`:''}</div></div>`;}
@@ -50,17 +27,30 @@
     host.querySelectorAll('.billing-release').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;btn.textContent='Liberando…';const c=S();const r=await c.from('mentalita_patient_tiss_guides').update({status:'ready',updated_at:new Date().toISOString()}).eq('id',btn.dataset.id).eq('clinic_id',C());if(r.error){btn.disabled=false;btn.textContent='Liberar para faturamento';alert('Não foi possível liberar a guia.');return;}await renderGuides(host);});
     if(createBtn)createBtn.onclick=()=>createBatch(host);
   }
+  async function resolveGuideConvenios(c,guides){
+    const missing=guides.filter(g=>!g.convenio_id&&g.patient_id);if(!missing.length)return guides;
+    const patientIds=[...new Set(missing.map(g=>g.patient_id))];
+    const pc=await c.from('mentalita_patient_convenios').select('patient_id,convenio_name,status').eq('clinic_id',C()).in('patient_id',patientIds).eq('status','active');
+    if(pc.error||!pc.data?.length)return guides;
+    const names=[...new Set(pc.data.map(x=>x.convenio_name).filter(Boolean))];
+    const cv=await c.from('mentalita_convenios').select('id,name').eq('clinic_id',C()).in('name',names);
+    const byName=Object.fromEntries((cv.data||[]).map(x=>[String(x.name).trim().toLowerCase(),x.id]));
+    const byPatient=Object.fromEntries(pc.data.map(x=>[x.patient_id,byName[String(x.convenio_name||'').trim().toLowerCase()]||null]));
+    for(const g of missing){const id=byPatient[g.patient_id];if(id){g.convenio_id=id;await c.from('mentalita_patient_tiss_guides').update({convenio_id:id,updated_at:new Date().toISOString()}).eq('id',g.id).eq('clinic_id',C());}}
+    return guides;
+  }
   async function createBatch(host){
     const c=S();if(!c||!C())return;const selected=[...host.querySelectorAll('.billing-guide-check:checked')].map(x=>x.value);if(!selected.length){alert('Selecione pelo menos uma guia para criar o lote.');return;}
     const{data:guides,error:gError}=await c.from('mentalita_patient_tiss_guides').select('id,patient_id,clinic_id,convenio_id,status,total_amount,execution_date').eq('clinic_id',C()).in('id',selected);
     if(gError||!guides?.length){alert('Não foi possível carregar as guias selecionadas.');return;}if(guides.some(g=>g.status!=='ready')){alert('Uma ou mais guias selecionadas não estão mais prontas para faturamento. Atualize a página e tente novamente.');return;}
-    const convenioIds=[...new Set(guides.map(g=>g.convenio_id).filter(Boolean))];if(convenioIds.length>1){alert('Um lote deve conter guias do mesmo convênio. Selecione apenas guias da mesma operadora.');return;}if(guides.some(g=>!g.convenio_id)){alert('Todas as guias do lote precisam estar vinculadas a um convênio.');return;}
+    await resolveGuideConvenios(c,guides);
+    const convenioIds=[...new Set(guides.map(g=>g.convenio_id).filter(Boolean))];if(convenioIds.length>1){alert('Um lote deve conter guias do mesmo convênio. Selecione apenas guias da mesma operadora.');return;}if(guides.some(g=>!g.convenio_id)){alert('Não encontrei um convênio ativo para uma das guias selecionadas. Vincule o convênio ao paciente e tente novamente.');return;}
     const now=new Date();const stamp=now.toISOString().slice(0,10).replace(/-/g,'');const batchNumber=`LOT-${stamp}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;const total=guides.reduce((sum,g)=>sum+Number(g.total_amount||0),0);const competence=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
     const button=host.querySelector('.billing-create-batch');if(button){button.disabled=true;button.textContent='Criando…';}
     const{data:batch,error:bError}=await c.from('mentalita_patient_tiss_batches').insert({clinic_id:C(),convenio_id:guides[0].convenio_id,batch_number:batchNumber,competence_month:competence,status:'draft',guide_count:guides.length,total_amount:total}).select('id').single();
     if(bError||!batch){if(button){button.disabled=false;button.textContent='Criar lote';}console.error('[Mentalita Faturamento]',bError);alert('Não foi possível criar o lote.');return;}
     const links=guides.map(g=>({batch_id:batch.id,guide_id:g.id,clinic_id:C()}));const{error:lError}=await c.from('mentalita_patient_tiss_batch_guides').insert(links);
-    if(lError){await c.from('mentalita_patient_tiss_batches').delete().eq('id',batch.id).eq('clinic_id',C());if(button){button.disabled=false;button.textContent='Criar lote';}console.error('[Mentalita Faturamento]',lError);alert('O lote não pôde ser concluído.');return;}
+    if(lError){if(button){button.disabled=false;button.textContent='Criar lote';}console.error('[Mentalita Faturamento]',lError);alert('O lote não pôde ser concluído.');return;}
     const{error:uError}=await c.from('mentalita_patient_tiss_guides').update({status:'batched',updated_at:new Date().toISOString()}).in('id',selected).eq('clinic_id',C()).eq('status','ready');
     if(uError){console.error('[Mentalita Faturamento]',uError);alert('O lote foi criado, mas não foi possível atualizar o status das guias.');}
     const auditRows=guides.map(g=>({clinic_id:C(),patient_id:g.patient_id,guide_id:g.id,action:'batch_created',metadata:{batch_id:batch.id,batch_number:batchNumber}}));
