@@ -10,18 +10,18 @@
   function markTab(name){document.querySelectorAll('.billing-tab').forEach(b=>{const on=b.dataset.billingTab===name;b.classList.toggle('active',on);b.classList.toggle('btn-primary',on);});}
   async function glosas(host){
     const c=S();
-    if(!c||!C()){host.innerHTML=css+'<div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar as glosas.</div></div>';return;}
+    if(!c||!C()){host.innerHTML=css+'<div class="billing-clean billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar as glosas.</div></div></div>';return;}
     const q=await c.from('mentalita_billing_denials').select('id,guide_id,lot_id,amount,reason,status,created_at').eq('clinic_id',C()).order('created_at',{ascending:false});
-    if(q.error){console.error('[Mentalita Glosas]',q.error);host.innerHTML=css+'<div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar as glosas.</div></div>';return;}
+    if(q.error){console.error('[Mentalita Glosas]',q.error);host.innerHTML=css+'<div class="billing-clean billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar as glosas.</div></div></div>';return;}
     const rows=q.data||[];
-    host.innerHTML=css+`<div class="billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-head"><div><h3>Glosas</h3><p>Recusas e valores não reconhecidos pelos convênios.</p></div><button class="btn" type="button" disabled>+ Registrar glosa</button></div><div class="billing-hf-list">${rows.length?rows.map(g=>`<div class="billing-hf-row"><div><strong>${money(g.amount)}</strong><div class="billing-hf-note">${esc(g.reason||'Sem motivo informado')} · ${g.guide_id?'Guia vinculada':'Sem guia'} · ${g.lot_id?'Lote vinculado':'Sem lote'}</div></div><span class="billing-hf-status">${esc(g.status==='resolved'?'Resolvida':'Em aberto')}</span></div>`).join(''):'<div class="billing-hf-empty">Nenhuma glosa registrada.</div>'}</div></div></div>`;
+    host.innerHTML=css+`<div class="billing-clean billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-head"><div><h3>Glosas</h3><p>Recusas e valores não reconhecidos pelos convênios.</p></div><button class="btn" type="button" disabled>+ Registrar glosa</button></div><div class="billing-hf-list">${rows.length?rows.map(g=>`<div class="billing-hf-row"><div><strong>${money(g.amount)}</strong><div class="billing-hf-note">${esc(g.reason||'Sem motivo informado')} · ${g.guide_id?'Guia vinculada':'Sem guia'} · ${g.lot_id?'Lote vinculado':'Sem lote'}</div></div><span class="billing-hf-status">${esc(g.status==='resolved'?'Resolvida':'Em aberto')}</span></div>`).join(''):'<div class="billing-hf-empty">Nenhuma glosa registrada.</div>'}</div></div></div>`;
   }
   async function recebimentos(host){
-    const c=S();if(!c||!C()){host.innerHTML=css+'<div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar os recebimentos.</div></div>';return;}
+    const c=S();if(!c||!C()){host.innerHTML=css+'<div class="billing-clean billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar os recebimentos.</div></div></div>';return;}
     const q=await c.from('mentalita_billing_receipts').select('id,lot_id,received_at,amount,status,reference,notes,created_at').eq('clinic_id',C()).order('received_at',{ascending:false});
-    if(q.error){console.error('[Mentalita Recebimentos]',q.error);host.innerHTML=css+'<div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar os recebimentos.</div></div>';return;}
+    if(q.error){console.error('[Mentalita Recebimentos]',q.error);host.innerHTML=css+'<div class="billing-clean billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-empty">Não foi possível carregar os recebimentos.</div></div></div>';return;}
     const rows=q.data||[];
-    host.innerHTML=css+`<div class="billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-head"><div><h3>Recebimentos</h3><p>Pagamentos recebidos dos convênios.</p></div></div><div class="billing-hf-list">${rows.length?rows.map(r=>`<div class="billing-hf-row"><div><strong>${money(r.amount)}</strong><div class="billing-hf-note">${esc(r.received_at||'—')} · ${esc(r.reference||'Sem referência')}${r.lot_id?' · Lote vinculado':''}</div></div><span class="billing-hf-status">${esc(r.status||'Recebido')}</span></div>`).join(''):'<div class="billing-hf-empty">Nenhum recebimento registrado.</div>'}</div></div></div>`;
+    host.innerHTML=css+`<div class="billing-clean billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-head"><div><h3>Recebimentos</h3><p>Pagamentos recebidos dos convênios.</p></div></div><div class="billing-hf-list">${rows.length?rows.map(r=>`<div class="billing-hf-row"><div><strong>${money(r.amount)}</strong><div class="billing-hf-note">${esc(r.received_at||'—')} · ${esc(r.reference||'Sem referência')}${r.lot_id?' · Lote vinculado':''}</div></div><span class="billing-hf-status">${esc(r.status||'Recebido')}</span></div>`).join(''):'<div class="billing-hf-empty">Nenhum recebimento registrado.</div>'}</div></div></div>`;
   }
   function renderActive(){
     const host=document.getElementById('billingWorkspace');if(!host)return;
@@ -35,7 +35,7 @@
     e.preventDefault();e.stopImmediatePropagation();
     const name=btn.dataset.billingTab;markTab(name);
     const host=document.getElementById('billingWorkspace');
-    if(name==='glosas'||name==='recebimentos'){if(host)host.innerHTML='<div class="billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-empty">Carregando…</div></div></div>';Promise.resolve(renderActive()).catch(console.error);}
+    if(name==='glosas'||name==='recebimentos'){if(host)host.innerHTML='<div class="billing-clean billing-hotfix"><div class="billing-hf-card"><div class="billing-hf-empty">Carregando…</div></div></div>';Promise.resolve(renderActive()).catch(console.error);}
     else if(window.mentalitaFaturamentoFix)window.mentalitaFaturamentoFix();
   },true);
   const boot=()=>{setTimeout(()=>{if(activeTab()==='glosas'||activeTab()==='recebimentos')renderActive();},0);};
