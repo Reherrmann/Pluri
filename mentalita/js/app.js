@@ -19,6 +19,7 @@ function renderPage() {
             case 'pacientes': html = buildPacientes(); break;
             case 'convenios': html = buildConvenios(); break;
             case 'faturamento': html = buildFaturamento(); break;
+            case 'financeiro': html = buildFinanceiro(); break;
             case 'indicadores': html = buildIndicadores(); break;
             case 'configuracoes': html = buildConfiguracoes(); break;
             default: html = buildDashboard();
@@ -31,11 +32,8 @@ function renderPage() {
     attachPageEvents();
     refreshIcons();
     updateTitleAndSubtitle(title, subtitle);
-    // A Central de Faturamento tem uma segunda etapa de renderização porque
-    // precisa consultar o Supabase depois que #billingWorkspace foi inserido.
-    if (state.currentPage === 'faturamento' && typeof window.renderFaturamento === 'function') {
-        window.renderFaturamento();
-    }
+    if (state.currentPage === 'faturamento' && typeof window.renderFaturamento === 'function') window.renderFaturamento();
+    if (state.currentPage === 'financeiro' && typeof window.renderFinanceiro === 'function') window.renderFinanceiro();
     if (state.currentPage === 'configuracoes' && typeof updateGoogleCalendarStatus === 'function') updateGoogleCalendarStatus();
 }
 
@@ -47,6 +45,7 @@ function updateTitleAndSubtitle(title, subtitle) {
         pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
         convenios: ['Convênios', 'Cadastre operadoras e planos da clínica.'],
         faturamento: ['Faturamento', 'Acompanhe guias, lotes, glosas e recebimentos.'],
+        financeiro: ['Financeiro', 'Controle receitas, despesas, contas e repasses da clínica.'],
         indicadores: ['Indicadores', 'Visão operacional da clínica.'],
         configuracoes: ['Configurações', 'Gerencie sua clínica.']
     };
@@ -78,37 +77,5 @@ function getSessionToken() {
     const session = window.PLURI_AUTH_SESSION;
     if (window.PLURI_SESSION_VALIDATED && session?.access_token) return session.access_token;
     try { const stored = JSON.parse(localStorage.getItem('pluri_session') || 'null'); if (stored?.token) return stored.token; } catch (_) {}
-    window.location.replace('/pluri-login/');
     return null;
 }
-
-function restoreMentalitaNavigation() {
-    try {
-        const saved = JSON.parse(localStorage.getItem('mentalita_navigation') || 'null');
-        if (!saved) return;
-        if (saved.page) state.currentPage = saved.page;
-        if (saved.patientRow && state.currentPage === 'pacientes') {
-            const patient = state.patients.find(p => String(p._row) === String(saved.patientRow));
-            if (patient) { state.selectedPatient = patient; state.patientSection = saved.patientSection || 'dados-pessoais'; }
-        }
-    } catch (e) { console.warn('[Mentalita] não foi possível restaurar a última tela:', e); }
-}
-
-async function init() {
-    if (window.PLURI_AUTH_READY) { try { await window.PLURI_AUTH_READY; } catch (e) { console.error('❌ Falha na autenticação:', e); return; } }
-    const pageTitle = getEl('pageTitle'); if (pageTitle) pageTitle.textContent = 'Visão Geral';
-    if (!window.pluriAPI) window.pluriAPI = new PluriAPI(PLURI_CONFIG);
-    const token = getSessionToken(); if (!token) return;
-    window.pluriAPI.setSessionToken(token);
-    try { const results = await Promise.all([window.pluriAPI.getPatients(), window.pluriAPI.getCalendarAppointments(), window.pluriAPI.getStaff(), window.pluriAPI.getClinic(), window.pluriAPI.getConversations()]); state.patients=results[0]||[];state.appointments=results[1]||[];state.staff=results[2]||[];state.clinic=results[3]||{};state.conversations=results[4]||[]; } catch (e) { console.error('❌ Erro ao carregar dados:',e);state.patients=[];state.appointments=[];state.staff=[];state.conversations=[]; }
-    restoreMentalitaNavigation(); loadTheme(); getEl('themeToggle')?.addEventListener('click', toggleTheme);
-    document.querySelectorAll('.sidebar-nav a').forEach(a => a.addEventListener('click', e => { e.preventDefault(); closeSidebar(); navigateTo(a.dataset.page); }));
-    getEl('modalClose')?.addEventListener('click', closeModal); getEl('modalCancel')?.addEventListener('click', closeModal); getEl('modalSave')?.addEventListener('click', saveAppointment); getEl('modalOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); }); getEl('slideOverlay')?.addEventListener('click', closeSlidePanel); getEl('notifBtn')?.addEventListener('click', () => showToast('Nenhuma notificação nova.'));
-    renderPage();
-    window.pluri = { navigateTo, openModal, openPatient, openStaff: typeof openStaff === 'function' ? openStaff : () => {}, showToast, editAppointment: typeof openEditAppointment === 'function' ? openEditAppointment : () => {}, deleteAppointment: deleteAppointmentById, confirmAppointment: confirmAppointmentById, openDayFromMonth };
-}
-
-async function deleteAppointmentById(id) { const appt=state.appointments.find(a=>String(a.id)===String(id));if(!appt)return;if(!confirm(`Excluir o agendamento de ${appt.patient}?`))return;const result=await window.pluriAPI.deleteAppointment(id);if(!result?.success){showToast(result?.error||'Erro ao excluir agendamento.');return;}state.appointments=await window.pluriAPI.getCalendarAppointments();renderPage();showToast('Agendamento excluído.'); }
-async function confirmAppointmentById(id,phone,patient){const appt=state.appointments.find(a=>String(a.id)===String(id));if(!appt)return;const result=await window.pluriAPI.updateAppointment({...appt,status:'Confirmado'});if(!result?.success){showToast(result?.error||'Erro ao confirmar agendamento.');return;}state.appointments=await window.pluriAPI.getCalendarAppointments();renderPage();showToast('Agendamento confirmado.');const cleanPhone=String(phone||'').replace(/\D/g,'');if(cleanPhone){const msg=encodeURIComponent(`Olá ${patient}, seu agendamento foi confirmado! ✅`);window.open(`https://wa.me/55${cleanPhone}?text=${msg}`,'_blank');}}
-
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
