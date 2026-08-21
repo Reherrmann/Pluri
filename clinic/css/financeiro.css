@@ -1,0 +1,33 @@
+/* Mentalita — Financeiro: mesma linguagem visual da Central de Faturamento */
+.financeiro-shell{display:flex;flex-direction:column;gap:16px;width:100%}
+
+/* Navegação interna: mesma linguagem do Faturamento */
+#financeiroTabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:transparent;padding:8px 0 14px;margin:4px 0 10px}
+#financeiroTabs .tab{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:#f2f4f7;color:var(--text);font-size:13px;font-weight:600;box-shadow:none;cursor:pointer;transition:all .25s ease}
+#financeiroTabs .tab:hover{background:var(--hover-bg);color:var(--primary);border-color:var(--border);transform:none}
+#financeiroTabs .tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:none}
+
+.financeiro-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-card);padding:18px}
+.financeiro-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
+.financeiro-head h3{margin:0;font-size:16px;color:var(--primary)}
+.financeiro-head p{margin:4px 0 0;color:var(--text-secondary);font-size:12px}
+
+/* Indicadores: quatro cards em linha no desktop, sem alterar componentes globais */
+#financeiroContent .cards-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#financeiroContent .cards-grid .card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);padding:16px;min-width:0}
+#financeiroContent .cards-grid .card:nth-child(5){grid-column:span 1}
+#financeiroContent .card-label{display:block;color:var(--text-secondary);font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.06em}
+#financeiroContent .card-value{display:block;font-size:22px;font-weight:700;color:var(--primary);margin-top:5px}
+#financeiroContent .card-meta{display:block;color:var(--text-secondary);font-size:12px;margin-top:4px}
+
+#financeiroContent>.card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-card);padding:18px}
+#financeiroContent>.card .section-header{margin-bottom:16px}
+#financeiroContent>.card .section-header h3{color:var(--primary);font-size:16px}
+#financeiroContent>.card .section-header p{color:var(--text-secondary);font-size:12px}
+
+/* Modais próprios do Financeiro: o JS já os insere no DOM sem a classe .show. */
+#financeRevenueModal.modal-overlay,
+#financeExpenseModal.modal-overlay{display:flex;}
+
+@media(max-width:900px){#financeiroContent .cards-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){#financeiroTabs{gap:6px;padding:8px 0 14px;margin:4px 0 10px}#financeiroTabs .tab{flex:1 1 auto;padding:8px 12px}#financeiroContent .cards-grid{grid-template-columns:1fr}}

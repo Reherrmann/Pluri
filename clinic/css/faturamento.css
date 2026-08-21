@@ -1,0 +1,54 @@
+/* Mentalita — layout da Central de Faturamento */
+#billingWorkspace{width:100%}
+.billing-shell{display:flex;flex-direction:column;gap:16px}
+.billing-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.billing-tab{border:1px solid var(--border)!important;background:var(--surface,#fff)!important;color:var(--text,#182235)!important}
+.billing-tab.active{background:#063a59!important;color:#fff!important;border-color:#063a59!important}
+.billing-card,.billing-kpi{background:var(--surface,#fff);border:1px solid var(--border);border-radius:14px}
+.billing-card{padding:18px}
+.billing-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
+.billing-head h3{margin:0;font-size:16px}
+.billing-head p{margin:4px 0 0;color:var(--text-secondary);font-size:12px}
+.billing-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.billing-kpi{padding:16px}
+.billing-kpi small{display:block;color:var(--text-secondary);font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.06em}
+.billing-kpi strong{display:block;font-size:22px;margin-top:5px}
+.billing-kpi span,.billing-note{display:block;color:var(--text-secondary);font-size:12px;margin-top:4px}
+.billing-list{border-top:1px solid var(--border)}
+.billing-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+.billing-main{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.billing-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.billing-status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#eef2f6;color:#526579;font-size:11px;font-weight:700}
+.billing-empty{padding:28px 8px;text-align:center;color:var(--text-secondary);font-size:13px}
+.billing-check{width:17px;height:17px;margin-top:2px}
+.billing-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.billing-stage{padding:15px;border:1px solid var(--border);border-radius:12px}
+.billing-stage small{color:var(--text-secondary);font-size:10px;text-transform:uppercase;font-weight:800}
+.billing-stage strong{display:block;margin-top:5px;font-size:16px}
+.billing-stage span{display:block;margin-top:3px;color:var(--text-secondary);font-size:12px}
+.billing-error{border-left:4px solid #b42318}
+.billing-error pre{white-space:pre-wrap;color:#b42318;font-size:12px}
+.billing-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.billing-field{display:flex;flex-direction:column;gap:6px}
+.billing-field.full{grid-column:1/-1}
+.billing-field label{font-size:12px;font-weight:700}
+.billing-field input,.billing-field select,.billing-field textarea{width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:9px;padding:10px;background:var(--surface,#fff);color:var(--text,#182235)}
+.billing-field textarea{min-height:76px;resize:vertical}
+.billing-form-actions{display:flex;justify-content:flex-end;gap:8px;grid-column:1/-1;margin-top:4px}
+.billing-detail{padding:12px 0 0;border-top:1px solid var(--border);margin-top:12px}
+.billing-muted{color:var(--text-secondary);font-size:12px}
+.billing-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.billing-summary div{padding:12px;border:1px solid var(--border);border-radius:10px}
+.billing-summary small{display:block;color:var(--text-secondary);font-size:10px;text-transform:uppercase;font-weight:800}
+.billing-summary strong{display:block;margin-top:4px}
+.billing-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9999}
+.billing-modal{width:min(560px,100%);background:#fff;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.billing-modal h3{margin:0}
+.billing-modal .billing-form{margin-top:16px}
+@media(max-width:700px){
+  .billing-kpis,.billing-flow,.billing-summary,.billing-form{grid-template-columns:1fr}
+  .billing-row{align-items:flex-start;flex-direction:column}
+  .billing-actions{width:100%;justify-content:flex-start}
+  .billing-field.full{grid-column:auto}
+  .billing-form-actions{grid-column:auto}
+}
