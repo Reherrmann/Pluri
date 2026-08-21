@@ -19,6 +19,7 @@ function renderPage() {
             case 'pacientes': html = buildPacientes(); break;
             case 'convenios': html = buildConvenios(); break;
             case 'faturamento': html = buildFaturamento(); break;
+            case 'financeiro': html = '<div class="card" style="padding:32px;"><h2 style="margin:0 0 8px;">Financeiro</h2><p style="margin:0;color:#667085;">Módulo financeiro em construção.</p></div>'; break;
             case 'indicadores': html = buildIndicadores(); break;
             case 'configuracoes': html = buildConfiguracoes(); break;
             default: html = buildDashboard();
@@ -43,6 +44,7 @@ function updateTitleAndSubtitle(title, subtitle) {
         pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
         convenios: ['Convênios', 'Cadastre operadoras e planos da clínica.'],
         faturamento: ['Faturamento', 'Acompanhe guias, lotes, glosas e recebimentos.'],
+        financeiro: ['Financeiro', 'Gestão financeira da clínica.'],
         indicadores: ['Indicadores', 'Visão operacional da clínica.'],
         configuracoes: ['Configurações', 'Gerencie sua clínica.']
     };
