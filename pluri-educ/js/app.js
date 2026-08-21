@@ -16,6 +16,7 @@
         calendarDate: new Date().toISOString().split('T')[0],
         calendarTab: 'today',
         calendarMonth: { year: new Date().getFullYear(), month: new Date().getMonth() },
+        calendarClassFilter: '',
         events: [],
         students: [],
         teachers: [],
@@ -52,7 +53,7 @@
     };
 
     // ======================================================
-    // PERSISTÊNCIA LOCAL — DEMO
+    // PERSISTÊNCIA LOCAL
     // ======================================================
     const STORAGE_KEY = 'pluri-educacao-demo-v1';
 
@@ -72,7 +73,7 @@
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         } catch (error) {
-            console.error('Erro ao salvar dados da demo:', error);
+            console.error('Erro ao salvar dados:', error);
         }
     }
 
@@ -82,10 +83,7 @@
             if (!raw) return false;
             const data = JSON.parse(raw);
 
-            if (data.school) {
-                state.school = { ...state.school, ...data.school };
-            }
-
+            if (data.school) state.school = { ...state.school, ...data.school };
             state.events = Array.isArray(data.events) ? data.events : [];
             state.students = Array.isArray(data.students) ? data.students : [];
             state.teachers = Array.isArray(data.teachers) ? data.teachers : [];
@@ -98,7 +96,7 @@
 
             return true;
         } catch (error) {
-            console.error('Erro ao carregar dados da demo:', error);
+            console.error('Erro ao carregar dados:', error);
             return false;
         }
     }
@@ -130,16 +128,10 @@
         }
     };
 
-    window.statusBadge = function(status) {
-        const normalizedStatus = String(status || '').trim() || 'Aguardando';
-        const cls = window.getStatusClass(normalizedStatus);
-        return `<span class="appointment-status ${cls}">${normalizedStatus}</span>`;
-    };
-
     const statusBadge = (status) => {
         let cls = '';
-        if (status === 'Ativo' || status === 'Confirmado' || status === 'Concluído' || status === 'Resolvido') cls = 'confirmed';
-        else if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo' || status === 'Matriculado') cls = 'pending';
+        if (status === 'Ativo' || status === 'Confirmado' || status === 'Concluído' || status === 'Resolvido' || status === 'Entregue') cls = 'confirmed';
+        else if (status === 'Pendente' || status === 'Aguardando' || status === 'Novo' || status === 'Matriculado' || status === 'Em andamento') cls = 'pending';
         else cls = 'cancelled';
         const dotColor = cls === 'confirmed' ? 'green' : cls === 'pending' ? 'amber' : 'red';
         return `<span class="status-badge ${cls}"><span class="status-dot ${dotColor}"></span>${status}</span>`;
@@ -199,7 +191,7 @@
         state.calendarDate = todayStr;
         state.calendarMonth = { year: today.getFullYear(), month: today.getMonth() };
 
-        // ===== PROFESSORES =====
+        // PROFESSORES
         state.teachers = [
             { _row: 1, id: 1, name: 'Prof. Carlos', subject: 'Matemática', email: 'carlos@escola.com', phone: '(11) 98765-1111', status: 'Ativo' },
             { _row: 2, id: 2, name: 'Profa. Ana', subject: 'Português', email: 'ana@escola.com', phone: '(11) 98765-2222', status: 'Ativo' },
@@ -208,7 +200,7 @@
             { _row: 5, id: 5, name: 'Profa. Juliana', subject: 'Geografia', email: 'juliana@escola.com', phone: '(11) 98765-5555', status: 'Inativo' }
         ];
 
-        // ===== TURMAS =====
+        // TURMAS
         state.classes = [
             { _row: 1, id: 1, name: '6º Ano A', grade: '6º Ano', shift: 'Manhã', teacher: 'Prof. Carlos', students: 18, year: '2026' },
             { _row: 2, id: 2, name: '6º Ano B', grade: '6º Ano', shift: 'Tarde', teacher: 'Profa. Ana', students: 16, year: '2026' },
@@ -217,7 +209,7 @@
             { _row: 5, id: 5, name: '8º Ano A', grade: '8º Ano', shift: 'Manhã', teacher: 'Profa. Ana', students: 22, year: '2026' }
         ];
 
-        // ===== ALUNOS =====
+        // ALUNOS
         state.students = [
             { _row: 1, id: 1, name: 'Ana Silva', enrollment: '20260001', class: '6º Ano A', phone: '(11) 98765-4321', email: 'ana@email.com', status: 'Ativo', birthDate: '15/03/2012', responsible: 'Maria Silva', respPhone: '(11) 91234-5678' },
             { _row: 2, id: 2, name: 'João Santos', enrollment: '20260002', class: '6º Ano A', phone: '(11) 91234-5678', email: 'joao@email.com', status: 'Ativo', birthDate: '22/07/2012', responsible: 'Carlos Santos', respPhone: '(11) 98888-9999' },
@@ -229,7 +221,7 @@
             { _row: 8, id: 8, name: 'Camila Santos', enrollment: '20260008', class: '8º Ano A', phone: '(81) 99876-7777', email: 'camila@email.com', status: 'Transferido', birthDate: '28/08/2010', responsible: 'Roberto Santos', respPhone: '(81) 92222-3333' }
         ];
 
-        // ===== EVENTOS (agenda escolar) =====
+        // EVENTOS
         const addDays = (date, days) => {
             const d = new Date(date);
             d.setDate(d.getDate() + days);
@@ -243,14 +235,12 @@
             { id: 4, time: '14:00', title: 'Prova de História', class: '7º Ano B', teacher: 'Profa. Mariana', type: 'Prova', status: 'Pendente', date: todayStr, location: 'Sala 103' },
             { id: 5, time: '15:30', title: 'Reunião de pais', class: '6º Ano A', teacher: 'Prof. Carlos', type: 'Reunião', status: 'Aguardando', date: todayStr, location: 'Auditório' },
             { id: 6, time: '08:00', title: 'Aula de Geografia', class: '8º Ano A', teacher: 'Profa. Juliana', type: 'Aula', status: 'Cancelado', date: todayStr, location: 'Sala 104' },
-            // Eventos para amanhã
             { id: 7, time: '08:00', title: 'Aula de Matemática', class: '6º Ano B', teacher: 'Prof. Carlos', type: 'Aula', status: 'Confirmado', date: addDays(today, 1), location: 'Sala 101' },
             { id: 8, time: '10:00', title: 'Prova de Português', class: '7º Ano A', teacher: 'Profa. Ana', type: 'Prova', status: 'Pendente', date: addDays(today, 1), location: 'Sala 102' },
-            // Eventos para ontem
             { id: 9, time: '09:00', title: 'Aula de História', class: '6º Ano A', teacher: 'Profa. Mariana', type: 'Aula', status: 'Concluído', date: addDays(today, -1), location: 'Sala 103' }
         ];
 
-        // ===== NOTAS =====
+        // NOTAS
         state.grades = [
             { studentId: 1, studentName: 'Ana Silva', class: '6º Ano A', subject: 'Matemática', bimester: '1º', grade: 8.5, status: 'Aprovado' },
             { studentId: 1, studentName: 'Ana Silva', class: '6º Ano A', subject: 'Português', bimester: '1º', grade: 9.0, status: 'Aprovado' },
@@ -261,7 +251,7 @@
             { studentId: 5, studentName: 'Lucas Ferreira', class: '7º Ano A', subject: 'História', bimester: '1º', grade: 3.0, status: 'Reprovado' }
         ];
 
-        // ===== FREQUÊNCIA =====
+        // FREQUÊNCIA
         state.attendances = [
             { studentId: 1, studentName: 'Ana Silva', class: '6º Ano A', date: todayStr, status: 'Presente' },
             { studentId: 2, studentName: 'João Santos', class: '6º Ano A', date: todayStr, status: 'Presente' },
@@ -270,19 +260,19 @@
             { studentId: 6, studentName: 'Beatriz Lima', class: '7º Ano B', date: todayStr, status: 'Justificada' }
         ];
 
-        // ===== OCORRÊNCIAS =====
+        // OCORRÊNCIAS
         state.occurrences = [
             { id: 1, student: 'Mariana Costa', class: '6º Ano B', date: todayStr, type: 'Disciplinar', description: 'Conversou durante a aula', status: 'Pendente' },
             { id: 2, student: 'Pedro Oliveira', class: '7º Ano A', date: todayStr, type: 'Acadêmica', description: 'Não entregou o trabalho', status: 'Resolvido' }
         ];
 
-        // ===== COMUNICADOS =====
+        // COMUNICADOS
         state.communications = [
             { id: 1, title: 'Reunião de pais - 6º Ano', to: '6º Ano A e B', date: todayStr, message: 'A reunião será amanhã às 19h.', status: 'Entregue' },
             { id: 2, title: 'Alteração no calendário de provas', to: '7º Ano A e B', date: todayStr, message: 'As provas foram adiadas para próxima semana.', status: 'Pendente' }
         ];
 
-        // ===== ATIVIDADES RECENTES =====
+        // ATIVIDADES
         state.activities = [
             { time: '10:42', text: 'Ana Silva presença registrada.' },
             { time: '10:38', text: 'Novo aluno cadastrado: Rafael Alves.' },
@@ -305,43 +295,20 @@
     }
 
     // ======================================================
-    // CARDS INSTRUÇÕES
+    // FIRST VISIT TIP
     // ======================================================
     function getFirstVisitTip(page) {
         const tips = {
-            dashboard: {
-                title: 'Bem-vindo à Visão Geral',
-                text: 'Acompanhe rapidamente o que está acontecendo na escola hoje.'
-            },
-            agenda: {
-                title: 'Como usar a Agenda',
-                text: 'Consulte os horários, filtre por turma e clique em um horário livre para criar um novo evento.'
-            },
-            alunos: {
-                title: 'Alunos',
-                text: 'Pesquise, cadastre e gerencie os alunos da escola.'
-            },
-            turmas: {
-                title: 'Turmas',
-                text: 'Gerencie turmas, professores, disciplinas e alunos.'
-            },
-            notas: {
-                title: 'Notas e Frequência',
-                text: 'Lançe notas, registre frequência e acompanhe o desempenho dos alunos.'
-            },
-            comunicacao: {
-                title: 'Comunicação',
-                text: 'Envie comunicados para turmas, professores ou responsáveis.'
-            },
-            configuracoes: {
-                title: 'Configurações',
-                text: 'Gerencie as informações e preferências da escola.'
-            }
+            dashboard: { title: 'Bem-vindo à Visão Geral', text: 'Acompanhe rapidamente o que está acontecendo na escola hoje.' },
+            agenda: { title: 'Como usar a Agenda', text: 'Consulte os horários, filtre por turma e clique em um horário livre para criar um novo evento.' },
+            alunos: { title: 'Alunos', text: 'Pesquise, cadastre e gerencie os alunos da escola.' },
+            turmas: { title: 'Turmas', text: 'Gerencie turmas, professores, disciplinas e alunos.' },
+            notas: { title: 'Notas e Frequência', text: 'Lançe notas, registre frequência e acompanhe o desempenho dos alunos.' },
+            comunicacao: { title: 'Comunicação', text: 'Envie comunicados para turmas, professores ou responsáveis.' },
+            configuracoes: { title: 'Configurações', text: 'Gerencie as informações e preferências da escola.' }
         };
-
         const tip = tips[page];
         if (!tip) return '';
-
         return `
             <div class="card" id="firstVisitTip" style="margin-bottom:16px;border-left:3px solid var(--primary-color);">
                 <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
@@ -388,9 +355,6 @@
         getEl('dismissFirstVisitTip')?.addEventListener('click', () => {
             getEl('firstVisitTip')?.remove();
         });
-        attachPageEvents();
-        refreshIcons();
-        updateTitleAndSubtitle(title, subtitle);
     }
 
     function updateTitleAndSubtitle(title, subtitle) {
@@ -421,27 +385,17 @@
     // PAGE BUILDERS
     // ======================================================
 
-    // --- Dashboard ---
+    // --- DASHBOARD ---
     function buildDashboard() {
         const today = new Date();
         const todayStr = toDateStr(today);
-
-        // Contagem de alunos ativos
         const activeStudents = state.students.filter(s => s.status === 'Ativo').length;
-
-        // Eventos de hoje
         const eventsToday = state.events.filter(e => e.date === todayStr);
         const confirmed = eventsToday.filter(e => e.status === 'Confirmado').length;
         const pending = eventsToday.filter(e => e.status === 'Pendente' || e.status === 'Aguardando').length;
-
-        // Comunicados pendentes
         const commsPending = state.communications.filter(c => c.status === 'Pendente').length;
-
-        // Ocorrências pendentes
         const occPending = state.occurrences.filter(o => o.status === 'Pendente').length;
 
-        // Dados para o gráfico da semana
-        const fakeCounts = [3, 7, 2, 8, 5, 1];
         const dayOfWeek = today.getDay();
         const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         const monday = new Date(today);
@@ -452,8 +406,7 @@
             const date = new Date(monday);
             date.setDate(monday.getDate() + i);
             const dateStr = toDateStr(date);
-            // Conta eventos por dia
-            const count = state.events.filter(e => e.date === dateStr).length || fakeCounts[i];
+            const count = state.events.filter(e => e.date === dateStr).length || 0;
             weekDays.push({ date: dateStr, count: count });
         }
 
@@ -461,7 +414,7 @@
         html += '<div class="kpi-row">';
         html += `<div class="kpi-card" data-link="alunos"><div class="kpi-value">${activeStudents}</div><div class="kpi-label">Alunos ativos</div><div class="kpi-sub">${state.students.length} total</div></div>`;
         html += `<div class="kpi-card" data-link="agenda"><div class="kpi-value">${eventsToday.length}</div><div class="kpi-label">Eventos hoje</div><div class="kpi-sub">${confirmed} confirmados</div></div>`;
-        html += `<div class="kpi-card" data-link="comunicacao"><div class="kpi-value">${commsPending}</div><div class="kpi-label">Comunicados pendentes</div><div class="kpi-sub amber">${commsPending > 0 ? 'Aguardando envio' : 'Nenhum pendente'}</div></div>`;
+        html += `<div class="kpi-card" data-link="comunicacao"><div class="kpi-value">${commsPending}</div><div class="kpi-label">Comunicados pendentes</div><div class="kpi-sub">${commsPending > 0 ? 'Aguardando envio' : 'Nenhum pendente'}</div></div>`;
         html += `<div class="kpi-card" data-link="notas"><div class="kpi-value">${occPending}</div><div class="kpi-label">Ocorrências pendentes</div><div class="kpi-sub">${occPending > 0 ? 'Precisam de ação' : 'Nenhuma pendente'}</div></div>`;
         html += '</div>';
 
@@ -506,12 +459,10 @@
         return html;
     }
 
-    // --- Agenda (Calendário Escolar) ---
+    // ======================================================
+    // AGENDA
+    // ======================================================
     function buildAgenda() {
-        if (!state || !state.events) {
-            return `<div class="card"><div class="card-body">Erro ao carregar agenda.</div></div>`;
-        }
-
         if (!state.calendarDate) state.calendarDate = new Date().toISOString().split('T')[0];
         if (!state.calendarTab) state.calendarTab = 'today';
         if (!state.calendarMonth) {
@@ -521,6 +472,7 @@
 
         const currentDate = state.calendarDate;
         const isToday = state.calendarTab === 'today';
+        const selectedClass = state.calendarClassFilter || '';
 
         const allSlots = [];
         for (let h = 7; h < 18; h++) {
@@ -529,7 +481,7 @@
             }
         }
 
-        const eventsToday = state.events.filter(a => a.date === currentDate);
+        const eventsToday = state.events.filter(a => a.date === currentDate && (!selectedClass || a.class === selectedClass));
         const grouped = {};
         eventsToday.forEach(evt => {
             const time = String(evt.time || '').trim();
@@ -537,4 +489,22 @@
             grouped[time].push(evt);
         });
 
-        const dataFormatada = new Date(currentDate +
+        const dataFormatada = new Date(currentDate + 'T00:00:00').toLocaleDateString('pt-BR', {
+            weekday: 'long', day: '2-digit', month: '2-digit'
+        });
+
+        const monthDate = new Date(state.calendarMonth.year, state.calendarMonth.month, 1);
+        let monthLabel = monthDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        monthLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+        const classOptions = state.classes.map(c => c.name);
+
+        return `
+        <div class="agenda-toolbar">
+            <div class="agenda-toolbar-left">
+                <div class="tabs" id="agendaTabs">
+                    <button class="tab ${isToday ? 'active' : ''}" data-tab="today">Hoje</button>
+                    <button class="tab ${!isToday ? 'active' : ''}" data-tab="month">Mês</button>
+                </div>
+
+                <div class="agenda-date-navigator" id="agendaDayNav"
