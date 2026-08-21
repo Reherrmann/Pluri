@@ -49,8 +49,8 @@ function buildConfiguracoes() {
                     <div id="googleDriveIntegrationStatus" class="integration-row">
                         <span>Google Drive</span><span class="integration-status pending">Verificando…</span>
                     </div>
-                    <div class="integration-row"><span>WhatsApp</span><span class="integration-status muted">Em breve...</span></div>
                     <div class="integration-row"><span>E-mail</span><span class="integration-status muted">Em breve...</span></div>
+                    <div class="integration-row"><span>WhatsApp</span><span class="integration-status muted">Em breve...</span></div>
                 </div>
             </div>
         </div>`;
@@ -81,8 +81,11 @@ async function updateGoogleCalendarStatus() {
 async function updateGoogleDriveStatus() {
     const el = document.getElementById('googleDriveIntegrationStatus');
     if (!el) return;
-    // Google Drive permanece sem conexão nesta etapa, seguindo o mesmo estado visual de integração disponível.
-    el.innerHTML = integrationStatusHtml('Google Drive', false, null);
+    // Nesta etapa, o Drive recebe a mesma apresentação do Calendar, mas a conexão real será ligada depois.
+    el.innerHTML = integrationStatusHtml('Google Drive', false, 'btnConnectDriveConfig');
+    document.getElementById('btnConnectDriveConfig')?.addEventListener('click', () => {
+        showToast('A conexão do Google Drive será configurada na próxima etapa.');
+    });
 }
 
 function openNewStaff() {
