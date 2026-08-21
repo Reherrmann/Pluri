@@ -2,7 +2,7 @@
 .financeiro-shell{display:flex;flex-direction:column;gap:16px;width:100%}
 
 /* Navegação interna: mesma linguagem do Faturamento */
-#financeiroTabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:transparent;padding:0}
+#financeiroTabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:transparent;padding:8px 0 14px;margin:4px 0 10px}
 #financeiroTabs .tab{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:#f2f4f7;color:var(--text);font-size:13px;font-weight:600;box-shadow:none;cursor:pointer;transition:all .25s ease}
 #financeiroTabs .tab:hover{background:var(--hover-bg);color:var(--primary);border-color:var(--border);transform:none}
 #financeiroTabs .tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:none}
@@ -26,4 +26,4 @@
 #financeiroContent>.card .section-header p{color:var(--text-secondary);font-size:12px}
 
 @media(max-width:900px){#financeiroContent .cards-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){#financeiroTabs{gap:6px}#financeiroTabs .tab{flex:1 1 auto;padding:8px 12px}#financeiroContent .cards-grid{grid-template-columns:1fr}}
+@media(max-width:600px){#financeiroTabs{gap:6px;padding:8px 0 14px;margin:4px 0 10px}#financeiroTabs .tab{flex:1 1 auto;padding:8px 12px}#financeiroContent .cards-grid{grid-template-columns:1fr}}
