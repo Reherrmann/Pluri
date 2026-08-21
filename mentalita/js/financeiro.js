@@ -29,4 +29,8 @@
     if(tab==='pagar'){c.innerHTML=tableCard('Contas a pagar','Acompanhe fornecedores, vencimentos e pagamentos.','',emptyTable(['Vencimento','Descrição','Fornecedor','Status','Valor'],'Nenhuma conta a pagar registrada.'));return}
     c.innerHTML=tableCard('Repasses','Controle dos repasses a profissionais e demais parceiros.','',emptyTable(['Período','Profissional','Bruto','Repasse','Status'],'Nenhum repasse registrado.'));
   }
+  function renderCurrentFinanceiro(){const c=getEl('financeiroContent');if(!c||!window.state||state.currentPage!=='financeiro'||c.dataset.rendered==='1')return;c.dataset.rendered='1';renderFinanceiroTab('overview')}
+  const pageObserver=new MutationObserver(renderCurrentFinanceiro);
+  function startObserver(){const p=getEl('pageContainer');if(p)pageObserver.observe(p,{childList:true,subtree:true});renderCurrentFinanceiro()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObserver);else startObserver();
 })();
