@@ -1,20 +1,9 @@
 // Mentalita — inicialização segura da interface
 (function(){
-  function load(src,id){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.head.appendChild(s);}
   function init(){
-    load('js/patient-profile-layout.js?v=mentalita-profile-layout-2','patientProfileLayoutScript');
-    load('js/patient-convenio-bridge.js?v=mentalita-patient-convenio-1','patientConvenioBridgeScript');
-    load('js/documentos-paciente.js?v=mentalita-patient-documents-1','patientDocumentsModuleScript');
-    load('js/prontuario-paciente.js?v=mentalita-patient-prontuario-4','patientProntuarioModuleScript');
-    load('js/prontuario-auditoria-views.js?v=mentalita-patient-prontuario-audit-views-1','patientProntuarioAuditViewsScript');
-    load('js/prontuario-pdf-enhancer.js?v=mentalita-patient-prontuario-pdf-3','patientProntuarioPdfEnhancerScript');
-    load('js/prontuario-correcoes.js?v=mentalita-patient-prontuario-correcoes-1','patientProntuarioCorrecoesScript');
-    load('js/prontuario-auditoria.js?v=mentalita-patient-prontuario-auditoria-1','patientProntuarioAuditoriaScript');
-    load('js/prontuario-anexos.js?v=mentalita-patient-prontuario-anexos-2','patientProntuarioAnexosScript');
-    load('js/financeiro-paciente.js?v=mentalita-patient-finance-1','patientFinanceModuleScript');
-    load('js/guias-tiss-paciente.js?v=mentalita-patient-tiss-2','patientTissModuleScript');
-    load('js/guias-tiss-catalogo.js?v=mentalita-tiss-catalogo-1','patientTissCatalogoScript');
-    load('js/guias-tiss-bridge.js?v=mentalita-patient-tiss-bridge-1','patientTissBridgeScript');
+    // Os módulos de ficha do paciente (prontuário, financeiro, convênios, guias TISS)
+    // agora são carregados estaticamente pelo index.html, em ordem, para evitar a
+    // condição de corrida do carregamento assíncrono anterior.
     if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();
     const h=document.getElementById('hamburgerBtn'),o=document.getElementById('sidebarOverlay'),s=document.getElementById('sidebar'),toggle=()=>{if(s)s.classList.toggle('open');if(o)o.classList.toggle('show');};
     if(h)h.addEventListener('click',toggle);if(o)o.addEventListener('click',toggle);
