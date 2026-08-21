@@ -31,6 +31,11 @@ function renderPage() {
     attachPageEvents();
     refreshIcons();
     updateTitleAndSubtitle(title, subtitle);
+    // A Central de Faturamento tem uma segunda etapa de renderização porque
+    // precisa consultar o Supabase depois que #billingWorkspace foi inserido.
+    if (state.currentPage === 'faturamento' && typeof window.renderFaturamento === 'function') {
+        window.renderFaturamento();
+    }
     if (state.currentPage === 'configuracoes' && typeof updateGoogleCalendarStatus === 'function') updateGoogleCalendarStatus();
 }
 
