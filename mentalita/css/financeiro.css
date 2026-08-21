@@ -1,0 +1,18 @@
+/* Mentalita — Financeiro: mesma linguagem visual da Central de Faturamento */
+.financeiro-shell{display:flex;flex-direction:column;gap:16px;width:100%}
+.financeiro-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.financeiro-tab{border:1px solid var(--border)!important;background:#f2f4f7!important;color:var(--text)!important;box-shadow:none!important}
+.financeiro-tab:hover{background:var(--hover-bg)!important;color:var(--primary)!important;border-color:var(--border)!important;transform:none!important}
+.financeiro-tab.active{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important}
+.financeiro-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-card);padding:18px}
+.financeiro-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
+.financeiro-head h3{margin:0;font-size:16px;color:var(--primary)}
+.financeiro-head p{margin:4px 0 0;color:var(--text-secondary);font-size:12px}
+.financeiro-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.financeiro-kpi{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm)}
+.financeiro-kpi small{display:block;color:var(--text-secondary);font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.06em}
+.financeiro-kpi strong{display:block;font-size:22px;color:var(--primary);margin-top:5px}
+.financeiro-kpi span{display:block;color:var(--text-secondary);font-size:12px;margin-top:4px}
+.financeiro-empty{padding:28px 8px;text-align:center;color:var(--text-secondary);font-size:13px}
+@media(max-width:900px){.financeiro-kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.financeiro-kpis{grid-template-columns:1fr}.financeiro-tabs{gap:6px}.financeiro-tab{flex:1 1 auto}}
