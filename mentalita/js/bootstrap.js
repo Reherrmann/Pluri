@@ -12,6 +12,8 @@
     document.addEventListener('click',e=>{const button=e.target.closest?.('.patient-profile-actions button');if(!button)return;e.preventDefault();e.stopImmediatePropagation();const patient=window.state?.selectedPatient||(typeof state!=='undefined'?state.selectedPatient:null);if(patient&&typeof window.editPatient==='function')window.editPatient(String(patient._row));},true);
     const normalize=()=>{const root=document.getElementById('mentalitaPatientProntuarioTimeline');if(!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];while(w.nextNode())nodes.push(w.currentNode);nodes.forEach(n=>n.nodeValue=n.nodeValue.replace(/\b(\d{2}\/\d{2}\/\d{4}),\s*\d{2}:\d{2}\b/g,'$1'));};
     const obs=new MutationObserver(normalize),start=()=>{const root=document.getElementById('mentalitaPatientProntuarioTimeline');if(root){obs.observe(root,{childList:true,subtree:true});normalize();return true;}return false;};if(!start()){const po=new MutationObserver(()=>{if(start())po.disconnect();});po.observe(document.body,{childList:true,subtree:true});}
+    // Faturamento usa uma folha de estilo própria para não depender de CSS injetado via innerHTML.
+    if(!document.getElementById('mentalitaFaturamentoCss')){const link=document.createElement('link');link.id='mentalitaFaturamentoCss';link.rel='stylesheet';link.href='css/faturamento.css?v=mentalita-faturamento-layout-1';document.head.appendChild(link);}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
