@@ -19,7 +19,6 @@ function renderPage() {
             case 'pacientes': html = buildPacientes(); break;
             case 'convenios': html = buildConvenios(); break;
             case 'faturamento': html = buildFaturamento(); break;
-            case 'financeiro': html = buildFinanceiro(); break;
             case 'indicadores': html = buildIndicadores(); break;
             case 'configuracoes': html = buildConfiguracoes(); break;
             default: html = buildDashboard();
@@ -33,7 +32,6 @@ function renderPage() {
     refreshIcons();
     updateTitleAndSubtitle(title, subtitle);
     if (state.currentPage === 'faturamento' && typeof window.renderFaturamento === 'function') window.renderFaturamento();
-    if (state.currentPage === 'financeiro' && typeof window.renderFinanceiro === 'function') window.renderFinanceiro();
     if (state.currentPage === 'configuracoes' && typeof updateGoogleCalendarStatus === 'function') updateGoogleCalendarStatus();
 }
 
@@ -45,7 +43,6 @@ function updateTitleAndSubtitle(title, subtitle) {
         pacientes: ['Pacientes', 'Base de pacientes da clínica.'],
         convenios: ['Convênios', 'Cadastre operadoras e planos da clínica.'],
         faturamento: ['Faturamento', 'Acompanhe guias, lotes, glosas e recebimentos.'],
-        financeiro: ['Financeiro', 'Controle receitas, despesas, contas e repasses da clínica.'],
         indicadores: ['Indicadores', 'Visão operacional da clínica.'],
         configuracoes: ['Configurações', 'Gerencie sua clínica.']
     };
