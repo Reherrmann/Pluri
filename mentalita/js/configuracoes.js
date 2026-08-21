@@ -23,7 +23,7 @@ function buildConfiguracoes() {
         <div class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
                 <h3>Equipe</h3>
-                <button class="btn btn-primary btn-sm" id="newStaffBtn"><i data-lucide="plus" style="width:14px;height:14px;"></i> Novo membro</button>
+                <button class="btn btn-primary btn-sm" id="newStaffBtn" onclick="openNewStaff()"><i data-lucide="plus" style="width:14px;height:14px;"></i> Novo membro</button>
             </div>
             <div class="card-body no-padding">
                 <table class="data-table">
@@ -49,7 +49,7 @@ function buildConfiguracoes() {
                     <div id="googleDriveIntegrationStatus" class="integration-row">
                         <span>Google Drive</span><span class="integration-status pending">Verificando…</span>
                     </div>
-                    <div class="integration-row"><span>WhatsApp</span><span class="integration-status disconnected">Desconectado</span></div>
+                    <div class="integration-row"><span>WhatsApp</span><span class="integration-status muted">Em breve...</span></div>
                     <div class="integration-row"><span>E-mail</span><span class="integration-status muted">Em breve...</span></div>
                 </div>
             </div>
@@ -81,7 +81,7 @@ async function updateGoogleCalendarStatus() {
 async function updateGoogleDriveStatus() {
     const el = document.getElementById('googleDriveIntegrationStatus');
     if (!el) return;
-    // A integração do Drive ainda não está ligada ao backend Supabase da Mentalita.
+    // Google Drive permanece sem conexão nesta etapa, seguindo o mesmo estado visual de integração disponível.
     el.innerHTML = integrationStatusHtml('Google Drive', false, null);
 }
 
@@ -168,6 +168,20 @@ async function saveClinicSettings() {
         address: getEl('clinicAddress')?.value?.trim() || '',
         hours: getEl('clinicSchedule')?.value?.trim() || ''
     };
+    const current = {
+        name: state.clinic?.name || '',
+        phone: state.clinic?.phone || '',
+        email: state.clinic?.email || '',
+        address: state.clinic?.address || '',
+        hours: state.clinic?.hours || ''
+    };
+    const changed = Object.keys(clinic).some(key => clinic[key] !== current[key]);
+    if (!changed) {
+        showToast('Nenhuma alteração para salvar.');
+        return;
+    }
+    const confirmed = confirm('Você tem certeza que deseja salvar esta correção nos dados da clínica?');
+    if (!confirmed) return;
     const result = await window.pluriAPI.updateClinic(clinic);
     if (result?.success) { state.clinic = { ...state.clinic, ...clinic }; showToast('Dados da clínica salvos.'); }
     else showToast(result?.error || 'Erro ao salvar.');
