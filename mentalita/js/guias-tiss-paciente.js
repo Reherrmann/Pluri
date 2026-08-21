@@ -186,70 +186,71 @@
     const {data,error}=await c.from('mentalita_patient_tiss_guides').insert(payload).select('*').single();
     if(error){console.error('[Mentalita TISS] guide:',error);alert('Não foi possível criar a guia.');return;}
 
-    const itemRows=draftItems.map(x=>({guide_id:data.id,procedure_id:x.procedure_id,code:x.code,description:x.description,quantity:x.quantity,unit_amount:x.unit_amount,total_amount:x.quantity*x.unit_amount}));
-    const itemResult=await c.from('mentalita_patient_tiss_items').insert(itemRows);
-    if(itemResult.error){
-      console.error('[Mentalita TISS] items:',itemResult.error);
-      await c.from('mentalita_patient_tiss_guides').delete().eq('id',data.id).eq('clinic_id',C());
-      alert('A guia não pôde ser criada porque os procedimentos não foram salvos. Nenhuma guia vazia foi mantida.');
-      return;
-    }
+    const itemRows=draftItems.map(x=>({guide_id:data.id,procedure_id:x.procedure_id,code:x.code,description:x.description,quantity:x.quantity,unit_amount:x.unit_amount,total_amount:Number(x.quantity||1)*Number(x.unit_amount||0)}));
+    const {error:itemError}=await c.from('mentalita_patient_tiss_items').insert(itemRows);
+    if(itemError){console.error('[Mentalita TISS] item:',itemError);await c.from('mentalita_patient_tiss_guides').delete().eq('id',data.id).eq('clinic_id',C());alert('A guia não pôde ser concluída porque os procedimentos não foram salvos. Nenhuma guia incompleta foi mantida.');return;}
 
     resetDraftState();
     document.getElementById('mtModal')?.remove();
-    await render();
+    await refreshAll();
   }
 
   async function openGuide(g){
     const its=await items(g.id);
-    const total=its.reduce((s,x)=>s+Number(x.total_amount||Number(x.quantity||1)*Number(x.unit_amount||0)),0);
-    if(Number(g.total_amount||0)!==total){
-      const c=S();
-      if(c&&g.id){await c.from('mentalita_patient_tiss_guides').update({total_amount:total,updated_at:new Date().toISOString()}).eq('id',g.id).eq('clinic_id',C());g.total_amount=total;}
-    }
-    const body=`<div class="mt-section" style="margin-top:0"><div class="mt-grid"><div><div class="mt-help">Paciente</div><strong>${esc(P()?.name||P()?.Nome||'Paciente')}</strong></div><div><div class="mt-help">Status</div>${statusBadge(g.status)}</div><div><div class="mt-help">Número da guia</div><strong>${esc(g.guide_number||'Não informado')}</strong></div><div><div class="mt-help">Data de execução</div><strong>${date(g.execution_date)}</strong></div></div></div><div class="mt-section"><div class="mt-section-title">Procedimentos</div>${its.length?its.map(x=>`<div class="mt-proc-row"><div><div class="mt-proc-code">${esc(x.code||'—')} · ${esc(x.description||'Procedimento')}</div><div class="mt-proc-desc">Qtd. ${esc(x.quantity||1)} · ${money(x.unit_amount)}</div></div><strong>${money(x.total_amount)}</strong></div>`).join(''):'<div class="mt-proc-empty">Nenhum procedimento.</div>'}<div style="text-align:right;font-size:18px;font-weight:800;margin-top:14px">Total ${money(total)}</div></div><div class="mt-actions"><button class="mt-btn" id="mtPrint">Imprimir / PDF</button><button class="mt-btn mt-primary" id="mtReady">${g.status==='draft'?'Fechar guia':'Fechar'}</button></div>`;
-    modal('Guia '+(g.guide_number||'sem número'),body,'Conferência da guia antes do faturamento.');
+    const total=its.reduce((s,x)=>s+(Number(x.quantity||1)*Number(x.unit_amount||0)),0);
+    const body=`<div class="mt-section"><div class="mt-grid"><div class="mt-field"><label>Número da guia</label><div>${esc(g.guide_number||'—')}</div></div><div class="mt-field"><label>Status</label><div>${statusBadge(g.status)}</div></div><div class="mt-field"><label>Data de execução</label><div>${date(g.execution_date)}</div></div><div class="mt-field"><label>Total</label><div style="font-weight:800">${money(total)}</div></div></div></div><div class="mt-section"><div class="mt-section-title">Procedimentos</div>${its.length?its.map(x=>`<div class="mt-proc-row"><div><div class="mt-proc-code">${esc(x.code)}</div><div class="mt-proc-desc">${esc(x.description)} · Qtd. ${esc(x.quantity||1)}</div></div><strong>${money(x.total_amount||Number(x.quantity||1)*Number(x.unit_amount||0))}</strong></div>`).join(''):'<div class="mt-proc-empty">Nenhum procedimento.</div>'}</div><div class="mt-actions"><button class="mt-btn" id="mtPrint">Imprimir</button>${g.status==='draft'?'<button class="mt-btn mt-primary" id="mtCloseGuide">Liberar para faturamento</button>':''}</div>`;
+    modal('Guia TISS',body,'Revise os dados antes de liberar a guia para faturamento.');
     document.getElementById('mtPrint').onclick=()=>printGuide(g,its,total);
-    document.getElementById('mtReady').onclick=()=>g.status==='draft'?closeGuide(g):document.getElementById('mtModal')?.remove();
+    document.getElementById('mtCloseGuide')?.addEventListener('click',()=>closeGuide(g));
   }
 
   async function closeGuide(g){
     const c=S();
     if(!c)return;
     const its=await items(g.id);
-    if(!its.length){alert('A guia não pode ser fechada sem pelo menos um procedimento.');return;}
-    const total=its.reduce((s,x)=>s+Number(x.total_amount||Number(x.quantity||1)*Number(x.unit_amount||0)),0);
+    const total=its.reduce((s,x)=>s+(Number(x.quantity||1)*Number(x.unit_amount||0)),0);
     const {error}=await c.from('mentalita_patient_tiss_guides').update({status:'ready',total_amount:total,updated_at:new Date().toISOString()}).eq('id',g.id).eq('clinic_id',C());
-    if(error){console.error('[Mentalita TISS] close guide:',error);alert('Não foi possível fechar a guia.');return;}
+    if(error){console.error('[Mentalita TISS] close guide:',error);alert('Não foi possível liberar a guia para faturamento.');return;}
     document.getElementById('mtModal')?.remove();
-    await render();
+    await refreshAll();
   }
 
   function printGuide(g,its,total){
-    const p=P(),w=window.open('','_blank');
+    const p=P();
+    const w=window.open('','_blank','width=900,height=700');
     if(!w)return;
-    w.document.write(`<html><head><title>Guia TISS ${esc(g.guide_number||'sem-numero')}</title><style>body{font-family:Arial,sans-serif;color:#182235;margin:42px}h1{font-size:24px;margin:4px 0 8px}.brand{font-size:11px;letter-spacing:.14em;font-weight:800;color:#123b57;border-bottom:2px solid #d9e2ea;padding-bottom:12px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.box{border:1px solid #d9e2ea;border-radius:9px;padding:12px}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{text-align:left;padding:9px;border-bottom:1px solid #d9e2ea}th{font-size:11px;text-transform:uppercase}.total{text-align:right;font-size:18px;font-weight:700;margin-top:18px}@media print{body{margin:18mm}}</style></head><body><div class="brand">MENTALITA · GUIA TISS</div><h1>Guia TISS</h1><div>Paciente: <strong>${esc(p?.name||p?.Nome||'Paciente')}</strong></div><div class="meta"><div class="box"><small>Número da guia</small><br><strong>${esc(g.guide_number||'Não informado')}</strong></div><div class="box"><small>Data de execução</small><br><strong>${date(g.execution_date)}</strong></div></div><table><thead><tr><th>Código</th><th>Procedimento</th><th>Qtd.</th><th>Valor</th><th>Total</th></tr></thead><tbody>${its.map(x=>`<tr><td>${esc(x.code||'—')}</td><td>${esc(x.description||'')}</td><td>${esc(x.quantity||1)}</td><td>${money(x.unit_amount)}</td><td>${money(x.total_amount)}</td></tr>`).join('')}</tbody></table><div class="total">Total: ${money(total)}</div><script>window.onload=()=>window.print()</script></body></html>`);
-    w.document.close();
+    w.document.write(`<html><head><title>Guia TISS ${esc(g.guide_number||'')}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#182235}h1{font-size:20px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f3f5f7}.total{text-align:right;font-size:18px;font-weight:700;margin-top:20px}</style></head><body><h1>Guia TISS</h1><p><strong>Paciente:</strong> ${esc(p?.name||'—')}</p><p><strong>Guia:</strong> ${esc(g.guide_number||'—')} &nbsp; <strong>Execução:</strong> ${date(g.execution_date)}</p><table><thead><tr><th>Código</th><th>Procedimento</th><th>Qtd.</th><th>Valor</th></tr></thead><tbody>${its.map(x=>`<tr><td>${esc(x.code)}</td><td>${esc(x.description)}</td><td>${esc(x.quantity||1)}</td><td>${money(x.total_amount||Number(x.quantity||1)*Number(x.unit_amount||0))}</td></tr>`).join('')}</tbody></table><div class="total">Total: ${money(total)}</div></body></html>`);
+    w.document.close();w.focus();w.print();
   }
 
-  async function render(){
-    const host=document.getElementById('mentalitaTissHost')||document.querySelector('[data-tiss-host]');
+  function render(rows){
+    const host=document.getElementById('mentalitaPatientTiss');
     if(!host)return;
-    const rows=await guides(),total=rows.length;
-    const counts={draft:0,ready:0,billed:0};
-    rows.forEach(g=>counts[g.status]=(counts[g.status]||0)+1);
-    host.innerHTML=`<div><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px"><div><div style="font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--text-secondary)">GUIAS TISS</div><h2 style="margin:5px 0">Guias do paciente</h2><div style="color:var(--text-secondary);font-size:13px">Registre, confira e acompanhe o atendimento para faturamento.</div></div><button class="btn btn-primary" data-new-tiss>+ Nova guia</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0"><div class="patient-info-card"><small>Total</small><strong style="display:block;font-size:22px">${total}</strong></div><div class="patient-info-card"><small>Rascunhos</small><strong style="display:block;font-size:22px">${counts.draft||0}</strong></div><div class="patient-info-card"><small>Prontas para faturamento</small><strong style="display:block;font-size:22px">${counts.ready||0}</strong></div></div><div class="patient-info-card"><h3 style="margin-top:0">Guias</h3>${rows.length?rows.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)"><div><strong>Guia ${esc(g.guide_number||'sem número')}</strong><div style="font-size:12px;color:var(--text-secondary);margin-top:4px">${date(g.execution_date)} · ${statusBadge(g.status)} · ${money(g.total_amount)}</div></div><button class="btn" data-open-tiss="${g.id}">Abrir</button></div>`).join(''):'<div style="padding:20px 0;color:var(--text-secondary)">Nenhuma guia criada.</div>'}</div></div>`;
-    host.querySelectorAll('[data-open-tiss]').forEach(b=>b.onclick=()=>openGuide(rows.find(g=>g.id===b.dataset.openTiss)));
+    host.innerHTML=`<div class="patient-section"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><h2>Guias TISS</h2><p class="section-subtitle">Guias de faturamento e comunicação com convênios deste paciente.</p></div><button class="btn btn-primary" id="mtNewGuide">+ Nova guia</button></div><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0"><div class="patient-info-card"><div style="font-size:10px;text-transform:uppercase;color:var(--text-secondary);font-weight:800">Total</div><div style="font-size:20px;font-weight:800;margin-top:5px">${rows.length}</div></div><div class="patient-info-card"><div style="font-size:10px;text-transform:uppercase;color:var(--text-secondary);font-weight:800">Rascunhos</div><div style="font-size:20px;font-weight:800;margin-top:5px">${rows.filter(r=>r.status==='draft').length}</div></div><div class="patient-info-card"><div style="font-size:10px;text-transform:uppercase;color:var(--text-secondary);font-weight:800">Prontas para faturamento</div><div style="font-size:20px;font-weight:800;margin-top:5px">${rows.filter(r=>r.status==='ready').length}</div></div></div><div class="patient-info-card" style="padding:0;overflow:hidden"><div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:800">Guias</div>${rows.length?rows.map(r=>`<div style="padding:15px 16px;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><div style="font-weight:800">${esc(r.guide_number||'Guia sem número')}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${esc(r.guide_type||r.type||'consulta')} · criada em ${date(String(r.created_at||'').slice(0,10))}</div><div style="font-size:12px;margin-top:7px">${r.execution_date?'Execução: '+date(r.execution_date):'Data de execução não informada'}</div></div><div style="text-align:right">${statusBadge(r.status)}<div style="font-weight:800;margin-top:8px">${money(r.total_amount||r.total_value||0)}</div></div></div><div style="display:flex;justify-content:flex-end;margin-top:10px"><button type="button" class="btn mtOpenGuide" data-id="${esc(r.id)}">Abrir</button></div></div>`).join(''):'<div style="padding:30px;text-align:center"><div style="font-weight:800">Nenhuma guia TISS</div><p style="color:var(--text-secondary);font-size:12px">Crie uma guia quando houver um atendimento que será faturado pelo convênio.</p></div>'}</div></div>`;
+    host.querySelector('#mtNewGuide').onclick=()=>newGuide(true);
+    host.querySelectorAll('.mtOpenGuide').forEach(b=>b.onclick=()=>openGuide(rows.find(g=>g.id===b.dataset.id)));
+  }
+
+  async function refreshAll(){
+    const rows=await guides();
+    render(rows);
+    if(typeof window.renderMentalitaTissBridge==='function')await window.renderMentalitaTissBridge();
+  }
+
+  async function refresh(){
+    const rows=await guides();
+    render(rows);
   }
 
   function install(){
     window.__mentalitaGuiasTissInstalled=true;
     document.addEventListener('click',e=>{
       const b=e.target.closest?.('[data-new-tiss]');
-      if(b){e.preventDefault();newGuide(true);}
+      if(!b)return;
+      e.preventDefault();
+      newGuide(true);
     });
+    window.renderMentalitaTiss=refresh;
   }
-
   install();
-  window.renderMentalitaTiss=render;
 })();
