@@ -25,5 +25,9 @@
 #financeiroContent>.card .section-header h3{color:var(--primary);font-size:16px}
 #financeiroContent>.card .section-header p{color:var(--text-secondary);font-size:12px}
 
+/* Modais próprios do Financeiro: o JS já os insere no DOM sem a classe .show. */
+#financeRevenueModal.modal-overlay,
+#financeExpenseModal.modal-overlay{display:flex;}
+
 @media(max-width:900px){#financeiroContent .cards-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){#financeiroTabs{gap:6px;padding:8px 0 14px;margin:4px 0 10px}#financeiroTabs .tab{flex:1 1 auto;padding:8px 12px}#financeiroContent .cards-grid{grid-template-columns:1fr}}
