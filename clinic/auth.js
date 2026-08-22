@@ -1,5 +1,5 @@
 // Autenticação da Clinic via Supabase.
-// O login é centralizado em /pluri-login/ e este arquivo preserva a rota da Clinic.
+// O login é centralizado em /pluri-login/ e esta aplicação sempre retorna para /clinic/.
 const SUPABASE_URL = 'https://nsvdyewfnkulrwvzviqi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nGSbNQ4Pbpkg2trgWaQuZA_Mu-TpHY';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -12,29 +12,29 @@ function goToClinicLogin() {
 
 window.PLURI_AUTH_READY = (async () => {
   try {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
-    if (error || !session) throw new Error('Sessão não encontrada.');
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError || !session) throw new Error('Sessão não encontrada.');
 
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('clinic_name, platform_slug')
-      .eq('id', session.user.id)
-      .single();
-    if (profileError || !profile) throw new Error('Usuário sem clínica vinculada.');
-
-    // Nesta fase a Clinic reutiliza o tenant atual para validar RLS e preservar os dados.
-    // A identidade da implantação é controlada pela rota /clinic/; a separação física do tenant
-    // será feita posteriormente no Supabase, sem misturar dados no processo de migração.
     const { data: clinic, error: clinicError } = await supabaseClient
       .from('clinic_clinics')
       .select('id,name,slug')
-      .eq('slug', profile.platform_slug || 'mentalita')
+      .eq('slug', 'clinic')
       .single();
-    if (clinicError || !clinic) throw new Error('Clínica não encontrada para este usuário.');
+    if (clinicError || !clinic) throw new Error('Clínica da Clinic não encontrada.');
+
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('id,clinic_name,platform_slug')
+      .eq('id', session.user.id)
+      .maybeSingle();
 
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
-    window.PLURI_PROFILE = profile;
+    window.PLURI_PROFILE = profile || {
+      id: session.user.id,
+      clinic_name: clinic.name,
+      platform_slug: 'clinic'
+    };
     window.PLURI_CLINIC = clinic;
     window.PLURI_SESSION_VALIDATED = true;
 
@@ -46,14 +46,14 @@ window.PLURI_AUTH_READY = (async () => {
         email: session.user.email,
         nome: session.user.user_metadata?.nome || session.user.user_metadata?.name || session.user.email,
         perfil: session.user.user_metadata?.perfil || 'Usuário',
-        clinica: clinic.name || profile.clinic_name || 'Clinic',
+        clinica: clinic.name || 'Clinic',
         clinicaSlug: 'clinic'
       },
       loggedAt: new Date().toISOString()
     }));
-    return { session, profile, clinic };
+    return { session, profile: window.PLURI_PROFILE, clinic };
   } catch (err) {
-    console.error('Falha na autenticação Supabase:', err);
+    console.error('Falha na autenticação da Clinic:', err);
     localStorage.removeItem('pluri_session');
     goToClinicLogin();
     throw err;
