@@ -1,8 +1,14 @@
 // Autenticação da Clinic via Supabase.
-// O login é centralizado em /pluri-login/ e este arquivo apenas valida a sessão.
+// O login é centralizado em /pluri-login/ e este arquivo preserva a rota da Clinic.
 const SUPABASE_URL = 'https://nsvdyewfnkulrwvzviqi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nGSbNQ4Pbpkg2trgWaQuZA_Mu-TpHY';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const CLINIC_LOGIN_URL = '/pluri-login/?next=%2Fclinic%2F';
+
+function goToClinicLogin() {
+  try { sessionStorage.setItem('pluri_login_return', '/clinic/'); } catch (_) {}
+  window.location.replace(CLINIC_LOGIN_URL);
+}
 
 window.PLURI_AUTH_READY = (async () => {
   try {
@@ -19,9 +25,9 @@ window.PLURI_AUTH_READY = (async () => {
     const { data: clinic, error: clinicError } = await supabaseClient
       .from('clinic_clinics')
       .select('id,name,slug')
-      .eq('slug', profile.platform_slug)
+      .eq('slug', 'clinic')
       .single();
-    if (clinicError || !clinic) throw new Error('Clínica não encontrada.');
+    if (clinicError || !clinic) throw new Error('Clínica Clinic não encontrada.');
 
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
@@ -37,8 +43,8 @@ window.PLURI_AUTH_READY = (async () => {
         email: session.user.email,
         nome: session.user.user_metadata?.nome || session.user.user_metadata?.name || session.user.email,
         perfil: session.user.user_metadata?.perfil || 'Usuário',
-        clinica: profile.clinic_name || clinic.name,
-        clinicaSlug: profile.platform_slug || clinic.slug
+        clinica: clinic.name || profile.clinic_name || 'Clinic',
+        clinicaSlug: 'clinic'
       },
       loggedAt: new Date().toISOString()
     }));
@@ -46,7 +52,7 @@ window.PLURI_AUTH_READY = (async () => {
   } catch (err) {
     console.error('Falha na autenticação Supabase:', err);
     localStorage.removeItem('pluri_session');
-    window.location.replace('/pluri-login/?next=%2Fclinic%2F');
+    goToClinicLogin();
     throw err;
   }
 })();
@@ -55,6 +61,6 @@ window.PLURI_LOGOUT = async function () {
   try { await supabaseClient.auth.signOut(); }
   finally {
     localStorage.removeItem('pluri_session');
-    window.location.replace('/pluri-login/?next=%2Fclinic%2F');
+    goToClinicLogin();
   }
 };
