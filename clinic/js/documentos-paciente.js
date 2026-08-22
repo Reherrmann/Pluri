@@ -1,10 +1,10 @@
-// Mentalita — estrutura da aba Documentos do paciente.
+// Clinic — estrutura da aba Documentos do paciente.
 // Inspirada no PLURI OS, que usa o Google Drive da clínica para armazenar os arquivos.
 // Nesta etapa a integração real ainda não é executada.
-(function installMentalitaPatientDocuments(){
+(function installClinicPatientDocuments(){
   function escape(value){
     if(typeof patientEscape==='function') return patientEscape(value);
-    return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;');
   }
 
   function renderPatientDocumentsSection(patient){
@@ -15,7 +15,7 @@
           <h2 style="margin-bottom:4px;">Documentos</h2>
           <p style="margin:0;color:var(--text-secondary);font-size:13px;">Arquivos armazenados no Google Drive da clínica.</p>
         </div>
-        <button class="btn btn-primary" type="button" id="mentalitaPatientAddDocumentBtn">
+        <button class="btn btn-primary" type="button" id="clinicPatientAddDocumentBtn">
           <i data-lucide="upload" style="width:16px;height:16px;"></i>
           Adicionar documento
         </button>
@@ -33,7 +33,7 @@
         </div>
       </div>
 
-      <div id="mentalitaPatientDocumentsList" class="patient-info-card">
+      <div id="clinicPatientDocumentsList" class="patient-info-card">
         <div style="padding:42px 24px;text-align:center;">
           <div style="width:48px;height:48px;margin:0 auto 14px;border-radius:12px;background:var(--hover-bg);display:flex;align-items:center;justify-content:center;">
             <i data-lucide="folder-open" style="width:22px;height:22px;color:var(--text-secondary);"></i>
@@ -46,18 +46,16 @@
   }
 
   function bindDocumentsStructure(patient){
-    const button=document.getElementById('mentalitaPatientAddDocumentBtn');
+    const button=document.getElementById('clinicPatientAddDocumentBtn');
     if(!button || !patient || button.dataset.bound==='true') return;
     button.dataset.bound='true';
     button.addEventListener('click',function(){
-      // Estrutura preparada para a futura chamada ao Google Drive.
-      // O upload real será conectado depois, usando a mesma autorização do Calendar.
       if(typeof showToast==='function') showToast('A integração com o Google Drive será ativada nesta próxima etapa.');
     });
   }
 
   function install(){
-    if(window.__mentalitaPatientDocumentsInstalled) return;
+    if(window.__clinicPatientDocumentsInstalled) return;
     if(typeof window.renderPatientSectionContent!=='function'){
       setTimeout(install,100);
       return;
@@ -78,7 +76,7 @@
     };
 
     window.renderPatientDocuments=renderPatientDocumentsSection;
-    window.__mentalitaPatientDocumentsInstalled=true;
+    window.__clinicPatientDocumentsInstalled=true;
 
     const patient=window.state?.selectedPatient || (typeof state!=='undefined' ? state.selectedPatient : null);
     if(patient && window.state?.patientSection==='documentos' && typeof window.renderPatientProfile==='function'){
