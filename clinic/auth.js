@@ -1,4 +1,4 @@
-// Autenticação da Mentalita via Supabase.
+// Autenticação da Clinic via Supabase.
 // O login é centralizado em /pluri-login/ e este arquivo apenas valida a sessão.
 const SUPABASE_URL = 'https://nsvdyewfnkulrwvzviqi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nGSbNQ4Pbpkg2trgWaQuZA_MuT-TpHY';
@@ -14,16 +14,16 @@ window.PLURI_AUTH_READY = (async () => {
       .select('clinic_name, platform_slug')
       .eq('id', session.user.id)
       .single();
-    if (profileError || !profile || profile.platform_slug !== 'mentalita') {
-      throw new Error('Usuário sem acesso à plataforma Mentalita.');
+    if (profileError || !profile || profile.platform_slug !== 'clinic') {
+      throw new Error('Usuário sem acesso à plataforma Clinic.');
     }
 
     const { data: clinic, error: clinicError } = await supabaseClient
-      .from('mentalita_clinics')
+      .from('clinic_clinics')
       .select('id,name,slug')
       .eq('slug', profile.platform_slug)
       .single();
-    if (clinicError || !clinic) throw new Error('Clínica Mentalita não encontrada.');
+    if (clinicError || !clinic) throw new Error('Clínica Clinic não encontrada.');
 
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
