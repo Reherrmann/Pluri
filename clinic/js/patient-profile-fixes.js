@@ -1,4 +1,4 @@
-// Ajustes finos da visualização da ficha — somente Mentalita.
+// Ajustes finos da visualização da ficha — somente Clinic.
 (function () {
   function formatBrazilianDate(value) {
     const text = String(value || '').trim();
@@ -18,10 +18,7 @@
       if (!label || !value) return;
       const normalized = label.textContent.trim().toUpperCase();
       if (normalized !== 'DATA DE CADASTRO' && normalized !== 'DATA DE NASCIMENTO') return;
-
       const formatted = formatBrazilianDate(value.textContent);
-      // Evita escrever o mesmo valor novamente: isso impede que o MutationObserver
-      // dispare a si próprio em ciclo infinito.
       if (value.textContent.trim() !== formatted) value.textContent = formatted;
     });
   }
@@ -36,11 +33,10 @@
   const start = () => {
     apply();
     const container = document.getElementById('pageContainer');
-    if (!container || window.__MENTALITA_PROFILE_DATE_OBSERVER__) return;
-
+    if (!container || window.__CLINIC_PROFILE_DATE_OBSERVER__) return;
     const observer = new MutationObserver(apply);
     observer.observe(container, { childList: true, subtree: true });
-    window.__MENTALITA_PROFILE_DATE_OBSERVER__ = observer;
+    window.__CLINIC_PROFILE_DATE_OBSERVER__ = observer;
   };
 
   if (document.readyState === 'loading') {
