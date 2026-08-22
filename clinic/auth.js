@@ -30,13 +30,11 @@ window.PLURI_AUTH_READY = (async () => {
     const session = await getSessionWithRetry();
     const profile = { id: session.user.id, clinic_name: 'Clinic', platform_slug: 'clinic' };
     const clinic = { id: CLINIC_ID, name: 'Clinic', slug: 'clinic' };
-
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
     window.PLURI_PROFILE = profile;
     window.PLURI_CLINIC = clinic;
     window.PLURI_SESSION_VALIDATED = true;
-
     localStorage.setItem('pluri_session', JSON.stringify({
       token: session.access_token,
       expiraEm: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
