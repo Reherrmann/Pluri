@@ -10,7 +10,7 @@ function closeSidebar() {
 function navigateTo(page) {
     state.currentPage = page;
     try {
-        localStorage.setItem('mentalita_navigation', JSON.stringify({ page, patientRow: null, patientSection: null }));
+        localStorage.setItem('clinic_navigation', JSON.stringify({ page, patientRow: null, patientSection: null }));
     } catch (_) {}
 
     document
