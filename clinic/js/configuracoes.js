@@ -1,4 +1,4 @@
-// js/configuracoes.js — configurações da Mentalita via Supabase
+// js/configuracoes.js — configurações da Clinic via Supabase
 
 function buildConfiguracoes() {
     return `
@@ -81,7 +81,6 @@ async function updateGoogleCalendarStatus() {
 async function updateGoogleDriveStatus() {
     const el = document.getElementById('googleDriveIntegrationStatus');
     if (!el) return;
-    // Nesta etapa, o Drive recebe a mesma apresentação do Calendar, mas a conexão real será ligada depois.
     el.innerHTML = integrationStatusHtml('Google Drive', false, 'btnConnectDriveConfig');
     document.getElementById('btnConnectDriveConfig')?.addEventListener('click', () => {
         showToast('A conexão do Google Drive será configurada na próxima etapa.');
