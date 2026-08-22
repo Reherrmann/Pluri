@@ -1,7 +1,7 @@
 // Autenticação da Clinic via Supabase.
 // O login é centralizado em /pluri-login/ e este arquivo apenas valida a sessão.
 const SUPABASE_URL = 'https://nsvdyewfnkulrwvzviqi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_nGSbNQ4Pbpkg2trgWaQuZA_MuT-TpHY';
+const SUPABASE_KEY = 'sb_publishable_nGSbNQ4Pbpkg2trgWaQuZA_Mu-TpHY';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 window.PLURI_AUTH_READY = (async () => {
@@ -14,16 +14,14 @@ window.PLURI_AUTH_READY = (async () => {
       .select('clinic_name, platform_slug')
       .eq('id', session.user.id)
       .single();
-    if (profileError || !profile || profile.platform_slug !== 'clinic') {
-      throw new Error('Usuário sem acesso à plataforma Clinic.');
-    }
+    if (profileError || !profile) throw new Error('Usuário sem clínica vinculada.');
 
     const { data: clinic, error: clinicError } = await supabaseClient
       .from('clinic_clinics')
       .select('id,name,slug')
       .eq('slug', profile.platform_slug)
       .single();
-    if (clinicError || !clinic) throw new Error('Clínica Clinic não encontrada.');
+    if (clinicError || !clinic) throw new Error('Clínica não encontrada.');
 
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
@@ -39,8 +37,8 @@ window.PLURI_AUTH_READY = (async () => {
         email: session.user.email,
         nome: session.user.user_metadata?.nome || session.user.user_metadata?.name || session.user.email,
         perfil: session.user.user_metadata?.perfil || 'Usuário',
-        clinica: profile.clinic_name,
-        clinicaSlug: profile.platform_slug
+        clinica: profile.clinic_name || clinic.name,
+        clinicaSlug: profile.platform_slug || clinic.slug
       },
       loggedAt: new Date().toISOString()
     }));
