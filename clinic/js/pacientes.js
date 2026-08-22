@@ -1,4 +1,4 @@
-// js/pacientes.js — Pacientes + ficha em abas no padrão PLURI OS.
+// js/pacientes.js — Pacientes + ficha em abas no padrão Clinic.
 
 function ensurePatientProfileStyles() {
     if (document.getElementById('patientProfileStyles')) return;
@@ -66,7 +66,7 @@ function openPatient(row) {
     state.currentPage = 'pacientes';
     state.selectedPatient = p;
     state.patientSection = 'dados-pessoais';
-    try { localStorage.setItem('mentalita_navigation', JSON.stringify({ page:'pacientes', patientRow:String(row), patientSection:'dados-pessoais' })); } catch (_) {}
+    try { localStorage.setItem('clinic_navigation', JSON.stringify({ page:'pacientes', patientRow:String(row), patientSection:'dados-pessoais' })); } catch (_) {}
     renderPatientProfile();
 }
 
@@ -122,8 +122,8 @@ function patientSectionNav(key, label, icon, active) {
 function openPatientSection(section) {
     state.patientSection = section;
     try {
-        const saved = JSON.parse(localStorage.getItem('mentalita_navigation') || '{}');
-        localStorage.setItem('mentalita_navigation', JSON.stringify({ page:'pacientes', patientRow: state.selectedPatient?._row || saved.patientRow || null, patientSection:section }));
+        const saved = JSON.parse(localStorage.getItem('clinic_navigation') || '{}');
+        localStorage.setItem('clinic_navigation', JSON.stringify({ page:'pacientes', patientRow: state.selectedPatient?._row || saved.patientRow || null, patientSection:section }));
     } catch (_) {}
     renderPatientProfile();
 }
@@ -135,7 +135,7 @@ function renderPatientSectionContent(section) {
         case 'dados-pessoais': return renderDadosPessoais(p);
         case 'prontuario': return renderProntuarioPaciente(p);
         case 'documentos': return renderPatientEmpty('Documentos', 'Os documentos deste paciente aparecerão aqui.', 'Adicionar documento');
-        case 'convenios': return renderPatientEmpty('Convênios', 'A área está preparada para receber o vínculo de convênio e plano da ficha do PLURI OS.', 'Adicionar convênio');
+        case 'convenios': return renderPatientEmpty('Convênios', 'A área está preparada para receber o vínculo de convênio e plano da ficha do Clinic.', 'Adicionar convênio');
         case 'agendamentos': return renderPatientAppointments(p);
         case 'financeiro': return renderPatientEmpty('Financeiro', 'A área financeira do paciente está preparada para a próxima integração com o Supabase.', null);
         case 'guias-tiss': return renderPatientEmpty('Guias TISS', 'As guias TISS do paciente aparecerão aqui.', 'Nova guia');
@@ -210,7 +210,7 @@ function renderPatientEmpty(title, subtitle, buttonText) {
 function voltarParaLista() {
     state.selectedPatient = null;
     state.patientSection = 'dados-pessoais';
-    try { localStorage.setItem('mentalita_navigation', JSON.stringify({ page:'pacientes', patientRow:null, patientSection:null })); } catch (_) {}
+    try { localStorage.setItem('clinic_navigation', JSON.stringify({ page:'pacientes', patientRow:null, patientSection:null })); } catch (_) {}
     renderPage();
 }
 
@@ -285,7 +285,7 @@ function editPatient(row) {
         }
     });
     getEl('deletePatientBtn')?.addEventListener('click', async () => {
-        if (!window.confirm(`Tem certeza que deseja excluir o paciente "${p.name}"?`)) return;
+        if (!window.confirm(`Tem certeza que deseja excluir o paciente \"${p.name}\"?`)) return;
         const button = getEl('deletePatientBtn');
         if (button) { button.disabled = true; button.textContent = 'Excluindo...'; }
         try {
