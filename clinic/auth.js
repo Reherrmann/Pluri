@@ -46,7 +46,7 @@ window.PLURI_AUTH_READY = (async () => {
   } catch (err) {
     console.error('Falha na autenticação Supabase:', err);
     localStorage.removeItem('pluri_session');
-    window.location.replace('/pluri-login/');
+    window.location.replace('/pluri-login/?next=%2Fclinic%2F');
     throw err;
   }
 })();
@@ -55,6 +55,6 @@ window.PLURI_LOGOUT = async function () {
   try { await supabaseClient.auth.signOut(); }
   finally {
     localStorage.removeItem('pluri_session');
-    window.location.replace('/pluri-login/');
+    window.location.replace('/pluri-login/?next=%2Fclinic%2F');
   }
 };
