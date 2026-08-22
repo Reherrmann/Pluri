@@ -22,12 +22,15 @@ window.PLURI_AUTH_READY = (async () => {
       .single();
     if (profileError || !profile) throw new Error('Usuário sem clínica vinculada.');
 
+    // Nesta fase a Clinic reutiliza o tenant atual para validar RLS e preservar os dados.
+    // A identidade da implantação é controlada pela rota /clinic/; a separação física do tenant
+    // será feita posteriormente no Supabase, sem misturar dados no processo de migração.
     const { data: clinic, error: clinicError } = await supabaseClient
       .from('clinic_clinics')
       .select('id,name,slug')
-      .eq('slug', 'clinic')
+      .eq('slug', profile.platform_slug || 'mentalita')
       .single();
-    if (clinicError || !clinic) throw new Error('Clínica Clinic não encontrada.');
+    if (clinicError || !clinic) throw new Error('Clínica não encontrada para este usuário.');
 
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
