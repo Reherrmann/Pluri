@@ -1,7 +1,7 @@
-// Mentalita — integra o módulo de convênios do paciente ao renderizador da ficha.
-(function installPatientConvenioBridge(){
+// Clinic — integra o módulo de convênios do paciente ao renderizador da ficha.
+(function installClinicPatientConvenioBridge(){
   function install(){
-    if(window.__mentalitaPatientConvenioBridgeInstalled) return;
+    if(window.__clinicPatientConvenioBridgeInstalled) return;
     if(typeof window.renderPatientSectionContent !== 'function' || typeof window.renderPatientConvenioSection !== 'function'){
       setTimeout(install,100);
       return;
@@ -22,7 +22,7 @@
       }
       return original.apply(this,arguments);
     };
-    window.__mentalitaPatientConvenioBridgeInstalled=true;
+    window.__clinicPatientConvenioBridgeInstalled=true;
     const patient=window.state?.selectedPatient || (typeof state !== 'undefined' ? state.selectedPatient : null);
     if(patient && window.state?.patientSection==='convenios' && typeof window.renderPatientProfile==='function'){
       window.renderPatientProfile();
