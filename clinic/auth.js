@@ -6,9 +6,12 @@ const CLINIC_ID = 'f0b721ad-6704-4097-9fe5-0cdff9575a4b';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const CLINIC_LOGIN_URL = '/pluri-login/?next=%2Fclinic%2F';
 
-function goToClinicLogin() {
-  try { sessionStorage.setItem('pluri_login_return', '/clinic/'); } catch (_) {}
-  window.location.replace(CLINIC_LOGIN_URL);
+function showClinicAuthError(err) {
+  const message = err?.message || String(err || 'Erro desconhecido');
+  console.error('Falha na autenticação da Clinic:', err);
+  document.body.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#f6f8fb;font-family:Inter,system-ui,-apple-system,sans-serif"><div style="width:min(720px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px;box-shadow:0 8px 30px rgba(0,0,0,.06)"><div style="font-size:12px;font-weight:800;letter-spacing:.08em;color:#b42318;text-transform:uppercase">Falha ao entrar na Clinic</div><h1 style="margin:8px 0;color:#002c47;font-size:24px">A sessão não pôde ser carregada.</h1><p style="color:#667085;line-height:1.5">O erro abaixo foi preservado para diagnóstico e a Clinic não fará um redirecionamento automático.</p><pre style="white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:16px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#344054">${message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre><div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap"><button id="clinicRetry" style="border:1px solid #002c47;border-radius:999px;background:#002c47;color:#fff;padding:10px 18px;font-weight:700;cursor:pointer">Tentar novamente</button><button id="clinicLogin" style="border:1px solid #d0d5dd;border-radius:999px;background:#fff;color:#344054;padding:10px 18px;font-weight:700;cursor:pointer">Voltar ao login</button></div></div></div>`;
+  document.getElementById('clinicRetry')?.addEventListener('click',()=>location.reload());
+  document.getElementById('clinicLogin')?.addEventListener('click',()=>{try{sessionStorage.setItem('pluri_login_return','/clinic/')}catch(_){}location.replace(CLINIC_LOGIN_URL)});
 }
 
 async function getSessionWithRetry() {
@@ -49,9 +52,8 @@ window.PLURI_AUTH_READY = (async () => {
     }));
     return { session, profile, clinic };
   } catch (err) {
-    console.error('Falha na autenticação da Clinic:', err);
     localStorage.removeItem('pluri_session');
-    goToClinicLogin();
+    showClinicAuthError(err);
     throw err;
   }
 })();
@@ -60,6 +62,7 @@ window.PLURI_LOGOUT = async function () {
   try { await supabaseClient.auth.signOut(); }
   finally {
     localStorage.removeItem('pluri_session');
-    goToClinicLogin();
+    try { sessionStorage.setItem('pluri_login_return','/clinic/'); } catch (_) {}
+    location.replace(CLINIC_LOGIN_URL);
   }
 };
