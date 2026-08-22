@@ -11,25 +11,22 @@ function goToClinicLogin() {
   window.location.replace(CLINIC_LOGIN_URL);
 }
 
+async function getSessionWithRetry() {
+  let lastError = null;
+  for (let i = 0; i < 6; i += 1) {
+    const result = await supabaseClient.auth.getSession();
+    if (result.data?.session) return result.data.session;
+    lastError = result.error || new Error('Sessão ainda não disponível.');
+    await new Promise(resolve => setTimeout(resolve, 350));
+  }
+  throw lastError || new Error('Sessão não encontrada.');
+}
+
 window.PLURI_AUTH_READY = (async () => {
   try {
-    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-    if (sessionError || !session) throw new Error('Sessão não encontrada.');
-
-    // A Clinic usa uma identidade fixa nesta implantação; a autorização real continua sendo
-    // controlada pelo Supabase/RLS sobre o usuário autenticado.
-    const profileResult = await supabaseClient
-      .from('profiles')
-      .select('id,clinic_name,platform_slug')
-      .eq('id', session.user.id)
-      .maybeSingle();
-
+    const session = await getSessionWithRetry();
+    const profile = { id: session.user.id, clinic_name: 'Clinic', platform_slug: 'clinic' };
     const clinic = { id: CLINIC_ID, name: 'Clinic', slug: 'clinic' };
-    const profile = profileResult.data || {
-      id: session.user.id,
-      clinic_name: 'Clinic',
-      platform_slug: 'clinic'
-    };
 
     window.PLURI_SUPABASE = supabaseClient;
     window.PLURI_AUTH_SESSION = session;
